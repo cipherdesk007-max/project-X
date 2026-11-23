@@ -13,7 +13,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import audit, config, connectors, credits, db, google, news, registration
+from . import audit, catalog, config, connectors, credits, db, google, news, pricing, registration
 from .errors import ApiError
 
 TOLERANCE = 300
@@ -30,7 +30,7 @@ def price_for(package_id):
 
 def status(tenant):
     ready = bool(config.get("STRIPE_SECRET_KEY") and config.get("STRIPE_WEBHOOK_SECRET"))
-    return {"enabled": ready and bool(price_for(tenant["package_id"])), "subscribed": bool(tenant.get("stripe_subscription")),
+    return {"enabled": ready and bool(price_for(tenant["package_id"]) or pricing.configured(tenant["package_id"])), "subscribed": bool(tenant.get("stripe_subscription")),
             "paid_until": tenant.get("paid_until") or "", "payment_failed": bool(tenant.get("payment_failed_at")),
             "cancel_at": tenant.get("stripe_cancel_at") or "",
             "portal": bool(config.get("STRIPE_SECRET_KEY") and tenant.get("stripe_customer"))}
@@ -142,10 +142,17 @@ def checkout(con, tenant, user):
     if not status(tenant)["enabled"]:
         raise ApiError(400, "Il pagamento con carta non è attivo: il gestore deve inserire le chiavi di Stripe e il prezzo del tuo pacchetto.")
     base = google.public_url()
-    form = {"mode": "subscription", "line_items[0][price]": price_for(tenant["package_id"]), "line_items[0][quantity]": "1",
+    q = pricing.quote(con, tenant)
+    form = {"mode": "subscription", "line_items[0][quantity]": "1",
             "success_url": base + "/#pagamento-ok", "cancel_url": base + "/#pagamento-annullato",
             "client_reference_id": str(tenant["id"]), "metadata[tenant_id]": str(tenant["id"]),
             "subscription_data[metadata][tenant_id]": str(tenant["id"])}
+    if q["configured"] and q["cents"] > 0:  # prezzo deciso nel pannello: lo si passa a Stripe così com'è, senza prezzi creati a mano
+        form.update({"line_items[0][price_data][currency]": q["currency"], "line_items[0][price_data][unit_amount]": str(q["cents"]),
+                     "line_items[0][price_data][recurring][interval]": "month",
+                     "line_items[0][price_data][product_data][name]": "Alvea " + catalog.package(tenant["package_id"])["name"]})
+    else:
+        form["line_items[0][price]"] = price_for(tenant["package_id"])
     if tenant.get("stripe_customer"):
         form["customer"] = tenant["stripe_customer"]
     else:
@@ -155,11 +162,40 @@ def checkout(con, tenant, user):
                                        headers={"Authorization": "Bearer " + config.get("STRIPE_SECRET_KEY")}, form=form)
     except connectors.ConnectorError as e:
         raise ApiError(502, "Stripe non ha creato il pagamento: %s" % str(e)[:200])
+    con.execute("UPDATE tenants SET stripe_amount=? WHERE id=?", (q["cents"] if q["configured"] else 0, tenant["id"]))
     url = str(session.get("url") or "")
     if not url.startswith(("https://checkout.stripe.com/", _api() + "/")):  # si manda il cliente solo su Stripe
         raise ApiError(502, "Stripe ha risposto con un indirizzo di pagamento inatteso.")
     audit.record(con, tenant["id"], user["id"], "pagamento_avviato", {"pacchetto": tenant["package_id"]})
     return {"url": url}
+
+
+def sync_price(con, tenant_id):
+    """Dopo che un'azienda abbonata ha acceso o spento agenti, o ha cambiato pacchetto: porta su Stripe il prezzo nuovo.
+    Ritorna il prezzo nuovo in euro, None se non c'era niente da cambiare, oppure una stringa con l'errore.
+    Non blocca mai la modifica degli agenti: se Stripe non risponde, il gestore lo vede nel registro."""
+    tenant = dict(con.execute("SELECT * FROM tenants WHERE id=?", (tenant_id,)).fetchone())
+    q = pricing.quote(con, tenant)
+    if not (tenant["stripe_subscription"] and q["configured"] and q["cents"] > 0 and config.get("STRIPE_SECRET_KEY")) or q["cents"] == tenant["stripe_amount"]:
+        return None
+    auth = {"Authorization": "Bearer " + config.get("STRIPE_SECRET_KEY")}
+    try:
+        sub = connectors.http_json("GET", _api() + "/v1/subscriptions/" + tenant["stripe_subscription"], headers=auth)
+        item = ((sub.get("items") or {}).get("data") or [{}])[0]
+        product = ((item.get("price") or {}).get("product")) or ""
+        if not (isinstance(item.get("id"), str) and isinstance(product, str) and item["id"] and product):
+            raise connectors.ConnectorError("abbonamento senza voce o senza prodotto")
+        connectors.http_json("POST", _api() + "/v1/subscription_items/" + item["id"], headers=auth, form={
+            "price_data[currency]": q["currency"], "price_data[product]": product, "price_data[unit_amount]": str(q["cents"]),
+            "price_data[recurring][interval]": "month"})
+    except connectors.ConnectorError as e:
+        audit.record(con, tenant_id, None, "prezzo_non_aggiornato", {"da": tenant["stripe_amount"] // 100, "a": q["total"], "errore": str(e)[:200]})
+        audit.record(con, 0, None, "prezzo_non_aggiornato", {"azienda": tenant["name"], "a": q["total"]})  # 0 = registro della piattaforma: lo vede il gestore
+        return "Stripe non ha aggiornato il prezzo: %s" % str(e)[:160]
+    con.execute("UPDATE tenants SET stripe_amount=? WHERE id=?", (q["cents"], tenant_id))
+    audit.record(con, tenant_id, None, "prezzo_aggiornato", {"da": tenant["stripe_amount"] // 100, "a": q["total"]})
+    news.add(con, tenant_id, "pagamento", "Prezzo dell'abbonamento aggiornato", "Con gli agenti accesi adesso l'abbonamento costa %d € al mese. La differenza la conteggia Stripe nella prossima fattura." % q["total"])
+    return q["total"]
 
 
 def verify_signature(raw, header, secret, now=None):

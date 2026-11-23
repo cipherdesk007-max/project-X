@@ -32,6 +32,12 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 15: prezzi dal pannello e otto agenti in più
+
+- **Prezzi regolabili dal pannello** (`server/pricing.py`, gruppo «Prezzi»): prezzo mensile di ogni pacchetto e prezzo in più per ogni agente acceso, in euro. Il pagamento parte con l'importo calcolato, senza creare prezzi a mano su Stripe; quando un'azienda abbonata accende o spegne un agente, o il gestore le cambia pacchetto, il prezzo dell'abbonamento viene aggiornato su Stripe. Se Stripe non risponde l'agente si accende lo stesso, l'errore resta nel registro e il prezzo si riallinea alla modifica successiva. I prezzi compaiono nella scheda Abbonamento e sul sito; con tutto a 0 non compare niente e valgono gli ID dei prezzi Stripe.
+- **Otto agenti in più, 28 in tutto**: Personale e Traduzioni (da Start), Facebook, SEO e Blog, Recensioni (da Business), YouTube, TikTok, Contratti (da Completo). Preparano bozze: non pubblicano, non caricano video e non danno pareri legali, e lo dicono. Start ha 9 agenti, Business 19, Completo 28.
+- Prove in `tests/test_v14.py`.
+
 ## Novità della versione 14: crediti e pagamento prima di usare il proprio computer
 
 - **Crediti** (`server/credits.py`, spenti finché il gestore non scrive `SFB_CREDITS=1` nel gruppo «Crediti» delle impostazioni): ogni modello ha il suo costo in crediti ogni 1.000 token (Kimi, Claude e ChatGPT costano diverso, il modello locale è gratis); ogni pacchetto include dei crediti al mese, che si ricaricano il primo del mese e non si accumulano; i crediti comprati a parte o dati dal gestore non scadono e si usano dopo quelli inclusi; chi usa una propria chiave del modello non consuma crediti. A zero la chat si ferma con un messaggio chiaro; il modello locale resta disponibile.
@@ -295,7 +301,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 160 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 165 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

@@ -4,6 +4,14 @@
 
   var ICONS = {
     bag: '<path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/>',
+    thumb: '<path d="M7 11v9H4v-9h3z"/><path d="M7 11l4-7a2 2 0 0 1 3 2l-1 4h5a2 2 0 0 1 2 2.4l-1.2 6A2 2 0 0 1 17 20H7"/>',
+    trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/>',
+    play: '<rect x="3" y="5" width="18" height="14" rx="4"/><path d="M10 9l5 3-5 3V9z"/>',
+    note: '<path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+    doc: '<path d="M7 3h7l4 4v14H7V3z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',
     headset: '<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19a4 4 0 0 1-4 3h-2"/>',
     receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/>',
     mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/>',
@@ -38,7 +46,7 @@
             draft: "", tab: "approvazioni", pending: 0, loginError: "",
             sum: { unread: 0, latest: null, stopped: false, automations: 0, connections: 0 }, flash: "", stopArmed: false,
             auth: "login", reg: null, notice: "", noticeBad: false, lastEmail: "" };
-  var STARTER = ["email", "calendario", "contenuti", "ricerca", "report", "telegram", "assistenza"];
+  var STARTER = ["email", "calendario", "contenuti", "ricerca", "report", "telegram", "assistenza", "personale", "traduzioni"];
   var GOOGLE_RESULT = { ok: "Google collegato.", stato: "Collegamento non valido o già usato: riprova da qui.",
     scaduto: "Sono passati più di 10 minuti: riprova.", browser: "Il collegamento va concluso nello stesso browser e allo stesso indirizzo in cui è iniziato (quello impostato in SFB_PUBLIC_URL).",
     negato: "Il consenso è stato negato su Google.", scambio: "Google non ha accettato il codice: controlla client ID, secret e indirizzo di ritorno.",
@@ -785,6 +793,9 @@
       return el("div", { class: "panel" }, el("h2", { text: "Abbonamento" }),
         msg ? el("p", { class: "okmsg", role: "status", text: msg }) : null,
         el("p", { id: "subLine", text: "Pacchetto " + S.me.tenant.package_name + ". " + state }),
+        b.quote && b.quote.configured ? el("p", { id: "priceLine", text: "Prezzo: " + (b.quote.per_agent
+          ? b.quote.base + " € del pacchetto + " + b.quote.agents + (b.quote.agents === 1 ? " agente acceso" : " agenti accesi") + " × " + b.quote.per_agent + " € = "
+          : "") + b.quote.total + " € al mese." + (b.quote.per_agent ? " Accendere o spegnere un agente cambia il prezzo dal mese in corso." : "") }) : null,
         b.payment_failed ? el("div", { class: "banner", role: "alert", id: "payFailed", text: "L'ultimo addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta." }) : null,
         b.subscribed ? el("p", { id: "renewLine", text: b.cancel_at ? "Disdetta registrata: la carta non verrà più addebitata e l'abbonamento finisce il " + it(b.cancel_at) + "."
                                                                     : "Pagamento con carta attivo: si rinnova da solo ogni mese." }) : null,

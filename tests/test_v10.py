@@ -24,7 +24,7 @@ class Collaudo(Base):
         report = manage.acceptance(self.base)
         self.assertEqual([t for ok, t in report if not ok], [])
         self.assertEqual(len(report), 10)
-        self.assertTrue(any("20 agenti" in t for _, t in report))
+        self.assertTrue(any("28 agenti" in t for _, t in report))
         self.assertTrue(any("dev, email, modello, video" in t for _, t in report))
 
     def test_collaudo_scrive_a_tutti_gli_agenti_accesi(self):
@@ -32,7 +32,7 @@ class Collaudo(Base):
         from base import PW
         report = manage.acceptance(self.base, "admin@collaudo-uno.it", PW, agents=True)
         self.assertEqual([t for ok, t in report if not ok], [])
-        self.assertIn("Tutti i 20 agenti accesi rispondono", report[-1][1])
+        self.assertIn("Tutti i 28 agenti accesi rispondono", report[-1][1])
         start = manage.acceptance(self.base, "admin@collaudo-uno.it", PW)
         self.assertEqual(len(start), 11, "senza --agenti non scrive a nessuno")
         gestore = manage.acceptance(self.base, "gestore@test.it", PW)

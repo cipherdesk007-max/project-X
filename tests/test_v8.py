@@ -22,6 +22,16 @@ class FakeStripe(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
+    def do_GET(self):
+        STRIPE["posts"].append({"path": self.path, "auth": self.headers.get("Authorization"), "form": {}, "method": "GET"})
+        data = json.dumps({"id": self.path.rsplit("/", 1)[-1], "items": {"data": [{"id": "si_1", "price": {"product": "prod_1"}}]}} if STRIPE["status"] == 200
+                          else {"error": {"message": "No such subscription"}}).encode()
+        self.send_response(STRIPE["status"])
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_POST(self):
         form = dict(urllib.parse.parse_qsl(self.rfile.read(int(self.headers.get("Content-Length") or 0)).decode()))
         STRIPE["posts"].append({"path": self.path, "auth": self.headers.get("Authorization"), "form": form})

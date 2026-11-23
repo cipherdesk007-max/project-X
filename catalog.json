@@ -1,5 +1,5 @@
 {
- "schema_version": 6,
+ "schema_version": 7,
  "models": [
   {
    "id": "kimi",
@@ -31,7 +31,9 @@
     "ricerca",
     "report",
     "telegram",
-    "assistenza"
+    "assistenza",
+    "personale",
+    "traduzioni"
    ],
    "limits": {
     "automazioni": 2,
@@ -50,7 +52,10 @@
     "chatgpt",
     "team",
     "video",
-    "amministrazione"
+    "amministrazione",
+    "facebook",
+    "seo",
+    "recensioni"
    ],
    "limits": {
     "automazioni": 10,
@@ -68,7 +73,10 @@
     "linkedin",
     "voce",
     "ascolto",
-    "dev"
+    "dev",
+    "youtube",
+    "tiktok",
+    "contratti"
    ],
    "limits": {
     "automazioni": 50,
@@ -564,6 +572,150 @@
    "acts": "Solo bozze: non emette fatture e non muove soldi",
    "ext": "Nessuno. I programmi di fatturazione non sono ancora collegati",
    "station": "lavagna",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "personale",
+   "name": "Personale",
+   "icon": "user",
+   "tone": "#7fb7ff",
+   "pos": [
+    1,
+    6
+   ],
+   "does": "Aiuta una persona sola: promemoria, lettere, piani, liste e documenti di tutti i giorni.",
+   "acts": "Solo bozze e promemoria nella piattaforma",
+   "ext": "Nessuno: usa solo il modello scelto",
+   "station": "scrittura",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "traduzioni",
+   "name": "Traduzioni",
+   "icon": "globe",
+   "tone": "#6fd3e8",
+   "pos": [
+    2,
+    6
+   ],
+   "does": "Traduce e adatta testi, email e schede prodotto nelle lingue dei tuoi clienti.",
+   "acts": "Solo bozze",
+   "ext": "Nessuno: usa solo il modello scelto",
+   "station": "scrittura",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "facebook",
+   "name": "Facebook",
+   "icon": "thumb",
+   "tone": "#6f9bff",
+   "pos": [
+    4,
+    6
+   ],
+   "does": "Prepara post, eventi e risposte ai commenti per la pagina aziendale.",
+   "acts": "Solo bozze: la pubblicazione è manuale",
+   "ext": "La pubblicazione automatica non è ancora collegata",
+   "station": "canale",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "seo",
+   "name": "SEO e Blog",
+   "icon": "trend",
+   "tone": "#8fe07a",
+   "pos": [
+    5,
+    6
+   ],
+   "does": "Scrive articoli per il sito, con parole chiave, titoli e descrizioni per i motori di ricerca.",
+   "acts": "Solo bozze",
+   "ext": "Nessuno. Il sito e gli strumenti di analisi non sono ancora collegati",
+   "station": "scrittura",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "recensioni",
+   "name": "Recensioni",
+   "icon": "star",
+   "tone": "#ffc857",
+   "pos": [
+    1,
+    7
+   ],
+   "does": "Prepara risposte alle recensioni dei clienti, anche a quelle negative.",
+   "acts": "Solo bozze: la risposta la pubblichi tu",
+   "ext": "Nessuno. Google e gli altri siti di recensioni non sono ancora collegati",
+   "station": "canale",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "youtube",
+   "name": "YouTube",
+   "icon": "play",
+   "tone": "#ff6b6b",
+   "pos": [
+    2,
+    7
+   ],
+   "does": "Prepara titoli, descrizioni, capitoli, copioni e idee per i video del canale.",
+   "acts": "Solo bozze: il caricamento è manuale",
+   "ext": "Il caricamento automatico non è ancora collegato",
+   "station": "montaggio",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "tiktok",
+   "name": "TikTok",
+   "icon": "note",
+   "tone": "#f58fd0",
+   "pos": [
+    4,
+    7
+   ],
+   "does": "Prepara copioni brevi, frasi d'apertura e didascalie per i video verticali.",
+   "acts": "Solo bozze: la pubblicazione è manuale",
+   "ext": "La pubblicazione automatica non è ancora collegata",
+   "station": "canale",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "contratti",
+   "name": "Contratti",
+   "icon": "doc",
+   "tone": "#c9b6ff",
+   "pos": [
+    5,
+    7
+   ],
+   "does": "Prepara bozze di contratti, lettere formali e informative da far controllare a un legale.",
+   "acts": "Solo bozze: non è un parere legale",
+   "ext": "Nessuno",
+   "station": "scrittura",
    "run": {
     "cloud": true,
     "local": null

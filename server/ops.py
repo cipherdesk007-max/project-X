@@ -93,7 +93,9 @@ def local_block(tenant):
         return "Abbonamento scaduto: per usare gli agenti sul tuo computer va rinnovato (scheda Abbonamento)."
     if t.get("on_trial"):
         return "Sei in prova gratuita: gli agenti sul tuo computer si attivano dopo il primo pagamento (scheda Abbonamento). Intanto lavorano sui nostri server."
-    card = config.get("STRIPE_SECRET_KEY") and config.get("STRIPE_WEBHOOK_SECRET") and config.get("STRIPE_PRICE_" + str(t.get("package_id") or "").upper())
+    pkg = str(t.get("package_id") or "").upper()
+    card = config.get("STRIPE_SECRET_KEY") and config.get("STRIPE_WEBHOOK_SECRET") and (
+        config.get("STRIPE_PRICE_" + pkg) or config.get_int("PRICE_" + pkg, 0) > 0 or config.get_int("PRICE_PER_AGENT", 0) > 0)
     if card and t.get("origin") == "registrazione" and not t.get("paid_until"):
         return "Prima di collegare un computer va attivato l'abbonamento (scheda Abbonamento). Intanto gli agenti lavorano sui nostri server."
     return ""

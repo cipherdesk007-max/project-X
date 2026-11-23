@@ -179,7 +179,7 @@ class V5(Base):
     def test_ogni_agente_dice_dove_puo_girare_e_il_catalogo_e_pubblico(self):
         status, cat = self.call("GET", "/api/launcher/catalog")
         self.assertEqual(status, 200)
-        self.assertEqual(len(cat["agents"]), 20)
+        self.assertEqual(len(cat["agents"]), 28)
         self.assertEqual({a["id"] for a in cat["agents"]} - {a["id"] for a in catalog.load()["agents"]}, set())
         for a in cat["agents"]:
             self.assertIn(a["run"]["cloud"], (True, False), a["id"])
@@ -314,7 +314,7 @@ class V5(Base):
         self.assertIn("faster-whisper", checks["agent:ascolto"]["why"])
         self.assertEqual(checks["agent:dev"]["verdict"], "gira")
         self.assertFalse(checks["pkg:modello"]["ok"], "qui Ollama non c'è")
-        self.assertEqual(len(lines), 21, "20 agenti più il modello locale")
+        self.assertEqual(len(lines), 29, "28 agenti più il modello locale")
         weak = dict(L.specs(), ram_gb=2, cores=1, disk_free_gb=0.5)
         ok, why = L.check_spec(catalog.agent("video")["run"]["local"], weak)
         self.assertFalse(ok)

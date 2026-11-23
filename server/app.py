@@ -11,7 +11,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import (agents, audit, auth, billing, catalog, config, connectors, console, credits, db, fake_llm, google, llm, local, media, memory, news, office, ops,
-               registration, scheduler, settings, site, team)
+               pricing, registration, scheduler, settings, site, team)
 from .errors import ApiError
 
 MAX_BODY = 1000000
@@ -300,7 +300,9 @@ def r_tenant_agents(q):
 def r_tenant_agents_set(q):
     """Accende, spegne o configura agenti. Corpo: {"agent_id", "is_active", "config"} oppure {"agents": [ ... ]}."""
     changes = q.body.get("agents") if "agents" in q.body else [q.body]
-    return {"agents": team.set_agents(q.con, q.tenant, q.user, changes)}
+    out = {"agents": team.set_agents(q.con, q.tenant, q.user, changes)}
+    out["price"] = billing.sync_price(q.con, q.tenant["id"])  # con il prezzo per agente, accendere o spegnere cambia l'abbonamento
+    return out
 
 
 # ---------- computer dei clienti (launcher) e lavori ----------
@@ -523,7 +525,7 @@ def r_admin_console_run(q):
 
 
 def r_billing(q):
-    return billing.status(q.tenant)
+    return dict(billing.status(q.tenant), quote=pricing.quote(q.con, q.tenant))
 
 
 def r_billing_checkout(q):
@@ -579,6 +581,8 @@ def r_admin_tenant_update(q):
     ops.update_tenant(q.con, int(q.args[0]), package_id=q.body.get("package_id"), active=q.body.get("active"),
                       actor_id=q.user["id"], platform_keys=q.body.get("platform_keys"), token_cap=q.body.get("monthly_token_cap"),
                       paid_until=q.body.get("paid_until"))
+    if q.body.get("package_id") is not None:
+        billing.sync_price(q.con, int(q.args[0]))
     if q.body.get("credits_add") not in (None, "", 0):
         credits.grant(q.con, int(q.args[0]), q.body.get("credits_add"), "regalo", "Dal gestore", q.user["id"])
     return {"ok": True}

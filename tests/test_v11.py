@@ -41,7 +41,7 @@ class Sito(Base):
         for anchor in re.findall(r'href="#([^"]+)"', page):
             self.assertIn('id="%s"' % anchor, page, "ancora senza destinazione: #%s" % anchor)
         low = page.lower()
-        for forbidden in ("€", "alvea.ai", "garanti", "100%", "numero uno", "leader"):
+        for forbidden in ("€", "alvea.ai", "garanti", "100%", "numero uno", "leader"):  # i prezzi compaiono solo se il gestore li imposta: vedi test_v14
             self.assertNotIn(forbidden, low, "il sito non mette prezzi né promesse che il catalogo non contiene")
         self.assertEqual(self.fetch("/sito.css")[0], 200)
 
@@ -71,7 +71,7 @@ class Sito(Base):
 class AgentiNuovi(Base):
     def test_assistenza_e_amministrazione_sono_nel_motore(self):
         cat = catalog.load()
-        self.assertEqual(len(cat["agents"]), 20)
+        self.assertEqual(len(cat["agents"]), 28)
         owner = {t["name"]: t["agent"] for t in tools.TOOLS}
         self.assertEqual((owner["assistenza_salva_risposta"], owner["amministrazione_salva_bozza"]), ("assistenza", "amministrazione"))
         for agent_id in ("assistenza", "amministrazione"):
@@ -81,7 +81,7 @@ class AgentiNuovi(Base):
             self.assertIn(a["id"], agents.ROLES, "agente senza ruolo nel motore: %s" % a["id"])
             for key in ("name", "icon", "does", "acts", "ext", "station", "run", "pos"):
                 self.assertIn(key, a, "%s senza %s" % (a["id"], key))
-        self.assertEqual(len({tuple(a["pos"]) for a in cat["agents"]}), 20, "due agenti nello stesso posto della schermata")
+        self.assertEqual(len({tuple(a["pos"]) for a in cat["agents"]}), 28, "due agenti nello stesso posto della schermata")
         icons = self.fetch("/app.js")[2].decode("utf-8")
         for a in cat["agents"]:
             self.assertIn("\n    %s: '" % a["icon"], icons, "manca il disegno dell'icona di %s" % a["id"])

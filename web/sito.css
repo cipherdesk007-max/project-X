@@ -62,6 +62,7 @@ section.alt { background: var(--deep); border-top: 1px solid var(--line); border
 .plan .count { font-size: 15px; color: var(--muted); }
 .plan .count b { font-size: 40px; line-height: 1; color: var(--text); letter-spacing: -0.03em; margin-right: 6px; }
 .plan > p { color: var(--muted); font-size: 14.5px; }
+.plan .price { color: var(--glow); font-size: 16px; font-weight: 600; }
 .plan .adds { color: var(--text); }
 .limits { border-top: 1px solid var(--line); padding-top: 12px; font-size: 14px; color: var(--muted); display: grid; gap: 6px; }
 .limits li::before { content: "— "; color: var(--accent); }

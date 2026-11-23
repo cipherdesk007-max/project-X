@@ -146,6 +146,7 @@ MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("tenants", "paid_until", "TEXT NOT NULL DEFAULT ''"),            # ultimo giorno pagato (AAAA-MM-GG); vuoto = nessuna scadenza
               ("tenants", "stripe_customer", "TEXT NOT NULL DEFAULT ''"),
               ("tenants", "stripe_subscription", "TEXT NOT NULL DEFAULT ''"),
+              ("tenants", "stripe_amount", "INTEGER NOT NULL DEFAULT 0"),       # centesimi al mese dell'abbonamento in corso, quando il prezzo lo calcola Alvea
               ("tenants", "on_trial", "INTEGER NOT NULL DEFAULT 0"),            # 1 finché l'azienda è in prova gratuita e non ha ancora pagato
               ("tenants", "payment_failed_at", "TEXT NOT NULL DEFAULT ''"),     # ultimo addebito non riuscito; si svuota al primo pagamento
               ("tenants", "stripe_cancel_at", "TEXT NOT NULL DEFAULT ''"),      # disdetta registrata: giorno in cui finisce l'abbonamento con carta

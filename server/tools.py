@@ -152,6 +152,20 @@ def contenuti_salva_bozza(ctx, a):
                   _s(a, "testo", 20000, required=True))
 
 
+def _bozza_di(agent_id, default_channel):
+    """Strumento «salva come bozza» per gli agenti che preparano testi: la bozza resta dell'agente che l'ha scritta."""
+    def salva(ctx, a):
+        return _draft(ctx, agent_id, _s(a, "tipo", 40) or default_channel, _s(a, "titolo", 200, required=True), _s(a, "testo", 20000, required=True))
+    salva.__name__ = agent_id + "_salva_bozza"
+    return salva
+
+
+BOZZE = [("personale", "promemoria", "un promemoria, una lettera, un piano o una lista"), ("traduzioni", "traduzione", "una traduzione"),
+         ("facebook", "post", "un post, un evento o una risposta a un commento"), ("seo", "articolo", "un articolo con titolo, descrizione e parole chiave"),
+         ("recensioni", "risposta", "la risposta a una recensione"), ("youtube", "video", "titolo, descrizione, capitoli o copione di un video"),
+         ("tiktok", "copione", "un copione breve o una didascalia"), ("contratti", "contratto", "la bozza di un contratto o di una lettera formale")]
+
+
 def assistenza_salva_risposta(ctx, a):
     return _draft(ctx, "assistenza", "risposta al cliente", _s(a, "titolo", 200, required=True), _s(a, "testo", 20000, required=True))
 
@@ -466,6 +480,9 @@ TOOLS = [
           props={"canale": (S, "Dove verrà usato: email, sito, social..."), "titolo": (S, "Titolo"), "testo": (S, "Testo completo")},
           required=["titolo", "testo"]),
     _tool("contenuti_elenca_bozze", "contenuti", "Elenca le bozze salvate.", contenuti_elenca_bozze),
+    *[_tool(agent_id + "_salva_bozza", agent_id, "Salva come bozza %s. Non pubblica e non invia." % what, _bozza_di(agent_id, channel), effect="internal",
+            props={"tipo": (S, "Che cosa è, in una o due parole"), "titolo": (S, "Titolo"), "testo": (S, "Testo completo")}, required=["titolo", "testo"])
+      for agent_id, channel, what in BOZZE],
     _tool("assistenza_salva_risposta", "assistenza", "Salva come bozza la risposta pronta per un cliente. Non la invia.", assistenza_salva_risposta, effect="internal",
           props={"titolo": (S, "Domanda del cliente, in breve"), "testo": (S, "Risposta completa")}, required=["titolo", "testo"]),
     _tool("amministrazione_salva_bozza", "amministrazione", "Salva come bozza un preventivo, un sollecito di pagamento o un riepilogo. Non emette fatture.",

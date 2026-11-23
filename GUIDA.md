@@ -29,7 +29,7 @@ Per rifare il collaudo in qualsiasi momento:
 sudo -u alvea python3 manage.py collaudo
 ```
 
-Controlla che il server risponda, che ci siano tutti i 20 agenti, che i quattro pacchetti siano presenti, firmati e consegnati ai launcher, che il launcher si scarichi. Con `--email` e `--password` di un'azienda e l'opzione `--agenti` scrive anche a ogni agente acceso (con i modelli veri consuma qualche token).
+Controlla che il server risponda, che ci siano tutti i 28 agenti, che i quattro pacchetti siano presenti, firmati e consegnati ai launcher, che il launcher si scarichi. Con `--email` e `--password` di un'azienda e l'opzione `--agenti` scrive anche a ogni agente acceso (con i modelli veri consuma qualche token).
 
 ## 3. (A mano) Impostare il file `.env`
 
@@ -120,6 +120,15 @@ Cosa succede da solo, dopo:
 - **Email prima della scadenza**: sette giorni prima parte un'email agli amministratori delle aziende che non si rinnovano da sole (bonifico, prova gratuita, disdetta). Serve la posta configurata.
 
 Prima di usare le chiavi vere fai un giro con quelle di prova (`sk_test_...`) e la carta di prova 4242 4242 4242 4242: è l'unica verifica che qui non ho potuto fare io.
+
+### Prezzi
+
+Nel pannello, gruppo **Prezzi**, scrivi in euro al mese:
+
+- il prezzo di **Start**, **Business** e **Completo**;
+- quanto costa **in più ogni agente acceso** (0 se vuoi che conti solo il pacchetto).
+
+Il cliente paga il pacchetto più gli agenti che tiene accesi: se ne accende o ne spegne uno, il prezzo dell'abbonamento cambia da solo su Stripe e la differenza finisce nella fattura successiva. I prezzi compaiono anche sul sito. Con i prezzi scritti qui **non serve creare prodotti e prezzi su Stripe** (i passi 1 e 4 qui sopra, per la parte dei prezzi, si saltano): bastano la chiave segreta e il webhook. Se lasci tutto a 0 valgono, come prima, gli ID dei prezzi creati a mano su Stripe.
 
 ### Crediti
 

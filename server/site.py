@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from html import escape as e
 
-from . import catalog, config
+from . import catalog, config, pricing
 
 STEPS = [("Scegli il pacchetto", "Tre pacchetti, ognuno contiene il precedente. Dentro il tuo pacchetto accendi solo gli agenti che ti servono."),
          ("Collega i tuoi strumenti", "Posta, calendario, negozio, Telegram, WhatsApp: ogni collegamento si fa una volta, dal Centro di controllo."),
@@ -27,6 +27,15 @@ def _first_package(cat):
     return {agent_id: p["name"] for p in reversed(cat["packages"]) for agent_id in p["adds"]}
 
 
+def _price(prices, package_id):
+    """Riga del prezzo di un pacchetto: compare solo se il gestore ha impostato i prezzi nel pannello."""
+    base, each = prices["packages"].get(package_id, 0), prices["per_agent"]
+    if not base and not each:
+        return ""
+    text = ("%d € al mese" % base if base else "") + ((" + " if base else "") + "%d € al mese per ogni agente acceso" % each if each else "")
+    return '<p class="price">%s</p>' % e(text)
+
+
 def page():
     cat = catalog.load()
     agents, packs, first = cat["agents"], cat["packages"], _first_package(catalog.load())
@@ -34,15 +43,15 @@ def page():
     cards = "".join(
         '<li class="agent"><h3>%s</h3><p>%s</p><p class="acts">%s</p><span class="from">da %s</span></li>'  # niente stili in linea: le regole di sicurezza li vietano
         % (e(a["name"]), e(a["does"]), e(a["acts"]), e(first.get(a["id"], packs[-1]["name"]))) for a in agents)
-    total, plans = 0, []
+    total, plans, prices = 0, [], pricing.public()
     for i, p in enumerate(packs):
         total += len(p["adds"])
         limits = p.get("limits") or {}
         plans.append(
-            '<li class="plan%s"><h3>%s</h3><p class="count"><b>%d</b> agenti</p><p>%s</p><p class="adds">%s%s</p><ul class="limits">'
+            '<li class="plan%s"><h3>%s</h3><p class="count"><b>%d</b> agenti</p>%s<p>%s</p><p class="adds">%s%s</p><ul class="limits">'
             '<li>%s lavori automatici</li><li>%s documenti in memoria</li><li>%s di archivio per foto e video</li></ul>'
             '<a class="btn%s" href="/app#registrati" data-register>Inizia con %s</a></li>'
-            % (" featured" if i == 1 else "", e(p["name"]), total, e(p["why"]), "Tutto %s, più: " % e(packs[i - 1]["name"]) if i else "",
+            % (" featured" if i == 1 else "", e(p["name"]), total, _price(prices, p["id"]), e(p["why"]), "Tutto %s, più: " % e(packs[i - 1]["name"]) if i else "",
                e(", ".join(names.get(x, x) for x in p["adds"])), limits.get("automazioni", 0), limits.get("documenti", 0),
                ("%d GB" % (limits.get("archivio_mb", 0) // 1000) if limits.get("archivio_mb", 0) >= 1000 else "%d MB" % limits.get("archivio_mb", 0)),
                " primary" if i == 1 else "", e(p["name"])))
