@@ -782,6 +782,16 @@ class Handler(BaseHTTPRequestHandler):
             body = {}
             length = int(self.headers.get("Content-Length") or 0)
             if length > MAX_BODY:
+                # Se il corpo è poco oltre il limite lo si legge e lo si butta, così chi l'ha mandato riceve la risposta
+                # invece di una connessione interrotta. Oltre, si risponde e si chiude: quel che resta non viene mai interpretato.
+                if length <= 8 * MAX_BODY:
+                    left = length
+                    while left > 0:
+                        chunk = self.rfile.read(min(left, 65536))
+                        if not chunk:
+                            break
+                        left -= len(chunk)
+                self.close_connection = True
                 return self._json(413, {"error": "Richiesta troppo grande."})
             if length:
                 try:
