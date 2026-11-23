@@ -32,6 +32,13 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 7: abbonamenti con scadenza, prova gratuita, avviso di consumo
+
+- **Abbonamento con scadenza, gestito dal gestore.** Accanto a ogni azienda c'è «Pagato fino al»: l'ultimo giorno pagato, compreso. Dopo quella data chat, lavori automatici e azioni in attesa si fermano con un messaggio chiaro; gli utenti entrano ancora e i dati restano leggibili. Negli ultimi sette giorni l'azienda vede un avviso in alto. Campo vuoto = nessuna scadenza. Serve a vendere con bonifico o fattura: quando il cliente paga, sposti la data. I giorni si contano sull'orario UTC.
+- **Prova gratuita** per chi si registra da solo: `SFB_TRIAL_DAYS=14` nel `.env` fa nascere l'azienda con la scadenza a 14 giorni, e la pagina di registrazione lo dice. Con 0 non c'è scadenza finché non la metti tu.
+- **Avviso all'80% del tetto di consumo**: una novità per l'azienda, una volta sola, quando attraversa la soglia.
+- **Non c'è ancora il pagamento con carta**: la scadenza si sposta a mano.
+
 ## Novità della versione 6: recupero della password e tetto di consumo
 
 - **Recupero della password.** Nella pagina di accesso compare «Password dimenticata?» quando il server ha la posta configurata (`SFB_SMTP_HOST`). L'utente riceve un collegamento che vale un'ora e una volta sola; scelta la nuova password, tutte le sessioni aperte con la vecchia vengono chiuse. La risposta è la stessa che l'indirizzo esista o no, così non si scopre chi è cliente; cinque richieste all'ora per indirizzo di rete. Senza posta configurata resta la strada di prima: la password la cambia un amministratore dell'azienda. Rotte `POST /api/password/forgot` e `POST /api/password/reset`.

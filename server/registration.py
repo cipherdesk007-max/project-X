@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 import threading
+from datetime import datetime, timedelta, timezone
 import time
 
 from . import audit, auth, catalog, config, connectors, db, google, ops, team
@@ -72,6 +73,7 @@ def public_info():
     """Quello che serve al modulo di registrazione, senza accesso."""
     top = catalog.entitled_agents(package_id())
     return {"open": enabled(), "verify_email": verification_on(), "password_recovery": verification_on(),
+            "trial_days": max(0, config.get_int("SFB_TRIAL_DAYS", 0)),
             "agents": [{"id": a["id"], "name": a["name"], "does": a["does"]} for a in catalog.load()["agents"] if a["id"] in top]}
 
 
@@ -146,6 +148,10 @@ def register(con, body, ip):
     tenant_id = ops.create_tenant(con, name, pid, email, body.get("name"), body.get("password"), actor_id=None,
                                   origin="registrazione", platform_keys=1 if config.get("SFB_REGISTER_PLATFORM_KEYS") == "1" else 0,
                                   email_verified=0 if verify else 1, agents=set(agents))
+    trial = config.get_int("SFB_TRIAL_DAYS", 0)
+    if trial > 0:  # prova gratuita: l'azienda nasce con una scadenza, che il gestore sposta quando il cliente paga
+        con.execute("UPDATE tenants SET paid_until=? WHERE id=?",
+                    ((datetime.now(timezone.utc).date() + timedelta(days=min(trial, 3650))).isoformat(), tenant_id))
     user = con.execute("SELECT * FROM users WHERE tenant_id=? ORDER BY id LIMIT 1", (tenant_id,)).fetchone()
     audit.record(con, tenant_id, user["id"], "registrazione", {"agenti": sorted(agents), "verifica_email": verify})
     if verify:

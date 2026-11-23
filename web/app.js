@@ -263,6 +263,7 @@
           el("input", { id: "reg_website", type: "text", tabindex: "-1", autocomplete: "off" })),
         el("div", { class: "field" }, el("label", { text: "Agenti del team" }), boxes),
         S.reg.verify_email ? el("p", { class: "empty", text: "Ti manderemo un'email per confermare l'indirizzo." }) : null,
+        S.reg.trial_days ? el("p", { class: "empty", text: "Prova gratuita di " + S.reg.trial_days + " giorni, senza carta." }) : null,
         el("p", { class: "empty" }, "Vuoi far girare Video Editor, Email o Dev sul tuo computer? ",
           el("a", { href: "/api/launcher/download", download: "alvea-launcher.zip", text: "Scarica il launcher" }),
           " e verifica prima di scegliere: ti dice cosa gira e cosa no, senza account."),
@@ -1045,6 +1046,10 @@
             onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { platform_keys: !t.platform_keys }), err); } }),
           el("label", { class: "cap", title: "Token al mese con i modelli a pagamento; 0 = nessun tetto. Usati questo mese: " + (t.tokens_month || 0) },
             "Tetto mensile ", el("input", { id: "cap_" + t.id, type: "number", min: "0", step: "100000", value: String(t.monthly_token_cap || 0) })),
+          el("label", { class: "cap", title: "Ultimo giorno pagato. Vuoto = nessuna scadenza. Dopo quella data gli agenti dell'azienda vanno in pausa." },
+            "Pagato fino al ", el("input", { id: "paid_" + t.id, type: "date", value: t.paid_until || "" })),
+          el("button", { class: "btn small", type: "button", text: "Salva scadenza",
+            onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { paid_until: val("paid_" + t.id) }), err); } }),
           el("button", { class: "btn small", type: "button", text: "Salva tetto",
             onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { monthly_token_cap: Math.max(0, Math.round(Number(val("cap_" + t.id)) || 0)) }), err); } }),
           t.active ? "attiva" : "sospesa",
@@ -1077,6 +1082,12 @@
     root.textContent = "";
     if (!S.me) { append(root, viewLogin()); return; }
     append(root, header());
+    var sub = S.me.tenant && S.me.tenant.subscription;  // scadenza dell'abbonamento: avviso negli ultimi sette giorni, blocco dopo
+    if (sub && sub.paid_until && sub.days_left <= 7) {
+      append(root, el("div", { class: "banner" + (sub.expired ? " stopbanner" : ""), role: "alert", id: "subBanner",
+        text: sub.expired ? "Abbonamento scaduto il " + sub.paid_until.split("-").reverse().join("/") + ": gli agenti sono in pausa finché non viene rinnovato. I dati restano al loro posto."
+                          : (sub.days_left === 0 ? "L'abbonamento scade oggi." : "L'abbonamento scade tra " + sub.days_left + (sub.days_left === 1 ? " giorno" : " giorni") + ", il " + sub.paid_until.split("-").reverse().join("/") + ".") }));
+    }
     if (!S.me.tenant) { append(root, viewGestore()); return; }
     if (S.view === "ufficio" && !canOffice()) S.view = "agente";
     append(root, S.view === "ufficio" ? viewUfficio() : (S.view === "agente" ? viewAgente() : viewCentro()));

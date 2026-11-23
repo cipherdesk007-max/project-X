@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 import sqlite3
 
+from datetime import date, datetime, timezone
+
 from . import audit, auth, catalog, db, news, team
 from .errors import ApiError
 
@@ -68,7 +70,16 @@ def create_tenant(con, name, package_id, admin_email, admin_name, admin_password
     return tenant_id
 
 
-def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, platform_keys=None, token_cap=None):
+def subscription(tenant):
+    """Stato dell'abbonamento: {"paid_until", "days_left", "expired"}. Senza data non scade mai. I giorni si contano in UTC."""
+    until = (tenant.get("paid_until") or "") if isinstance(tenant, dict) else (tenant["paid_until"] or "")
+    if not until:
+        return {"paid_until": "", "days_left": None, "expired": False}
+    left = (date.fromisoformat(until) - datetime.now(timezone.utc).date()).days
+    return {"paid_until": until, "days_left": left, "expired": left < 0}
+
+
+def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, platform_keys=None, token_cap=None, paid_until=None):
     row = con.execute("SELECT * FROM tenants WHERE id=?", (tenant_id,)).fetchone()
     if not row:
         raise ApiError(404, "Azienda non trovata.")
@@ -86,6 +97,15 @@ def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, p
     if platform_keys is not None and int(bool(platform_keys)) != row["platform_keys"]:
         con.execute("UPDATE tenants SET platform_keys=? WHERE id=?", (int(bool(platform_keys)), tenant_id))
         audit.record(con, PLATFORM, actor_id, "chiavi_piattaforma_concesse" if platform_keys else "chiavi_piattaforma_tolte", {"azienda": row["name"]})
+    if paid_until is not None:
+        try:
+            clean = date.fromisoformat(paid_until).isoformat() if paid_until != "" else ""
+        except (TypeError, ValueError):
+            raise ApiError(400, "La scadenza è una data nel formato AAAA-MM-GG, oppure vuota per nessuna scadenza.")
+        if clean != row["paid_until"]:
+            con.execute("UPDATE tenants SET paid_until=? WHERE id=?", (clean, tenant_id))
+            audit.record(con, PLATFORM, actor_id, "scadenza_cambiata", {"azienda": row["name"], "da": row["paid_until"], "a": clean})
+            audit.record(con, tenant_id, actor_id, "scadenza_cambiata", {"da": row["paid_until"], "a": clean})
     if token_cap is not None:
         if isinstance(token_cap, bool) or not isinstance(token_cap, int) or not 0 <= token_cap <= 10 ** 13:
             raise ApiError(400, "Il tetto mensile è un numero intero di token, 0 per nessun tetto.")

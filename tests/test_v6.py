@@ -1,8 +1,9 @@
-"""Prove della versione 6: recupero della password via email e tetto mensile di consumo per azienda."""
+"""Prove delle versioni 6 e 7: recupero della password, tetto mensile di consumo, abbonamento con scadenza e prova gratuita."""
 import os
 import re
 import time
 import unittest
+from datetime import datetime, timedelta, timezone
 
 from base import PW, Base
 from server import db, registration
@@ -142,6 +143,83 @@ class Tetto(Base):
         self.assertEqual(self.cap(gestore, tid, 0)[0], 200)
         self.assertEqual(self.chat(a, "senza tetto")[0], 200)
         self.assertEqual(self.call("GET", "/api/usage", token=a)[1]["token_cap"], 0)
+
+    def test_avviso_all_80_per_cento_una_volta_sola(self):
+        gestore = self.login("gestore@test.it")
+        a, tid = self.new_tenant("Tetto Avviso", "completo")
+        self.assertEqual(self.chat(a, "ciao")[0], 200)
+        one = self.call("GET", "/api/usage", token=a)[1]["tokens_month"]
+        self.assertEqual(self.cap(gestore, tid, int(one * 2.2))[0], 200)
+
+        def warnings():
+            con = db.connect()
+            n = con.execute("SELECT COUNT(*) FROM news WHERE tenant_id=? AND title LIKE 'Consumo all%'", (tid,)).fetchone()[0]
+            con.close()
+            return n
+
+        self.assertEqual(warnings(), 0, "al 45% nessun avviso")
+        self.assertEqual(self.chat(a, "ciao")[0], 200)
+        self.assertEqual(warnings(), 1, "superato l'80%: un avviso")
+        self.assertEqual(self.chat(a, "ciao")[0], 200)
+        self.assertEqual(warnings(), 1, "l'avviso non si ripete a ogni richiesta")
+        self.assertEqual(self.chat(a, "ciao")[0], 402)
+
+
+class Abbonamento(Base):
+    def setUp(self):
+        registration.reset_throttle()
+        self.today = datetime.now(timezone.utc).date()
+
+    def set(self, token, tid, value):
+        return self.call("POST", "/api/admin/tenants/%d" % tid, {"paid_until": value}, token)
+
+    def sub(self, token):
+        return self.call("GET", "/api/me", token=token)[1]["tenant"]["subscription"]
+
+    def test_dopo_la_scadenza_gli_agenti_vanno_in_pausa_ma_i_dati_restano(self):
+        gestore = self.login("gestore@test.it")
+        a, tid = self.new_tenant("Abbonato Uno", "completo")
+        b, _ = self.new_tenant("Abbonato Due", "completo")
+        self.assertEqual(self.sub(a), {"paid_until": "", "days_left": None, "expired": False}, "senza data non scade mai")
+        self.assertEqual(self.set(a, tid, "2030-01-01")[0], 403, "solo il gestore sposta la scadenza")
+        for bad in ("domani", "2026-13-40", 5, "01/02/2027"):
+            self.assertEqual(self.set(gestore, tid, bad)[0], 400, repr(bad))
+        out = self.chat(a, "invia a cliente@esempio.it: buongiorno")[1]
+        approval = [e["approval_id"] for e in out["events"] if e.get("approval_id")][0]
+        self.assertEqual(self.chat(a, "aggiungi lead Cliente Storico")[0], 200)
+        self.assertEqual(self.set(gestore, tid, (self.today - timedelta(days=1)).isoformat())[0], 200)
+        status, err = self.chat(a, "ciao")
+        self.assertEqual(status, 402, err)
+        self.assertIn("Abbonamento scaduto", err["error"])
+        self.assertEqual(self.chat(a, "ciao", model="locale")[0], 402, "scaduto vale per ogni modello")
+        self.assertEqual(self.call("POST", "/api/approvals/%d/approve" % approval, {}, a)[0], 402, "nemmeno le azioni in attesa partono")
+        self.assertEqual((self.sub(a)["expired"], self.sub(a)["days_left"]), (True, -1))
+        self.assertEqual(len(self.call("GET", "/api/data/leads", token=a)[1]["rows"]), 1, "i dati restano leggibili")
+        self.assertEqual(self.chat(b, "ciao")[0], 200, "l'altra azienda non è toccata")
+        self.assertFalse(self.sub(b)["expired"])
+        self.assertEqual(self.set(gestore, tid, self.today.isoformat())[0], 200)
+        self.assertEqual(self.sub(a), {"paid_until": self.today.isoformat(), "days_left": 0, "expired": False}, "l'ultimo giorno pagato è compreso")
+        self.assertEqual(self.chat(a, "ciao")[0], 200)
+        self.assertEqual(self.call("POST", "/api/approvals/%d/approve" % approval, {}, a)[0], 200, "rinnovato: l'azione rimasta in attesa si può approvare")
+        mine = [t for t in self.call("GET", "/api/admin/tenants", token=gestore)[1]["tenants"] if t["id"] == tid][0]
+        self.assertEqual(mine["paid_until"], self.today.isoformat())
+        self.assertEqual(self.set(gestore, tid, "")[0], 200)
+        self.assertEqual(self.sub(a)["paid_until"], "")
+
+    def test_prova_gratuita_per_chi_si_registra_da_solo(self):
+        body = {"company": "Prova Gratuita Srl", "name": "Titolare", "email": "titolare@prova-gratuita.it", "password": PW, "agents": ["email", "crm"]}
+        os.environ["SFB_TRIAL_DAYS"] = "14"
+        self.addCleanup(lambda: os.environ.__setitem__("SFB_TRIAL_DAYS", "0"))
+        self.assertEqual(self.call("GET", "/api/register")[1]["trial_days"], 14)
+        status, out = self.call("POST", "/api/register", body)
+        self.assertEqual(status, 200, out)
+        sub = self.sub(out["token"])
+        self.assertEqual((sub["paid_until"], sub["days_left"], sub["expired"]), ((self.today + timedelta(days=14)).isoformat(), 14, False))
+        os.environ["SFB_TRIAL_DAYS"] = "0"
+        registration.reset_throttle()
+        status, out = self.call("POST", "/api/register", dict(body, company="Senza Prova Srl", email="titolare@senza-prova.it"))
+        self.assertEqual(status, 200, out)
+        self.assertEqual(self.sub(out["token"])["paid_until"], "", "senza giorni di prova non c'è scadenza")
 
 
 if __name__ == "__main__":

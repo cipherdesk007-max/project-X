@@ -133,7 +133,8 @@ MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("drafts", "agent_id", "TEXT"),
               ("tenant_agents", "mode", "TEXT NOT NULL DEFAULT 'cloud'"),
               ("email_tokens", "kind", "TEXT NOT NULL DEFAULT 'verifica'"),     # 'verifica' dell'indirizzo oppure nuova 'password'
-              ("tenants", "monthly_token_cap", "INTEGER NOT NULL DEFAULT 0")]   # tetto mensile di token dell'azienda; 0 = nessuno   # dove gira l'agente: 'cloud' o 'locale' (computer del cliente)                                   # agente che ha scritto la bozza
+              ("tenants", "monthly_token_cap", "INTEGER NOT NULL DEFAULT 0"),
+              ("tenants", "paid_until", "TEXT NOT NULL DEFAULT ''")]            # ultimo giorno pagato (AAAA-MM-GG); vuoto = nessuna scadenza   # tetto mensile di token dell'azienda; 0 = nessuno   # dove gira l'agente: 'cloud' o 'locale' (computer del cliente)                                   # agente che ha scritto la bozza
 
 
 def init(con):

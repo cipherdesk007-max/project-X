@@ -119,7 +119,8 @@ def r_me(q):
             keys = {}
         own_only = not q.tenant.get("platform_keys", 1)
         out["tenant"] = {"id": q.tenant["id"], "name": q.tenant["name"], "package_id": pkg["id"], "package_name": pkg["name"],
-                         "stopped": bool(q.tenant.get("stopped")), "limits": pkg.get("limits") or {}, "own_keys_only": own_only}
+                         "stopped": bool(q.tenant.get("stopped")), "limits": pkg.get("limits") or {}, "own_keys_only": own_only,
+                         "subscription": ops.subscription(q.tenant)}
         out["entitled"] = sorted(team.active(q.con, q.tenant))  # agenti accesi
         out["ceiling"] = sorted(team.ceiling(q.tenant))         # tetto del pacchetto
         out["agent_status"] = _agent_status(q.con, q.tenant)
@@ -510,7 +511,7 @@ def r_data(q):
 
 def r_admin_tenants(q):
     rows = db.rows(q.con.execute(
-        "SELECT t.id, t.name, t.package_id, t.active, t.created_at, t.origin, t.platform_keys, t.monthly_token_cap, "
+        "SELECT t.id, t.name, t.package_id, t.active, t.created_at, t.origin, t.platform_keys, t.monthly_token_cap, t.paid_until, "
         "(SELECT COALESCE(SUM(input_tokens+output_tokens),0) FROM usage g WHERE g.tenant_id=t.id AND g.model<>'locale' "
         "AND substr(g.created_at,1,7)=substr(?,1,7)) AS tokens_month, "
         "(SELECT COUNT(*) FROM users u WHERE u.tenant_id=t.id AND u.active=1) AS users, "
@@ -527,7 +528,8 @@ def r_admin_tenant_create(q):
 
 def r_admin_tenant_update(q):
     ops.update_tenant(q.con, int(q.args[0]), package_id=q.body.get("package_id"), active=q.body.get("active"),
-                      actor_id=q.user["id"], platform_keys=q.body.get("platform_keys"), token_cap=q.body.get("monthly_token_cap"))
+                      actor_id=q.user["id"], platform_keys=q.body.get("platform_keys"), token_cap=q.body.get("monthly_token_cap"),
+                      paid_until=q.body.get("paid_until"))
     return {"ok": True}
 
 

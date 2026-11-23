@@ -25,7 +25,7 @@ os.environ.update({"SFB_DB": str(Path(_tmp.name) / "test.db"), "SFB_DEMO": "1", 
                    "SFB_ALLOW_PLAINTEXT_TOKENS": "1", "SFB_STORAGE": str(Path(_tmp.name) / "storage"),
                    "SFB_REGISTER_PER_IP_HOUR": "100000", "SFB_REGISTER_PER_HOUR": "100000", "SFB_REGISTRATION": "aperta",
                    "SFB_SMTP_HOST": "", "SFB_REGISTER_PLATFORM_KEYS": "0", "SFB_REGISTER_PACKAGE": "completo",
-                   "SFB_DEMO_DELAY_MS": "0", "SFB_CLOUD_RUNNER": "0", "OLLAMA_BASE_URL": "", "SEARXNG_URL": ""})
+                   "SFB_DEMO_DELAY_MS": "0", "SFB_CLOUD_RUNNER": "0", "OLLAMA_BASE_URL": "", "SEARXNG_URL": "", "SFB_TRIAL_DAYS": "0"})
 
 from server import app, db, ops  # noqa: E402
 

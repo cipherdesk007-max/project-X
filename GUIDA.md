@@ -80,6 +80,10 @@ L'applicazione **non si può mettere dentro una cornice** (iframe) del sito: è 
 2. Il cliente si registra da `#registrati`, sceglie gli agenti e inserisce le sue chiavi dei modelli (chi si registra da solo non usa le tue, a meno che tu non glielo conceda).
 3. Se vuole agenti sul suo computer (Video Editor, Email, Dev, modello locale): scarica il launcher, lo apre, e scrive il codice che crea in **Centro di controllo › Computer**. Sul suo computer serve Python 3.9 o successivo.
 
+### Come farti pagare, per ora
+
+Non c'è ancora il pagamento con carta. Il giro è questo: il cliente ti paga con bonifico o fattura, tu entri come gestore e scrivi accanto alla sua azienda **«Pagato fino al»** con l'ultimo giorno pagato. Dopo quella data i suoi agenti vanno in pausa da soli (i dati restano); sette giorni prima lui vede un avviso. Per dare una prova gratuita a chi si registra da solo metti `SFB_TRIAL_DAYS=14` nel file `.env`.
+
 ### Due impostazioni da gestore
 
 - **Tetto di consumo**: nella tua schermata di gestore, accanto a ogni azienda, scrivi quanti token al mese può consumare con i modelli a pagamento (0 = nessun tetto). Serve a non trovarti una spesa che non ti aspetti.
@@ -116,5 +120,5 @@ python3 -m server             # poi apri http://127.0.0.1:8787
 
 - Installatore del launcher con doppio clic per macOS e Windows (oggi serve Python).
 - Collegamento locale per Ascolto, Voce, WhatsApp e Ricerca sul computer del cliente: il launcher li verifica soltanto.
-- Pagamenti con carta e fatturazione automatica.
+- Pagamenti con carta e fatturazione automatica: per ora la scadenza dell'abbonamento si sposta a mano.
 - Prove con servizi veri: fin qui modelli, Google, posta, Telegram, WhatsApp e Shopify sono stati provati solo con servizi finti.
