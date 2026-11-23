@@ -248,7 +248,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 111 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 120 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 
