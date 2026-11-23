@@ -24,7 +24,7 @@ class Collaudo(Base):
         report = manage.acceptance(self.base)
         self.assertEqual([t for ok, t in report if not ok], [])
         self.assertEqual(len(report), 10)
-        self.assertTrue(any("18 agenti" in t for _, t in report))
+        self.assertTrue(any("20 agenti" in t for _, t in report))
         self.assertTrue(any("dev, email, modello, video" in t for _, t in report))
 
     def test_collaudo_scrive_a_tutti_gli_agenti_accesi(self):
@@ -32,7 +32,7 @@ class Collaudo(Base):
         from base import PW
         report = manage.acceptance(self.base, "admin@collaudo-uno.it", PW, agents=True)
         self.assertEqual([t for ok, t in report if not ok], [])
-        self.assertIn("Tutti i 18 agenti accesi rispondono", report[-1][1])
+        self.assertIn("Tutti i 20 agenti accesi rispondono", report[-1][1])
         start = manage.acceptance(self.base, "admin@collaudo-uno.it", PW)
         self.assertEqual(len(start), 11, "senza --agenti non scrive a nessuno")
         gestore = manage.acceptance(self.base, "gestore@test.it", PW)
@@ -69,7 +69,7 @@ class Aspetto(Base):
     def test_nome_senza_punto_ai_e_logo_completo(self):
         for path in ("/", "/app.js", "/office.js", "/app.css"):
             self.assertNotIn("alvea.ai", self.fetch(path)[2].decode("utf-8").lower(), path)
-        self.assertIn("<title>alvea</title>", self.fetch("/")[2].decode("utf-8"))
+        self.assertIn("<title>alvea</title>", self.fetch("/app")[2].decode("utf-8"))
         js = self.fetch("/app.js")[2].decode("utf-8")
         self.assertEqual(js.count('src: "/logo-alvea.png", alt: "alvea"'), 4, "il logo completo in tutte le intestazioni")
         self.assertEqual(self.fetch("/logo-alvea.png")[2][:8], b"\x89PNG\r\n\x1a\n")

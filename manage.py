@@ -186,8 +186,8 @@ def acceptance(url, email=None, password=None, agents=False):
     status, headers, _ = call("GET", "/", raw=True)
     csp = headers.get("Content-Security-Policy", "")
     add(status == 200 and "default-src 'self'" in csp and "http" not in csp, "Pagina servita con regole di sicurezza che ammettono solo file di questo server")
-    missing = [p for p in ("/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/logo-alvea.png", "/icon.png") if call("GET", p, raw=True)[0] != 200]
-    add(not missing, "File della schermata e marchio presenti" if not missing else "File della schermata mancanti: %s" % ", ".join(missing))
+    missing = [p for p in ("/app", "/sito.css", "/sito.js", "/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/logo-alvea.png", "/icon.png") if call("GET", p, raw=True)[0] != 200]
+    add(not missing, "Sito, applicazione e marchio presenti" if not missing else "File della schermata mancanti: %s" % ", ".join(missing))
     agents_all = catalog.load()["agents"]
     status, _, cat = call("GET", "/api/launcher/catalog")
     add(status == 200 and len(cat.get("agents", [])) == len(agents_all), "Catalogo pubblico con tutti i %d agenti" % len(agents_all))

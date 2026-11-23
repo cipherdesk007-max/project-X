@@ -27,7 +27,7 @@ Per rifare il collaudo in qualsiasi momento:
 sudo -u alvea python3 manage.py collaudo
 ```
 
-Controlla che il server risponda, che ci siano tutti i 18 agenti, che i quattro pacchetti siano presenti, firmati e consegnati ai launcher, che il launcher si scarichi. Con `--email` e `--password` di un'azienda e l'opzione `--agenti` scrive anche a ogni agente acceso (con i modelli veri consuma qualche token).
+Controlla che il server risponda, che ci siano tutti i 20 agenti, che i quattro pacchetti siano presenti, firmati e consegnati ai launcher, che il launcher si scarichi. Con `--email` e `--password` di un'azienda e l'opzione `--agenti` scrive anche a ogni agente acceso (con i modelli veri consuma qualche token).
 
 ## 3. (A mano) Impostare il file `.env`
 
@@ -70,17 +70,18 @@ sudo -u alvea python3 manage.py controlla-produzione
 
 Scrive `OK`, `DA FARE` o `CONSIGLIO` per ogni punto. Finché c'è un `DA FARE` non aprire ai clienti.
 
-## 7. Collegarlo al sito
+## 7. Il sito
 
-Il sito e l'applicazione restano due cose separate: il sito presenta, l'applicazione lavora. Sul sito bastano tre collegamenti:
+Il sito pubblico è già dentro: sta sullo stesso server, all'indirizzo principale. Non c'è niente da collegare.
 
-| Pulsante sul sito | Indirizzo |
-|---|---|
-| Accedi | `https://app.tuodominio.it/` |
-| Registrati / Prova | `https://app.tuodominio.it/#registrati` |
-| Scarica il launcher | `https://app.tuodominio.it/api/launcher/download` |
+- `https://app.tuodominio.it/` → il **sito**: presentazione, tutti gli agenti, i tre pacchetti, il launcher da scaricare.
+- `https://app.tuodominio.it/app` → l'**applicazione**: accesso, registrazione, ufficio, Centro di controllo.
 
-L'applicazione **non si può mettere dentro una cornice** (iframe) del sito: è una protezione voluta. Se il pannello del sito deve mostrare dati dell'applicazione dentro le sue pagine, serve il sorgente del sito e un lavoro a parte.
+Agenti e pacchetti del sito vengono dal catalogo (`catalog.json`): se cambi il catalogo, il sito cambia da solo. Se la registrazione è chiusa, i pulsanti «Prova Alvea» diventano «Accedi». Se c'è la prova gratuita, il sito dice quanti giorni dura. Chi apre un collegamento ricevuto per email (conferma, nuova password, ritorno dal pagamento) viene portato da solo all'applicazione.
+
+Il sito **non mostra prezzi**, perché nel catalogo non ci sono: li decidi tu su Stripe. Testi e sezioni stanno in `server/site.py`, l'aspetto in `web/sito.css`.
+
+Se hai già un sito altrove e qui vuoi solo l'applicazione, scrivi `SFB_SITE=0` nel file `.env`: la pagina principale torna a essere l'accesso. Sul tuo sito metti tre collegamenti: Accedi → `/app`, Registrati → `/app#registrati`, Launcher → `/api/launcher/download`.
 
 ## 8. Primo cliente
 

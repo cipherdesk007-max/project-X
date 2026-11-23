@@ -11,13 +11,14 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import (agents, audit, auth, billing, catalog, config, connectors, db, fake_llm, google, llm, local, media, memory, news, office, ops,
-               registration, scheduler, settings, team)
+               registration, scheduler, settings, site, team)
 from .errors import ApiError
 
 MAX_BODY = 1000000
 CHAT_PER_MINUTE = 30
 # Elenco chiuso dei file serviti: niente percorsi costruiti dalla richiesta.
-STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/app": ("index.html", "text/html; charset=utf-8"),
+          "/sito.css": ("sito.css", "text/css; charset=utf-8"), "/sito.js": ("sito.js", "text/javascript; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"),
           "/app.css": ("app.css", "text/css; charset=utf-8"), "/logo.png": ("logo.png", "image/png"), "/logo-alvea.png": ("logo-alvea.png", "image/png"), "/icon.png": ("icon.png", "image/png"),
           "/favicon.ico": ("icon.png", "image/png"), "/office.js": ("office.js", "text/javascript; charset=utf-8"),
           "/vendor/mini3d.js": ("vendor/mini3d.js", "text/javascript; charset=utf-8")}
@@ -848,6 +849,8 @@ class Handler(BaseHTTPRequestHandler):
                 entry = STATIC.get(parts.path) if method == "GET" else None
                 if not entry:
                     return self._json(404, {"error": "Pagina non trovata."})
+                if parts.path == "/" and site.enabled():  # il sito pubblico; l'applicazione sta su /app
+                    return self._send(200, site.page(), entry[1])
                 return self._send(200, (config.WEB_DIR / entry[0]).read_bytes(), entry[1])
             body = {}
             length = int(self.headers.get("Content-Length") or 0)

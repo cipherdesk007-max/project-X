@@ -258,7 +258,7 @@ class TestSicurezzaStrumenti(Base):
         self.assertEqual(self.call("POST", "/api/users/%d" % me["id"], {"active": False}, admin)[0], 400)
 
     def test_pagine_e_intestazioni(self):
-        with urllib.request.urlopen(self.base + "/", timeout=10) as r:
+        with urllib.request.urlopen(self.base + "/app", timeout=10) as r:  # l'applicazione; su "/" c'è il sito
             self.assertIn("default-src 'self'", r.headers["Content-Security-Policy"])
             self.assertIn(b"<title>alvea</title>", r.read())
         self.assertEqual(self.call("GET", "/../manage.py")[0], 404)

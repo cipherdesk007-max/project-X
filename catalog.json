@@ -1,5 +1,5 @@
 {
- "schema_version": 5,
+ "schema_version": 6,
  "models": [
   {
    "id": "kimi",
@@ -30,7 +30,8 @@
     "contenuti",
     "ricerca",
     "report",
-    "telegram"
+    "telegram",
+    "assistenza"
    ],
    "limits": {
     "automazioni": 2,
@@ -48,7 +49,8 @@
     "marketing",
     "chatgpt",
     "team",
-    "video"
+    "video",
+    "amministrazione"
    ],
    "limits": {
     "automazioni": 10,
@@ -529,6 +531,42 @@
      "needs": [],
      "note": "Gira solo sul computer: lavora in una cartella scelta da te."
     }
+   }
+  },
+  {
+   "id": "assistenza",
+   "name": "Assistenza",
+   "icon": "headset",
+   "tone": "#5ad1c0",
+   "pos": [
+    1,
+    5
+   ],
+   "does": "Risponde alle domande dei clienti usando i documenti e la memoria dell'azienda.",
+   "acts": "Solo bozze: la risposta la mandi tu",
+   "ext": "Nessuno: usa i documenti caricati in Memoria",
+   "station": "scrittura",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "amministrazione",
+   "name": "Amministrazione",
+   "icon": "receipt",
+   "tone": "#e6c15a",
+   "pos": [
+    5,
+    5
+   ],
+   "does": "Prepara preventivi, solleciti di pagamento e riepiloghi per il commercialista.",
+   "acts": "Solo bozze: non emette fatture e non muove soldi",
+   "ext": "Nessuno. I programmi di fatturazione non sono ancora collegati",
+   "station": "lavagna",
+   "run": {
+    "cloud": true,
+    "local": null
    }
   }
  ],

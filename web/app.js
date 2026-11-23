@@ -4,6 +4,8 @@
 
   var ICONS = {
     bag: '<path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+    headset: '<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19a4 4 0 0 1-4 3h-2"/>',
+    receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/>',
     mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/>',
     calendar: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h3M13.5 14H16M8 17h5"/>',
     wave: '<path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/>',
@@ -36,7 +38,7 @@
             draft: "", tab: "approvazioni", pending: 0, loginError: "",
             sum: { unread: 0, latest: null, stopped: false, automations: 0, connections: 0 }, flash: "", stopArmed: false,
             auth: "login", reg: null, notice: "", noticeBad: false, lastEmail: "" };
-  var STARTER = ["email", "calendario", "contenuti", "ricerca", "report", "telegram"];
+  var STARTER = ["email", "calendario", "contenuti", "ricerca", "report", "telegram", "assistenza"];
   var GOOGLE_RESULT = { ok: "Google collegato.", stato: "Collegamento non valido o già usato: riprova da qui.",
     scaduto: "Sono passati più di 10 minuti: riprova.", browser: "Il collegamento va concluso nello stesso browser e allo stesso indirizzo in cui è iniziato (quello impostato in SFB_PUBLIC_URL).",
     negato: "Il consenso è stato negato su Google.", scambio: "Google non ha accettato il codice: controlla client ID, secret e indirizzo di ritorno.",

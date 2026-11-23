@@ -152,6 +152,15 @@ def contenuti_salva_bozza(ctx, a):
                   _s(a, "testo", 20000, required=True))
 
 
+def assistenza_salva_risposta(ctx, a):
+    return _draft(ctx, "assistenza", "risposta al cliente", _s(a, "titolo", 200, required=True), _s(a, "testo", 20000, required=True))
+
+
+def amministrazione_salva_bozza(ctx, a):
+    kind = _s(a, "tipo", 40) or "preventivo"
+    return _draft(ctx, "amministrazione", kind, _s(a, "titolo", 200, required=True), _s(a, "testo", 20000, required=True))
+
+
 def contenuti_elenca_bozze(ctx, a):
     rows = db.rows(ctx.con.execute(
         "SELECT id, channel, title, created_at FROM drafts WHERE tenant_id=? ORDER BY id DESC LIMIT 30",
@@ -457,6 +466,11 @@ TOOLS = [
           props={"canale": (S, "Dove verrà usato: email, sito, social..."), "titolo": (S, "Titolo"), "testo": (S, "Testo completo")},
           required=["titolo", "testo"]),
     _tool("contenuti_elenca_bozze", "contenuti", "Elenca le bozze salvate.", contenuti_elenca_bozze),
+    _tool("assistenza_salva_risposta", "assistenza", "Salva come bozza la risposta pronta per un cliente. Non la invia.", assistenza_salva_risposta, effect="internal",
+          props={"titolo": (S, "Domanda del cliente, in breve"), "testo": (S, "Risposta completa")}, required=["titolo", "testo"]),
+    _tool("amministrazione_salva_bozza", "amministrazione", "Salva come bozza un preventivo, un sollecito di pagamento o un riepilogo. Non emette fatture.",
+          amministrazione_salva_bozza, effect="internal",
+          props={"tipo": (S, "preventivo, sollecito oppure riepilogo"), "titolo": (S, "Titolo"), "testo": (S, "Testo completo")}, required=["titolo", "testo"]),
     _tool("ricerca_web", "ricerca", "Cerca sul web e restituisce titoli, indirizzi e riassunti.", ricerca_web,
           props={"domanda": (S, "Cosa cercare")}, required=["domanda"]),
     _tool("ricerca_leggi_pagina", "ricerca", "Scarica una pagina web pubblica e ne restituisce il testo.", ricerca_leggi_pagina,

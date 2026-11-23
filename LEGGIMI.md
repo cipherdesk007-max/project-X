@@ -32,10 +32,17 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 11: sito pubblico e due agenti nuovi
+
+- **Sito pubblico sullo stesso server**: la pagina principale `/` è il sito (presentazione, agenti, pacchetti, come funziona, launcher, sicurezza), l'applicazione sta su `/app`. La pagina è costruita dal catalogo (`server/site.py`), quindi mostra sempre gli agenti e i pacchetti veri, con quello che ogni agente fa e non fa ancora. Niente prezzi né promesse che il catalogo non contiene. Stesse regole di sicurezza dell'applicazione: nessuno stile o script in linea, nessuna risorsa esterna. Con `SFB_SITE=0` si spegne.
+- **I collegamenti già mandati continuano a funzionare**: conferma dell'email, nuova password, ritorno dal pagamento arrivano su `/` e `web/sito.js` li porta all'applicazione senza perderli.
+- **Due agenti nuovi, in tutto 20**: **Assistenza** (da Start) risponde alle domande dei clienti cercando nei documenti e nella memoria dell'azienda e salva la risposta come bozza; **Amministrazione** (da Business) prepara preventivi, solleciti e riepiloghi come bozze, senza emettere fatture né muovere soldi. Start ha 7 agenti, Business 14, Completo 20.
+- Prove in `tests/test_v11.py`.
+
 ## Novità della versione 10: installazione con un comando, collaudo, nuovo marchio
 
 - **`deploy/installa.sh`**: un solo comando installa tutto sul server (programmi, `.env` con chiave di cifratura, database, gestore, firma di tutti i pacchetti, avvio automatico, HTTPS) e finisce con il collaudo. Rilanciarlo non tocca quello che c'è già. Con `--prova` non tocca il sistema.
-- **`python3 manage.py collaudo`**: prova un server acceso — pagina e regole di sicurezza, 18 agenti nel catalogo, pacchetti presenti, firmati e consegnati, launcher scaricabile, dati chiusi senza accesso, avvisi di pagamento senza firma rifiutati. Con le credenziali di un'azienda e `--agenti` scrive a ogni agente acceso.
+- **`python3 manage.py collaudo`**: prova un server acceso — pagina e regole di sicurezza, tutti gli agenti del catalogo, pacchetti presenti, firmati e consegnati, launcher scaricabile, dati chiusi senza accesso, avvisi di pagamento senza firma rifiutati. Con le credenziali di un'azienda e `--agenti` scrive a ogni agente acceso.
 - **Marchio**: nuovo logo e arancione `#FF6A00` su quasi nero `#0B0F14` in schermata, ufficio 3D e icona. Il verde resta solo dove significa «pronto» o «riuscito», gli avvisi sono gialli per non confondersi con l'arancione del marchio.
 - **Nome e logo**: il prodotto si chiama «Alvea», senza «.ai». Nell'intestazione c'è il logo completo del foglio del marchio (`web/logo-alvea.png`), non una scritta rifatta con un altro carattere.
 - **Rifiniture dell'aspetto**, trovate fotografando tutte le schermate su computer (1280 px) e telefono (390 px): campi dei moduli che si allungavano lasciando grandi vuoti, pulsante principale che al passaggio del mouse diventava blu, grigi con una punta di verde, elenco delle aziende più largo dello schermo (ora a schede), tabelle illeggibili su telefono (ora una scheda per riga), pulsanti troppo piccoli per il dito, barra in basso su due righe.
@@ -273,7 +280,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 137 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 144 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

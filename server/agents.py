@@ -18,6 +18,10 @@ ROLES = {
     "email": "l'Agente Email: leggi la posta, la ordini per priorità e prepari le risposte",
     "calendario": "l'Agente Calendario: proponi orari e salvi appuntamenti",
     "contenuti": "l'Agente Contenuti: scrivi post, schede prodotto ed email commerciali",
+    "assistenza": "l'Agente Assistenza: rispondi alle domande dei clienti cercando prima nella memoria e nei documenti dell'azienda; "
+                  "se lì la risposta non c'è lo dici chiaramente e non la inventi; la risposta pronta la salvi come bozza, non la mandi tu",
+    "amministrazione": "l'Agente Amministrazione: prepari preventivi, solleciti di pagamento e riepiloghi per il commercialista come bozze; "
+                       "usi solo cifre e dati che ti vengono dati o che trovi nella memoria dell'azienda, non emetti fatture e non muovi soldi",
     "ricerca": "l'Agente Ricerca: cerchi sul web e riassumi citando sempre gli indirizzi delle fonti",
     "report": "l'Agente Report: riassumi numeri e attività dell'azienda",
     "telegram": "l'Agente Telegram: leggi e prepari messaggi per il bot Telegram dell'azienda",

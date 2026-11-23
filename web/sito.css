@@ -1,0 +1,96 @@
+/* Sito pubblico di Alvea: quasi nero #0B0F14 e arancione #FF6A00, come l'applicazione. */
+:root { color-scheme: dark; --ink: #0b0f14; --deep: #10161d; --panel: #141b23; --line: rgba(170, 182, 198, 0.16); --text: #f3f5f7; --muted: #98a2ae; --accent: #ff6a00; --glow: #ff9a4d;
+  --font: "Avenir Next", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body { margin: 0; background: var(--ink); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; border-radius: 10px; }
+.skip { position: absolute; left: -9999px; top: 8px; background: var(--accent); color: #0b0f14; padding: 8px 14px; border-radius: 10px; z-index: 20; }
+.skip:focus { left: 12px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+h1 { font-size: clamp(34px, 5.4vw, 60px); line-height: 1.06; letter-spacing: -0.03em; font-weight: 700; max-width: 16ch; text-wrap: balance; }
+h2 { font-size: clamp(26px, 3.2vw, 36px); line-height: 1.15; letter-spacing: -0.02em; font-weight: 700; text-wrap: balance; }
+h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.sub { color: var(--muted); max-width: 62ch; margin-top: 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 9px 20px; border-radius: 999px; border: 1px solid var(--line); font-size: 15px; font-weight: 500; white-space: nowrap; transition: background 0.15s, filter 0.15s, border-color 0.15s; }
+.btn:hover { background: rgba(170, 182, 198, 0.1); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #0b0f14; font-weight: 600; }
+.btn.primary:hover { background: var(--accent); filter: brightness(1.08); }
+.btn.big { min-height: 50px; padding: 12px 26px; font-size: 16px; }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.top { position: sticky; top: 0; z-index: 10; background: rgba(11, 15, 20, 0.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 28px; min-height: 68px; }
+.brand { display: flex; align-items: center; min-height: 40px; line-height: 0; flex: none; }
+.brand img { height: 32px; width: auto; display: block; }
+.top nav { display: flex; gap: 22px; margin-right: auto; font-size: 14.5px; color: var(--muted); }
+.top nav a:hover { color: var(--text); }
+
+section { padding: 84px 0; }
+section.alt { background: var(--deep); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.hero { position: relative; overflow: hidden; padding: 96px 0 104px; background: radial-gradient(820px 460px at 78% 40%, rgba(255, 106, 0, 0.16), transparent 70%); }
+.hero .wrap { position: relative; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--glow); margin-bottom: 18px; }
+.lead { font-size: clamp(17px, 1.7vw, 20px); color: var(--muted); max-width: 52ch; margin: 22px 0 30px; }
+.note { margin-top: 16px; font-size: 14px; color: var(--muted); }
+/* i tre esagoni del marchio, ripresi come alveare */
+.hive { position: absolute; right: 0; top: 50%; width: 330px; height: 300px; transform: translateY(-50%); }
+.hive i { position: absolute; width: 104px; height: 118px; background: var(--accent); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.hive i:nth-child(1) { left: 113px; top: 0; }
+.hive i:nth-child(2) { left: 0; top: 0; opacity: 0.16; }
+.hive i:nth-child(3) { left: 226px; top: 0; opacity: 0.3; }
+.hive i:nth-child(4) { left: 56px; top: 91px; opacity: 0.55; }
+.hive i:nth-child(5) { left: 169px; top: 91px; }
+.hive i:nth-child(6) { left: 113px; top: 182px; opacity: 0.8; }
+.hive i:nth-child(7) { left: 226px; top: 182px; opacity: 0.16; }
+
+.agents { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 34px; }
+.agent { position: relative; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); padding: 18px 18px 46px; }
+.agent h3 { display: flex; align-items: center; gap: 10px; }
+.agent h3::before { content: ""; width: 11px; height: 12px; background: var(--accent); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); flex: none; }
+.agent p { color: var(--muted); font-size: 14.5px; margin-top: 8px; }
+.agent .acts { color: var(--text); font-size: 13px; }
+.agent .from { position: absolute; left: 18px; bottom: 16px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--glow); }
+
+.plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 34px; align-items: stretch; }
+.plan { display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); padding: 26px 24px; }
+.plan.featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 18px 60px rgba(255, 106, 0, 0.14); }
+.plan h3 { font-size: 22px; }
+.plan .count { font-size: 15px; color: var(--muted); }
+.plan .count b { font-size: 40px; line-height: 1; color: var(--text); letter-spacing: -0.03em; margin-right: 6px; }
+.plan > p { color: var(--muted); font-size: 14.5px; }
+.plan .adds { color: var(--text); }
+.limits { border-top: 1px solid var(--line); padding-top: 12px; font-size: 14px; color: var(--muted); display: grid; gap: 6px; }
+.limits li::before { content: "— "; color: var(--accent); }
+.plan .btn { margin-top: auto; }
+
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 34px; }
+.steps li, .safety li, .panel { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); padding: 22px; }
+.steps .n { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #0b0f14; font-weight: 700; margin-bottom: 14px; }
+.steps p, .safety p, .panel p { color: var(--muted); font-size: 14.5px; margin-top: 8px; }
+.safety { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 34px; }
+.split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: center; }
+.split .cta { margin-top: 24px; }
+.last { text-align: center; padding: 96px 0; background: radial-gradient(700px 320px at 50% 100%, rgba(255, 106, 0, 0.16), transparent 70%); }
+.last h2 { margin: 0 auto 26px; }
+.last .cta { justify-content: center; }
+footer { border-top: 1px solid var(--line); padding: 30px 0 40px; }
+footer .wrap { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+footer img { height: 24px; width: auto; }
+footer nav { display: flex; gap: 6px 22px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+footer nav a { padding: 9px 0; }
+footer nav a:hover { color: var(--text); }
+
+@media (max-width: 980px) { .hive { opacity: 0.22; right: -90px; } .plans, .steps { grid-template-columns: 1fr; } .split { grid-template-columns: 1fr; gap: 26px; } }
+@media (max-width: 760px) {
+  .wrap { padding: 0 18px; }
+  section { padding: 60px 0; } .hero { padding: 62px 0 70px; }
+  .top .wrap { gap: 12px; min-height: 60px; } .top nav { display: none; } .top .cta { margin-left: auto; flex-wrap: nowrap; gap: 8px; }
+  .top .btn { padding: 8px 14px; font-size: 14px; min-height: 40px; } .brand img { height: 26px; }
+  .safety { grid-template-columns: 1fr; }
+  .hero .cta .btn, .last .cta .btn { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn { transition: none; } }

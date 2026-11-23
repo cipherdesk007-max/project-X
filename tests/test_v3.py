@@ -204,7 +204,7 @@ class TestRegistrazione(V3):
         me = self.call("GET", "/api/me", token=out["token"])[1]
         self.assertEqual((me["user"]["role"], me["user"]["email"], me["tenant"]["name"]), ("admin", body["email"], body["company"]))
         self.assertEqual(me["entitled"], ["crm", "email", "whatsapp"])
-        self.assertEqual(len(me["ceiling"]), 18)
+        self.assertEqual(len(me["ceiling"]), 20)
         self.assertTrue(me["tenant"]["own_keys_only"])
         self.assertEqual(self.chat(out["token"], "ciao", agent_id="shopify")[0], 403)
         self.assertEqual(self.set_agent(out["token"], "shopify", is_active=True)[0], 200)
@@ -244,7 +244,7 @@ class TestRegistrazione(V3):
         os.environ["SFB_REGISTER_PACKAGE"] = "start"
         try:
             info = self.call("GET", "/api/register")[1]
-            self.assertEqual(len(info["agents"]), 6)
+            self.assertEqual(len(info["agents"]), 7)
             self.assertEqual(self.register(agents=["whatsapp"])[0], 403)
             status, out, _ = self.register(agents=["email"])
             self.assertEqual(status, 200)

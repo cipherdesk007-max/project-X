@@ -98,7 +98,7 @@ if [ "$PROVA" = 0 ]; then
   echo
   sudo -u alvea python3 manage.py controlla-produzione || true
   echo
-  echo "Fatto. Apri https://$DOMINIO, entra come $EMAIL e scrivi le chiavi dei modelli in «Impostazioni della piattaforma»."
+  echo "Fatto. Il sito è su https://$DOMINIO e l'applicazione su https://$DOMINIO/app: entra come $EMAIL e scrivi le chiavi dei modelli in «Impostazioni della piattaforma»."
 else
   echo "Avvia il server con «python3 -m server» e poi esegui «python3 manage.py collaudo»."
 fi
