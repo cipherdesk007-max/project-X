@@ -68,7 +68,7 @@ def create_tenant(con, name, package_id, admin_email, admin_name, admin_password
     return tenant_id
 
 
-def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, platform_keys=None):
+def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, platform_keys=None, token_cap=None):
     row = con.execute("SELECT * FROM tenants WHERE id=?", (tenant_id,)).fetchone()
     if not row:
         raise ApiError(404, "Azienda non trovata.")
@@ -86,6 +86,13 @@ def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, p
     if platform_keys is not None and int(bool(platform_keys)) != row["platform_keys"]:
         con.execute("UPDATE tenants SET platform_keys=? WHERE id=?", (int(bool(platform_keys)), tenant_id))
         audit.record(con, PLATFORM, actor_id, "chiavi_piattaforma_concesse" if platform_keys else "chiavi_piattaforma_tolte", {"azienda": row["name"]})
+    if token_cap is not None:
+        if isinstance(token_cap, bool) or not isinstance(token_cap, int) or not 0 <= token_cap <= 10 ** 13:
+            raise ApiError(400, "Il tetto mensile è un numero intero di token, 0 per nessun tetto.")
+        if token_cap != row["monthly_token_cap"]:
+            con.execute("UPDATE tenants SET monthly_token_cap=? WHERE id=?", (token_cap, tenant_id))
+            audit.record(con, PLATFORM, actor_id, "tetto_cambiato", {"azienda": row["name"], "da": row["monthly_token_cap"], "a": token_cap})
+            audit.record(con, tenant_id, actor_id, "tetto_cambiato", {"da": row["monthly_token_cap"], "a": token_cap})
 
 
 def update_user(con, tenant_id, user_id, actor, role=None, active=None, password=None):

@@ -375,3 +375,5 @@ a.btn { text-decoration: none; display: inline-block; }
 .brand .mark { width: 34px; height: 34px; display: block; }
 .send { color: #0b0f14; }
 .btn.primary:hover, .seg button[aria-pressed="true"]:hover { filter: brightness(1.08); }
+.cap { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.cap input { width: 120px; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: rgba(11, 15, 20, 0.6); color: var(--text); }

@@ -71,7 +71,7 @@ def reset_throttle():
 def public_info():
     """Quello che serve al modulo di registrazione, senza accesso."""
     top = catalog.entitled_agents(package_id())
-    return {"open": enabled(), "verify_email": verification_on(),
+    return {"open": enabled(), "verify_email": verification_on(), "password_recovery": verification_on(),
             "agents": [{"id": a["id"], "name": a["name"], "does": a["does"]} for a in catalog.load()["agents"] if a["id"] in top]}
 
 
@@ -155,7 +155,7 @@ def register(con, body, ip):
 
 def verify(con, token):
     """Conferma l'indirizzo. Il collegamento vale una volta sola. Ritorna True se riuscita."""
-    row = con.execute("SELECT * FROM email_tokens WHERE token_hash=?", (_hash(token or ""),)).fetchone()
+    row = con.execute("SELECT * FROM email_tokens WHERE token_hash=? AND kind='verifica'", (_hash(token or ""),)).fetchone()
     if not row:
         return False
     con.execute("DELETE FROM email_tokens WHERE token_hash=?", (row["token_hash"],))
@@ -168,6 +168,60 @@ def verify(con, token):
     con.execute("DELETE FROM email_tokens WHERE user_id=?", (user["id"],))
     audit.record(con, user["tenant_id"] if user["tenant_id"] is not None else ops.PLATFORM, user["id"], "email_confermata", {})
     return True
+
+
+RESET_SECONDS = 3600
+
+
+def forgot(con, body, ip):
+    """Chiede una nuova password. La risposta è sempre la stessa, che l'indirizzo esista o no: non si scopre chi è cliente."""
+    throttle(ip, "password", 5)
+    if not verification_on():
+        raise ApiError(400, "Il recupero della password via email non è attivo su questo server: "
+                            "chiedi a un amministratore della tua azienda di impostartene una nuova.")
+    email = str(body.get("email") or "").strip().lower()
+    user = con.execute("SELECT u.* FROM users u LEFT JOIN tenants t ON t.id=u.tenant_id "
+                       "WHERE LOWER(u.email)=? AND u.active=1 AND (u.tenant_id IS NULL OR t.active=1)", (email,)).fetchone()
+    if user:
+        token = secrets.token_urlsafe(32)
+        con.execute("DELETE FROM email_tokens WHERE (user_id=? AND kind='password') OR expires_at<?", (user["id"], int(time.time())))
+        con.execute("INSERT INTO email_tokens(token_hash,user_id,expires_at,kind) VALUES(?,?,?,'password')",
+                    (_hash(token), user["id"], int(time.time()) + RESET_SECONDS))
+        audit.record(con, user["tenant_id"] if user["tenant_id"] is not None else ops.PLATFORM, user["id"], "password_recupero_chiesto", {})
+        text = ("Per scegliere una nuova password apri questo collegamento entro un'ora:\n\n%s/#reimposta-%s\n\n"
+                "Se non l'hai chiesto tu, ignora questo messaggio: la password resta quella di prima." % (google.public_url(), token))
+
+        def deliver(to=user["email"]):  # in un filo a parte: il tempo di risposta non rivela se l'indirizzo esiste
+            try:
+                send_mail(to, "Alvea.ai: scegli una nuova password", text)
+            except Exception as e:
+                print("ATTENZIONE: email di recupero non inviata: %s" % type(e).__name__)
+
+        threading.Thread(target=deliver, daemon=True).start()
+    return {"ok": True}
+
+
+def reset(con, body, ip):
+    """Imposta la nuova password con il collegamento ricevuto per email. Il collegamento vale un'ora e una volta sola."""
+    throttle(ip, "reimposta", 20)
+    row = con.execute("SELECT * FROM email_tokens WHERE token_hash=? AND kind='password'", (_hash(str(body.get("token") or "")),)).fetchone()
+    if not row or row["expires_at"] < time.time():
+        if row:
+            con.execute("DELETE FROM email_tokens WHERE token_hash=?", (row["token_hash"],))
+        raise ApiError(400, "Collegamento non valido o scaduto: chiedine uno nuovo dalla pagina di accesso.")
+    problem = auth.password_problem(body.get("password"))
+    if problem:
+        raise ApiError(400, problem)  # il collegamento resta valido: si può riprovare con una password più lunga
+    if con.execute("DELETE FROM email_tokens WHERE token_hash=?", (row["token_hash"],)).rowcount != 1:
+        raise ApiError(400, "Collegamento già usato.")
+    user = con.execute("SELECT * FROM users WHERE id=? AND active=1", (row["user_id"],)).fetchone()
+    if not user:
+        raise ApiError(400, "Collegamento non valido o scaduto: chiedine uno nuovo dalla pagina di accesso.")
+    con.execute("UPDATE users SET pw_hash=?, email_verified=1 WHERE id=?", (auth.hash_password(body["password"]), user["id"]))
+    con.execute("DELETE FROM email_tokens WHERE user_id=?", (user["id"],))
+    auth.drop_user_sessions(con, user["id"])  # chi era entrato con la vecchia password deve rientrare
+    audit.record(con, user["tenant_id"] if user["tenant_id"] is not None else ops.PLATFORM, user["id"], "password_reimpostata", {})
+    return {"ok": True}
 
 
 def resend(con, body, ip):

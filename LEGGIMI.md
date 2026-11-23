@@ -32,6 +32,12 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 6: recupero della password e tetto di consumo
+
+- **Recupero della password.** Nella pagina di accesso compare «Password dimenticata?» quando il server ha la posta configurata (`SFB_SMTP_HOST`). L'utente riceve un collegamento che vale un'ora e una volta sola; scelta la nuova password, tutte le sessioni aperte con la vecchia vengono chiuse. La risposta è la stessa che l'indirizzo esista o no, così non si scopre chi è cliente; cinque richieste all'ora per indirizzo di rete. Senza posta configurata resta la strada di prima: la password la cambia un amministratore dell'azienda. Rotte `POST /api/password/forgot` e `POST /api/password/reset`.
+- **Tetto mensile di consumo per azienda.** Il gestore, nella sua schermata, scrive quanti token al mese può consumare ogni azienda con i modelli a pagamento (0 = nessun tetto). Raggiunto il tetto, chat e lavori automatici si fermano con un messaggio chiaro fino al mese dopo o finché il gestore non lo alza. Il modello «Locale» non costa: non entra nel conto e resta disponibile. L'azienda vede il suo consumo del mese nella scheda Consumi.
+- Il nome del progetto è **Alvea.ai**, con logo e colori del marchio. Le variabili del file `.env` conservano il prefisso `SFB_` e il database il nome `salesforb.db`: sono nomi interni, cambiarli romperebbe gli aggiornamenti.
+
 ## Novità della versione 5: launcher, agenti sul computer del cliente, video, modello locale
 
 Gli agenti sono 18: ai 16 di prima si aggiungono **Video Editor** (dal pacchetto Business) e **Dev** (dal pacchetto Completo). Nelle aziende già esistenti i due agenti nuovi partono spenti: li accende l'amministratore.

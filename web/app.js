@@ -182,6 +182,7 @@
   }
   function viewLogin() {
     if (S.auth === "register" && S.reg && S.reg.open) return viewRegister();
+    if (S.auth === "forgot" || S.auth === "reset") return viewPassword();
     var resend = /Conferma prima/.test(S.loginError) ? el("button", { class: "btn small", type: "button", text: "Rimanda il collegamento", onclick: function () {
       api("POST", "/register/resend", { email: S.lastEmail }).then(function () { S.loginError = ""; S.notice = "Se l'indirizzo è in attesa di conferma, ti abbiamo mandato un nuovo collegamento."; S.noticeBad = false; render(); })
         .catch(function (err) { S.loginError = err.message; render(); });
@@ -201,8 +202,31 @@
         field("Password", "loginPassword", { type: "password", required: true, autocomplete: "current-password" }),
         S.loginError ? el("p", { class: "error", role: "alert", text: S.loginError }) : null, resend,
         el("button", { class: "btn primary", type: "submit", text: "Entra" })),
+      S.reg && S.reg.password_recovery ? el("button", { class: "btn small", type: "button", text: "Password dimenticata?",
+        onclick: function () { S.lastEmail = val("loginEmail") || S.lastEmail; S.auth = "forgot"; S.loginError = ""; S.notice = ""; render(); } }) : null,
       S.reg && S.reg.open ? el("button", { class: "btn", type: "button", text: "Non hai un account? Registra la tua azienda",
         onclick: function () { S.auth = "register"; S.loginError = ""; S.notice = ""; render(); } }) : null);
+  }
+  /* Recupero della password: prima si chiede il collegamento per email, poi dal collegamento si sceglie la nuova. */
+  function viewPassword() {
+    var reset = S.auth === "reset", err = el("p", { class: "error", role: "alert" });
+    var send = el("button", { class: "btn primary", type: "submit", text: reset ? "Salva la nuova password" : "Mandami il collegamento" });
+    function back(notice) { S.auth = "login"; S.resetToken = null; S.notice = notice || ""; S.noticeBad = false; render(); }
+    return el("form", { class: "login", autocomplete: "on", onsubmit: function (e) {
+      e.preventDefault();
+      send.disabled = true; err.textContent = "";
+      (reset ? api("POST", "/password/reset", { token: S.resetToken, password: val("new_password") })
+             : api("POST", "/password/forgot", { email: val("forgot_email") }))
+        .then(function () { back(reset ? "Password cambiata: ora puoi entrare." : "Se l'indirizzo è registrato, tra poco ricevi un'email con il collegamento. Vale un'ora."); })
+        .catch(function (e2) { send.disabled = false; err.textContent = e2.message; });
+    } },
+      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
+      el("p", { text: reset ? "Scegli una nuova password di almeno 10 caratteri." : "Scrivi l'email con cui entri: ti mandiamo un collegamento per scegliere una nuova password." }),
+      el("div", { class: "panel form" },
+        reset ? field("Nuova password", "new_password", { type: "password", required: true, minlength: "10", autocomplete: "new-password" })
+              : field("Email", "forgot_email", { type: "email", required: true, autocomplete: "username", value: S.lastEmail }),
+        err, send),
+      el("button", { class: "btn", type: "button", text: "Torna all'accesso", onclick: function () { back(""); } }));
   }
   function viewRegister() {
     var err = el("p", { class: "error", role: "alert" });
@@ -703,6 +727,8 @@
     return api("GET", "/usage").then(function (out) {
       return el("div", { class: "panel" }, el("h2", { text: "Consumi dei modelli" }),
         el("p", { text: "Token usati per mese e per modello. Servono a calcolare il costo dell'azienda con i listini dei fornitori." }),
+        out.token_cap ? el("p", { id: "capLine", text: "Tetto del mese: usati " + out.tokens_month.toLocaleString("it-IT") + " token su " + out.token_cap.toLocaleString("it-IT") +
+          (out.tokens_month >= out.token_cap ? ". Tetto raggiunto: gli agenti riprendono il mese prossimo o quando il gestore lo alza." : ".") }) : null,
         out.usage.length ? table(["Mese", "Modello", "Chiamate", "Token in ingresso", "Token in uscita"], out.usage.map(function (u) {
           return [u.month, u.model, u.calls, u.input_tokens, u.output_tokens];
         })) : el("p", { class: "empty", text: "Ancora nessun consumo." }));
@@ -1017,6 +1043,10 @@
         return [t.name, t.origin === "registrazione" ? "registrata da sola" : "creata da te", el("div", { class: "field" }, select), t.users, t.tokens,
           el("button", { class: "btn small", type: "button", title: "Chiavi dei modelli messe nel file .env", text: t.platform_keys ? "usa le tue chiavi: togli" : "usa le sue chiavi: concedi le tue",
             onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { platform_keys: !t.platform_keys }), err); } }),
+          el("label", { class: "cap", title: "Token al mese con i modelli a pagamento; 0 = nessun tetto. Usati questo mese: " + (t.tokens_month || 0) },
+            "Tetto mensile ", el("input", { id: "cap_" + t.id, type: "number", min: "0", step: "100000", value: String(t.monthly_token_cap || 0) })),
+          el("button", { class: "btn small", type: "button", text: "Salva tetto",
+            onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { monthly_token_cap: Math.max(0, Math.round(Number(val("cap_" + t.id)) || 0)) }), err); } }),
           t.active ? "attiva" : "sospesa",
           el("button", { class: "btn small" + (t.active ? " danger" : ""), type: "button", text: t.active ? "Sospendi" : "Riattiva",
             onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { active: !t.active }), err); } })];
@@ -1058,10 +1088,19 @@
     if (S.view === "ufficio" && !S.osnap) pollOffice();
   }
 
-  if (window.location.hash === "#registrati") {  // collegamento diretto dal sito: «Registrati» apre subito il modulo
-    S.auth = "register";
-    history.replaceState(null, "", window.location.pathname);
+  /* Collegamenti che arrivano da fuori: dall'email di recupero e dal pulsante «Registrati» del sito. */
+  function readHash() {
+    var resetLink = /^#reimposta-([A-Za-z0-9_-]{20,})$/.exec(window.location.hash || ""), found = false;
+    if (resetLink) {  // il codice sta dopo il # e quindi non finisce nei registri del server
+      S.auth = "reset"; S.resetToken = resetLink[1]; found = true;
+    } else if (window.location.hash === "#registrati") {
+      S.auth = "register"; found = true;
+    }
+    if (found) history.replaceState(null, "", window.location.pathname);
+    return found;
   }
+  readHash();
+  window.addEventListener("hashchange", function () { if (readHash() && !S.me) render(); });  // anche se la pagina era già aperta
   var arrived = /^#google-([a-z]+)$/.exec(window.location.hash || "");
   if (arrived) {  // ritorno dal consenso di Google
     S.flash = arrived[1]; S.view = "centro"; S.tab = "collegamenti";

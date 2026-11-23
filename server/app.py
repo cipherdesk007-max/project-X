@@ -486,12 +486,20 @@ def r_connector_delete(q):
     return {"ok": True}
 
 
+def r_password_forgot(q):
+    return registration.forgot(q.con, q.body, q.ip)
+
+
+def r_password_reset(q):
+    return registration.reset(q.con, q.body, q.ip)
+
+
 def r_usage(q):
     rows = db.rows(q.con.execute(
         "SELECT substr(created_at,1,7) AS month, model, COUNT(*) AS calls, SUM(input_tokens) AS input_tokens, "
         "SUM(output_tokens) AS output_tokens FROM usage WHERE tenant_id=? GROUP BY month, model ORDER BY month DESC, model",
         (q.tenant["id"],)))
-    return {"usage": rows}
+    return {"usage": rows, "token_cap": q.tenant.get("monthly_token_cap") or 0, "tokens_month": agents.month_tokens(q.con, q.tenant["id"])}
 
 
 def r_data(q):
@@ -502,10 +510,12 @@ def r_data(q):
 
 def r_admin_tenants(q):
     rows = db.rows(q.con.execute(
-        "SELECT t.id, t.name, t.package_id, t.active, t.created_at, t.origin, t.platform_keys, "
+        "SELECT t.id, t.name, t.package_id, t.active, t.created_at, t.origin, t.platform_keys, t.monthly_token_cap, "
+        "(SELECT COALESCE(SUM(input_tokens+output_tokens),0) FROM usage g WHERE g.tenant_id=t.id AND g.model<>'locale' "
+        "AND substr(g.created_at,1,7)=substr(?,1,7)) AS tokens_month, "
         "(SELECT COUNT(*) FROM users u WHERE u.tenant_id=t.id AND u.active=1) AS users, "
         "(SELECT COALESCE(SUM(input_tokens+output_tokens),0) FROM usage g WHERE g.tenant_id=t.id) AS tokens "
-        "FROM tenants t ORDER BY t.id"))
+        "FROM tenants t ORDER BY t.id", (db.now(),)))
     return {"tenants": rows, "catalog": catalog.load()}
 
 
@@ -517,7 +527,7 @@ def r_admin_tenant_create(q):
 
 def r_admin_tenant_update(q):
     ops.update_tenant(q.con, int(q.args[0]), package_id=q.body.get("package_id"), active=q.body.get("active"),
-                      actor_id=q.user["id"], platform_keys=q.body.get("platform_keys"))
+                      actor_id=q.user["id"], platform_keys=q.body.get("platform_keys"), token_cap=q.body.get("monthly_token_cap"))
     return {"ok": True}
 
 
@@ -551,6 +561,8 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("DELETE", r"/api/files/(\d+)", "user", r_file_delete),
     ("GET", "/api/summary", "user", r_summary),
     ("GET", r"/api/office/agents/([a-z]+)", "user", r_office_agent),
+    ("POST", "/api/password/forgot", "public", r_password_forgot),
+    ("POST", "/api/password/reset", "public", r_password_reset),
     ("GET", "/api/launcher/catalog", "public", r_launcher_catalog),
     ("POST", "/api/launcher/pair", "public", r_launcher_pair),
     # Le rotte del launcher sono «pubbliche» per il controllo utenti: ognuna pretende il gettone del computer.

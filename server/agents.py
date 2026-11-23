@@ -59,6 +59,19 @@ def system_prompt(tenant, agent_id, entitled, remembered=""):
     return base + ("\n\n" + remembered if remembered else "")
 
 
+def month_tokens(con, tenant_id):
+    """Token consumati dall'azienda nel mese in corso con i modelli a pagamento (quello locale non costa e non conta)."""
+    return con.execute("SELECT COALESCE(SUM(input_tokens+output_tokens),0) FROM usage WHERE tenant_id=? AND model<>'locale' AND substr(created_at,1,7)=?",
+                       (tenant_id, db.now()[:7])).fetchone()[0]
+
+
+def check_budget(con, tenant, model_id):
+    cap = tenant.get("monthly_token_cap") or 0
+    if cap and model_id != "locale" and month_tokens(con, tenant["id"]) >= cap:
+        raise ApiError(402, "Tetto di consumo del mese raggiunto (%d token): gli agenti riprendono il mese prossimo, "
+                            "oppure quando il gestore alza il tetto. Il modello «Locale» resta disponibile." % cap)
+
+
 def check_not_stopped(tenant):
     if tenant.get("stopped"):
         raise ApiError(409, "Arresto d'emergenza attivo: gli agenti sono fermi finché un amministratore non li riavvia "
@@ -117,6 +130,7 @@ def _run_tool(ctx, allowed_agents, call, events):
 
 
 def run_chat(con, tenant, user, agent_id, model_id, conversation_id, text, source="chat"):
+    check_budget(con, tenant, model_id)
     check_not_stopped(tenant)
     entitled = team.active(con, tenant)
     if agent_id == CENTRAL:

@@ -80,6 +80,11 @@ L'applicazione **non si può mettere dentro una cornice** (iframe) del sito: è 
 2. Il cliente si registra da `#registrati`, sceglie gli agenti e inserisce le sue chiavi dei modelli (chi si registra da solo non usa le tue, a meno che tu non glielo conceda).
 3. Se vuole agenti sul suo computer (Video Editor, Email, Dev, modello locale): scarica il launcher, lo apre, e scrive il codice che crea in **Centro di controllo › Computer**. Sul suo computer serve Python 3.9 o successivo.
 
+### Due impostazioni da gestore
+
+- **Tetto di consumo**: nella tua schermata di gestore, accanto a ogni azienda, scrivi quanti token al mese può consumare con i modelli a pagamento (0 = nessun tetto). Serve a non trovarti una spesa che non ti aspetti.
+- **Recupero della password**: funziona solo se nel file `.env` c'è la posta (`SFB_SMTP_HOST` e le righe vicine). Senza posta, la password di un utente la cambia un amministratore della sua azienda.
+
 ## 9. Copie di sicurezza
 
 ```sh
@@ -111,5 +116,5 @@ python3 -m server             # poi apri http://127.0.0.1:8787
 
 - Installatore del launcher con doppio clic per macOS e Windows (oggi serve Python).
 - Collegamento locale per Ascolto, Voce, WhatsApp e Ricerca sul computer del cliente: il launcher li verifica soltanto.
-- Pagamenti, recupero password, tetto di spesa per azienda.
+- Pagamenti con carta e fatturazione automatica.
 - Prove con servizi veri: fin qui modelli, Google, posta, Telegram, WhatsApp e Shopify sono stati provati solo con servizi finti.

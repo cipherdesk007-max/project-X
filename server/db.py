@@ -131,7 +131,9 @@ MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("tenants", "platform_keys", "INTEGER NOT NULL DEFAULT 1"),       # può usare le chiavi dei modelli della piattaforma
               ("users", "email_verified", "INTEGER NOT NULL DEFAULT 1"),
               ("drafts", "agent_id", "TEXT"),
-              ("tenant_agents", "mode", "TEXT NOT NULL DEFAULT 'cloud'")]   # dove gira l'agente: 'cloud' o 'locale' (computer del cliente)                                   # agente che ha scritto la bozza
+              ("tenant_agents", "mode", "TEXT NOT NULL DEFAULT 'cloud'"),
+              ("email_tokens", "kind", "TEXT NOT NULL DEFAULT 'verifica'"),     # 'verifica' dell'indirizzo oppure nuova 'password'
+              ("tenants", "monthly_token_cap", "INTEGER NOT NULL DEFAULT 0")]   # tetto mensile di token dell'azienda; 0 = nessuno   # dove gira l'agente: 'cloud' o 'locale' (computer del cliente)                                   # agente che ha scritto la bozza
 
 
 def init(con):
