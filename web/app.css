@@ -58,7 +58,7 @@ button { font: inherit; color: inherit; }
 .stage { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(320px, 2.3fr) repeat(2, minmax(0, 1fr)); gap: 34px 12px; align-items: start; margin-top: 26px; }
 .side { display: contents; }
 .agent { grid-column: var(--col); grid-row: var(--row); background: none; border: 0; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; min-width: 0; }
-.center { grid-column: 3; grid-row: 1 / span 4; display: flex; flex-direction: column; align-items: center; gap: 22px; min-width: 0; }
+.center { grid-column: 3; grid-row: 1 / span 7; display: flex; flex-direction: column; align-items: center; gap: 22px; min-width: 0; }
 
 .bubble { width: var(--b); aspect-ratio: 1; border-radius: 50%; position: relative; display: grid; place-items: center; flex: none;
   background: radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.16), rgba(46, 54, 64, 0.5) 46%, rgba(11, 15, 20, 0.92) 78%);
