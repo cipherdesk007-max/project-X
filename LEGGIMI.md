@@ -32,6 +32,13 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 8: impostazioni dal pannello e pagamenti con carta
+
+- **Impostazioni della piattaforma** nella schermata del gestore: chiavi dei modelli, posta, ricerca, Google, registrazione e prova gratuita, Stripe. Valgono subito e hanno la precedenza sul file `.env`; un campo svuotato torna al valore del file. I segreti sono cifrati nel database (`SFB_SECRET_KEY`), non tornano mai al browser e nel registro finiscono solo i nomi delle voci cambiate. Non si possono cambiare dal pannello l'indirizzo pubblico, la chiave di cifratura e la modalità demo.
+- **Email di prova** dal pannello, per sapere subito se la posta funziona.
+- **Pagamenti con carta con Stripe**: scheda Abbonamento per ogni azienda, pagamento sulla pagina di Stripe (il server non vede mai la carta), avvisi di Stripe accettati solo con firma valida e recente, ogni avviso contato una volta sola, la scadenza non si accorcia mai per un avviso vecchio. File: `server/settings.py`, `server/billing.py`, prove in `tests/test_v8.py`.
+- `python3 manage.py controlla-produzione` legge anche le impostazioni del pannello e dice se i pagamenti sono attivi.
+
 ## Novità della versione 7: abbonamenti con scadenza, prova gratuita, avviso di consumo
 
 - **Abbonamento con scadenza, gestito dal gestore.** Accanto a ogni azienda c'è «Pagato fino al»: l'ultimo giorno pagato, compreso. Dopo quella data chat, lavori automatici e azioni in attesa si fermano con un messaggio chiaro; gli utenti entrano ancora e i dati restano leggibili. Negli ultimi sette giorni l'azienda vede un avviso in alto. Campo vuoto = nessuna scadenza. Serve a vendere con bonifico o fattura: quando il cliente paga, sposti la data. I giorni si contano sull'orario UTC.
@@ -243,12 +250,13 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 - **Ollama, SearXNG e un server di posta veri non sono stati usati**: il modello locale è stato provato con il modello finto, la ricerca con un SearXNG finto, la posta con server IMAP e SMTP finti.
 - **Video grandi**: provati montaggi fino a 80 secondi in 1080×1920. Non provati file di centinaia di megabyte né il limite di caricamento su connessioni lente.
 - **L'Ufficio 3D è stato provato solo in Chrome senza schermo, con il disegno fatto dal processore** (SwiftShader), a 1440×950 e a 390×844 con tocco simulato. Non è stato provato su una scheda grafica vera, né su Safari, Firefox o un telefono reale: lì vanno guardati fluidità e consumo di batteria.
+- **Stripe vero non è stato usato**: creazione del pagamento e avvisi sono provati con uno Stripe finto e con firme calcolate secondo la documentazione. Prima di incassare va fatto un giro con le chiavi di prova di Stripe.
 - Nessuna prova di carico. SQLite regge bene decine di aziende, non migliaia di utenti contemporanei.
 
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 120 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 126 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

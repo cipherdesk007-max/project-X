@@ -75,6 +75,10 @@ CREATE TABLE IF NOT EXISTS media_assets(
   id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id INTEGER NOT NULL, kind TEXT NOT NULL, original_name TEXT NOT NULL,
   stored_name TEXT NOT NULL, mime TEXT NOT NULL, size_bytes INTEGER NOT NULL, sha256 TEXT NOT NULL,
   uploaded_by INTEGER NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS platform_settings(
+  name TEXT PRIMARY KEY, config TEXT NOT NULL, encrypted INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS billing_events(
+  id TEXT PRIMARY KEY, type TEXT NOT NULL, created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS devices(
   id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id INTEGER NOT NULL, name TEXT NOT NULL, token_hash TEXT NOT NULL UNIQUE,
   paired_by INTEGER NOT NULL, specs TEXT NOT NULL DEFAULT '{}', checks TEXT NOT NULL DEFAULT '{}', launcher_version TEXT NOT NULL DEFAULT '',
@@ -134,7 +138,9 @@ MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("tenant_agents", "mode", "TEXT NOT NULL DEFAULT 'cloud'"),
               ("email_tokens", "kind", "TEXT NOT NULL DEFAULT 'verifica'"),     # 'verifica' dell'indirizzo oppure nuova 'password'
               ("tenants", "monthly_token_cap", "INTEGER NOT NULL DEFAULT 0"),
-              ("tenants", "paid_until", "TEXT NOT NULL DEFAULT ''")]            # ultimo giorno pagato (AAAA-MM-GG); vuoto = nessuna scadenza   # tetto mensile di token dell'azienda; 0 = nessuno   # dove gira l'agente: 'cloud' o 'locale' (computer del cliente)                                   # agente che ha scritto la bozza
+              ("tenants", "paid_until", "TEXT NOT NULL DEFAULT ''"),
+              ("tenants", "stripe_customer", "TEXT NOT NULL DEFAULT ''"),
+              ("tenants", "stripe_subscription", "TEXT NOT NULL DEFAULT ''")]            # ultimo giorno pagato (AAAA-MM-GG); vuoto = nessuna scadenza   # tetto mensile di token dell'azienda; 0 = nessuno   # dove gira l'agente: 'cloud' o 'locale' (computer del cliente)                                   # agente che ha scritto la bozza
 
 
 def init(con):

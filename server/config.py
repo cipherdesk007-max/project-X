@@ -21,13 +21,17 @@ def load_env(path=None):
         os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
+OVERRIDES = {}  # impostazioni salvate dal gestore nel pannello: hanno la precedenza sul file .env (vedi settings.py)
+
+
 def get(name, default=""):
-    return os.environ.get(name, default)
+    value = OVERRIDES.get(name)
+    return value if value not in (None, "") else os.environ.get(name, default)
 
 
 def get_int(name, default):
     try:
-        return int(os.environ.get(name, default))
+        return int(get(name, default))
     except (TypeError, ValueError):
         return default
 

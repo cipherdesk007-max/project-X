@@ -591,10 +591,10 @@
 
   // ---------- Centro di controllo ----------
   function tabsFor() {
-    var all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["dati", "Dati"], ["pacchetti", "Pacchetti"]];
+    var all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["dati", "Dati"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"]];
     if (S.me.user.role === "admin") all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["agenti", "Agenti"], ["automazioni", "Automazioni"],
       ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["collegamenti", "Collegamenti"], ["registro", "Registro"], ["utenti", "Utenti"], ["dati", "Dati"],
-      ["consumi", "Consumi"], ["pacchetti", "Pacchetti"]];
+      ["consumi", "Consumi"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"]];
     return all;
   }
   function viewCentro() {
@@ -605,7 +605,7 @@
     if (!tabsFor().some(function (t) { return t[0] === S.tab; })) S.tab = "approvazioni";
     var loader = { approvazioni: tabApprovazioni, registro: tabRegistro, collegamenti: tabCollegamenti, utenti: tabUtenti,
                    dati: tabDati, consumi: tabConsumi, pacchetti: tabPacchetti, novita: tabNovita, automazioni: tabAutomazioni,
-                   memoria: tabMemoria, agenti: tabAgenti, archivio: tabArchivio, computer: tabComputer }[S.tab];
+                   memoria: tabMemoria, agenti: tabAgenti, archivio: tabArchivio, computer: tabComputer, abbonamento: tabAbbonamento }[S.tab];
     Promise.resolve().then(loader).then(function (nodes) { body.textContent = ""; append(body, nodes); })
       .catch(function (err) { body.textContent = ""; append(body, el("p", { class: "error", role: "alert", text: err.message })); });
     return el("section", {}, tabs,
@@ -722,6 +722,26 @@
           res[1].rows.map(function (r) { return [when(r.starts_at), when(r.ends_at), r.title, r.location, r.notes]; })),
         block("Bozze", "Testi, post, campagne, copioni e verbali preparati dagli agenti. La pubblicazione è manuale.", ["N.", "Canale", "Titolo", "Testo", "Quando"],
           res[2].rows.map(function (r) { return [r.id, r.channel, r.title, r.body, when(r.created_at)]; }))];
+    });
+  }
+  function tabAbbonamento() {
+    return api("GET", "/billing").then(function (b) {
+      var sub = S.me.tenant.subscription, admin = S.me.user.role === "admin", err = el("p", { class: "error", role: "alert" });
+      var day = (sub.paid_until || "").split("-").reverse().join("/"), msg = S.payMsg;
+      S.payMsg = "";
+      var pay = el("button", { class: "btn primary", type: "button", text: sub.paid_until ? "Rinnova con carta" : "Paga con carta", onclick: function () {
+        pay.disabled = true; err.textContent = "";
+        api("POST", "/billing/checkout", {}).then(function (out) { window.location.href = out.url; })  // il numero della carta si scrive su Stripe, non qui
+          .catch(function (e) { pay.disabled = false; err.textContent = e.message; });
+      } });
+      return el("div", { class: "panel" }, el("h2", { text: "Abbonamento" }),
+        msg ? el("p", { class: "okmsg", role: "status", text: msg }) : null,
+        el("p", { id: "subLine", text: "Pacchetto " + S.me.tenant.package_name + ". " + (!sub.paid_until ? "Nessuna scadenza impostata."
+          : (sub.expired ? "Scaduto il " + day + ": gli agenti sono in pausa." : "Attivo fino al " + day + " compreso.")) }),
+        b.subscribed ? el("p", { text: "Pagamento con carta attivo: si rinnova da solo ogni mese. Per disdire scrivi a chi ti ha venduto il servizio." }) : null,
+        !b.enabled ? el("p", { class: "empty", text: "Il pagamento con carta non è attivo: per rinnovare contatta chi ti ha venduto il servizio." })
+          : (b.subscribed ? null : (admin ? el("div", { class: "acts" }, pay) : el("p", { class: "empty", text: "Il pagamento lo fa un amministratore dell'azienda." }))),
+        err);
     });
   }
   function tabConsumi() {
@@ -1073,7 +1093,49 @@
         el("div", { class: "panel" }, el("h2", { text: "Nuova azienda" }),
           el("p", { text: "Crea l'azienda e il suo primo amministratore. Comunicagli email e password iniziale: potrà cambiarla un altro amministratore." }), form)]);
     }).catch(function (e) { body.textContent = ""; append(body, el("p", { class: "error", role: "alert", text: e.message })); });
-    return el("section", { class: "tabs-space" }, el("div", { class: "tabs" }), body);
+    return el("section", { class: "tabs-space" }, el("div", { class: "tabs" }), body, gestoreSettings());
+  }
+  /* Impostazioni della piattaforma: quello che prima si scriveva nel file .env. I segreti non tornano mai indietro dal server. */
+  function gestoreSettings() {
+    var box = el("div", { id: "settings" }, el("p", { class: "empty", text: "Carico le impostazioni..." }));
+    api("GET", "/admin/settings").then(function (out) {
+      var groups = [], by = {};
+      out.fields.forEach(function (f) { if (!by[f.group]) { by[f.group] = []; groups.push(f.group); } by[f.group].push(f); });
+      box.textContent = "";
+      append(box, el("div", { class: "panel" }, el("h2", { text: "Impostazioni della piattaforma" }),
+        el("p", { text: "Chiavi dei modelli, posta, ricerca, Google, registrazione e pagamenti: quello che salvi qui vale subito e ha la precedenza sul file .env. Un campo lasciato vuoto torna al valore del file. Chiavi e password non vengono mai mostrate: vedi solo se sono impostate." }),
+        out.encrypted ? null : el("div", { class: "banner", role: "alert", text: "Cifratura non attiva (manca SFB_SECRET_KEY nel file .env): chiavi e password non si possono salvare dal pannello finché non la imposti." })));
+      groups.forEach(function (g) {
+        var err = el("p", { class: "error", role: "alert" }), ok = el("p", { class: "okmsg", role: "status" });
+        function send(values, done) {
+          err.textContent = ""; ok.textContent = "";
+          api("POST", "/admin/settings", { values: values }).then(function (r) { ok.textContent = r.changed.length ? "Salvato: vale da subito." : "Nessuna modifica."; if (done) done(); })
+            .catch(function (e) { err.textContent = e.message; });
+        }
+        var form = el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
+          e.preventDefault();
+          var values = {};
+          by[g].forEach(function (f) { var v = val("set_" + f.key); if (!f.secret || v !== "") values[f.key] = v; });  // segreto vuoto = resta com'è
+          send(values, function () { by[g].forEach(function (f) { if (f.secret) { var n = document.getElementById("set_" + f.key); if (n && n.value) { n.value = ""; n.placeholder = "impostata"; } } }); });
+        } },
+          by[g].map(function (f) {
+            var note = f.secret ? (f.set ? " — impostata" + (f.source ? " (" + f.source + ")" : "") + ": scrivi solo per cambiarla" : " — non impostata") : (f.source ? " (" + f.source + ")" : "");
+            return [field(f.label + note, "set_" + f.key, { type: f.secret ? "password" : "text", value: f.secret ? "" : f.value, autocomplete: "off", maxlength: "500" }),
+              f.secret && f.source === "pannello" ? el("button", { class: "btn small danger", type: "button", text: "Togli dal pannello",
+                onclick: function () { var v = {}; v[f.key] = ""; send(v, render); } }) : null];
+          }),
+          g === "Pagamenti" ? el("p", { class: "empty", text: "In Stripe crea un webhook verso " + out.webhook_url + " con gli eventi checkout.session.completed, invoice.paid e customer.subscription.deleted, e copia qui il suo segreto. I prezzi sono abbonamenti mensili creati in Stripe, uno per pacchetto." }) : null,
+          err, ok,
+          el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", text: "Salva " + g.toLowerCase() }),
+            g === "Posta" ? el("button", { class: "btn small", type: "button", text: "Manda un'email di prova", onclick: function () {
+              err.textContent = ""; ok.textContent = "Invio...";
+              api("POST", "/admin/settings/test-email", {}).then(function (r) { ok.textContent = "Email di prova mandata a " + r.to + "."; })
+                .catch(function (e) { ok.textContent = ""; err.textContent = e.message; });
+            } }) : null));
+        append(box, el("div", { class: "panel" }, el("h2", { text: g }), form));
+      });
+    }).catch(function (e) { box.textContent = ""; append(box, el("p", { class: "error", role: "alert", text: e.message })); });
+    return box;
   }
 
   // ---------- disegno ----------
@@ -1106,6 +1168,10 @@
       S.auth = "reset"; S.resetToken = resetLink[1]; found = true;
     } else if (window.location.hash === "#registrati") {
       S.auth = "register"; found = true;
+    } else if (/^#pagamento-(ok|annullato)$/.test(window.location.hash || "")) {  // ritorno da Stripe
+      S.view = "centro"; S.tab = "abbonamento"; found = true;
+      S.payMsg = window.location.hash === "#pagamento-ok" ? "Pagamento ricevuto da Stripe: la scadenza si aggiorna entro pochi secondi. Se non cambia, ricarica la pagina."
+                                                           : "Pagamento annullato: non è stato addebitato niente.";
     }
     if (found) history.replaceState(null, "", window.location.pathname);
     return found;

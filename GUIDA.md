@@ -80,14 +80,34 @@ L'applicazione **non si può mettere dentro una cornice** (iframe) del sito: è 
 2. Il cliente si registra da `#registrati`, sceglie gli agenti e inserisce le sue chiavi dei modelli (chi si registra da solo non usa le tue, a meno che tu non glielo conceda).
 3. Se vuole agenti sul suo computer (Video Editor, Email, Dev, modello locale): scarica il launcher, lo apre, e scrive il codice che crea in **Centro di controllo › Computer**. Sul suo computer serve Python 3.9 o successivo.
 
-### Come farti pagare, per ora
+### Impostazioni dal pannello (senza toccare il file)
 
-Non c'è ancora il pagamento con carta. Il giro è questo: il cliente ti paga con bonifico o fattura, tu entri come gestore e scrivi accanto alla sua azienda **«Pagato fino al»** con l'ultimo giorno pagato. Dopo quella data i suoi agenti vanno in pausa da soli (i dati restano); sette giorni prima lui vede un avviso. Per dare una prova gratuita a chi si registra da solo metti `SFB_TRIAL_DAYS=14` nel file `.env`.
+Entra come gestore: sotto l'elenco delle aziende c'è **Impostazioni della piattaforma**. Lì scrivi, un gruppo alla volta, quello che serve per far girare tutto:
+
+- **Modelli**: le chiavi di Claude, Kimi e ChatGPT, oppure l'indirizzo di Ollama.
+- **Posta**: server, porta, utente e password della casella che manda le email di conferma e di recupero password. Il pulsante **Manda un'email di prova** la spedisce al tuo indirizzo: se non arriva, leggi l'errore lì sotto.
+- **Ricerca**, **Google**, **Registrazione** (aperta o chiusa, giorni di prova gratuita).
+- **Pagamenti**: le chiavi di Stripe (qui sotto).
+
+Quello che salvi vale subito, senza riavviare, e vale più del file `.env`. Chiavi e password non vengono mai rimostrate: vedi solo «impostata». Nel file `.env` restano obbligatorie solo le righe del punto 3 (indirizzo, HTTPS, `SFB_SECRET_KEY`): senza `SFB_SECRET_KEY` il pannello rifiuta di salvare chiavi e password.
+
+### Come farti pagare con la carta (Stripe)
+
+1. Apri un conto su stripe.com e crea **tre prodotti con prezzo mensile ricorrente**, uno per pacchetto. Di ognuno copia il codice del prezzo (comincia con `price_`).
+2. In Stripe, in Sviluppatori → Chiavi API, copia la **chiave segreta** (`sk_live_...`).
+3. In Stripe, in Sviluppatori → Webhook, aggiungi una destinazione con l'indirizzo che leggi nel pannello sotto Pagamenti (`https://app.tuodominio.it/api/billing/webhook`) e gli eventi `checkout.session.completed`, `invoice.paid`, `customer.subscription.deleted`. Copia il **segreto della firma** (`whsec_...`).
+4. Nel pannello, gruppo **Pagamenti**, incolla chiave, segreto e i tre prezzi. Salva.
+
+Da quel momento ogni azienda vede la scheda **Abbonamento** con il pulsante **Paga con carta**: il numero della carta si scrive sulla pagina di Stripe, mai sul tuo server. A ogni addebito riuscito Stripe avvisa il server e la data «Pagato fino al» si sposta da sola. Se il cliente disdice, resta attivo fino all'ultimo giorno pagato e poi gli agenti vanno in pausa.
+
+Prima di usare le chiavi vere fai un giro con quelle di prova (`sk_test_...`) e la carta di prova 4242 4242 4242 4242: è l'unica verifica che qui non ho potuto fare io.
+
+Chi paga con bonifico continua come prima: scrivi a mano **«Pagato fino al»** accanto alla sua azienda.
 
 ### Due impostazioni da gestore
 
 - **Tetto di consumo**: nella tua schermata di gestore, accanto a ogni azienda, scrivi quanti token al mese può consumare con i modelli a pagamento (0 = nessun tetto). Serve a non trovarti una spesa che non ti aspetti.
-- **Recupero della password**: funziona solo se nel file `.env` c'è la posta (`SFB_SMTP_HOST` e le righe vicine). Senza posta, la password di un utente la cambia un amministratore della sua azienda.
+- **Recupero della password**: funziona solo se hai impostato la posta (gruppo Posta delle impostazioni, oppure `SFB_SMTP_HOST` nel file `.env`). Senza posta, la password di un utente la cambia un amministratore della sua azienda.
 
 ## 9. Copie di sicurezza
 
@@ -120,5 +140,6 @@ python3 -m server             # poi apri http://127.0.0.1:8787
 
 - Installatore del launcher con doppio clic per macOS e Windows (oggi serve Python).
 - Collegamento locale per Ascolto, Voce, WhatsApp e Ricerca sul computer del cliente: il launcher li verifica soltanto.
-- Pagamenti con carta e fatturazione automatica: per ora la scadenza dell'abbonamento si sposta a mano.
+- Fatture: Stripe incassa e manda la ricevuta, ma la fattura elettronica italiana (SDI) la fai ancora tu o il commercialista.
+- Cambio di pacchetto e disdetta dal pannello del cliente: oggi il pacchetto lo cambi tu e la disdetta si fa da Stripe.
 - Prove con servizi veri: fin qui modelli, Google, posta, Telegram, WhatsApp e Shopify sono stati provati solo con servizi finti.

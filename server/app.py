@@ -10,8 +10,8 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import (agents, audit, auth, catalog, config, connectors, db, fake_llm, google, llm, local, media, memory, news, office, ops,
-               registration, scheduler, team)
+from . import (agents, audit, auth, billing, catalog, config, connectors, db, fake_llm, google, llm, local, media, memory, news, office, ops,
+               registration, scheduler, settings, team)
 from .errors import ApiError
 
 MAX_BODY = 1000000
@@ -487,6 +487,32 @@ def r_connector_delete(q):
     return {"ok": True}
 
 
+def r_admin_settings(q):
+    return settings.view(q.con)
+
+
+def r_admin_settings_save(q):
+    return settings.save(q.con, q.user, q.body.get("values"))
+
+
+def r_admin_test_email(q):
+    if not registration.smtp_cfg():
+        raise ApiError(400, "Prima salva il server SMTP nelle impostazioni della posta.")
+    try:
+        registration.send_mail(q.user["email"], "Alvea.ai: email di prova", "Se leggi questo messaggio, la posta di servizio funziona.")
+    except connectors.ConnectorError as e:
+        raise ApiError(502, "L'email di prova non è partita: %s" % str(e)[:300])
+    return {"ok": True, "to": q.user["email"]}
+
+
+def r_billing(q):
+    return billing.status(q.tenant)
+
+
+def r_billing_checkout(q):
+    return billing.checkout(q.con, q.tenant, q.user)
+
+
 def r_password_forgot(q):
     return registration.forgot(q.con, q.body, q.ip)
 
@@ -563,6 +589,11 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("DELETE", r"/api/files/(\d+)", "user", r_file_delete),
     ("GET", "/api/summary", "user", r_summary),
     ("GET", r"/api/office/agents/([a-z]+)", "user", r_office_agent),
+    ("GET", "/api/admin/settings", "super", r_admin_settings),
+    ("POST", "/api/admin/settings", "super", r_admin_settings_save),
+    ("POST", "/api/admin/settings/test-email", "super", r_admin_test_email),
+    ("GET", "/api/billing", "user", r_billing),
+    ("POST", "/api/billing/checkout", "admin", r_billing_checkout),
     ("POST", "/api/password/forgot", "public", r_password_forgot),
     ("POST", "/api/password/reset", "public", r_password_reset),
     ("GET", "/api/launcher/catalog", "public", r_launcher_catalog),
@@ -689,6 +720,24 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             con.close()
 
+    def _stripe_webhook(self):
+        """POST /api/billing/webhook: avviso di Stripe. La firma si controlla sul corpo esatto, quindi niente lettura come JSON prima."""
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = 0
+        if length <= 0 or length > MAX_BODY:
+            self.close_connection = True
+            return self._json(413 if length > MAX_BODY else 400, {"error": "Corpo dell'avviso non valido."})
+        raw = self.rfile.read(length)
+        con = db.connect()
+        try:
+            self._json(200, billing.webhook(con, raw, self.headers.get("Stripe-Signature")))
+        except ApiError as e:
+            self._json(e.status, {"error": e.message})
+        finally:
+            con.close()
+
     def _job_file(self, job_id):
         """POST /api/launcher/jobs/{id}/file: il computer consegna il file prodotto da un lavoro. Stesse regole dei caricamenti."""
         try:
@@ -779,6 +828,8 @@ class Handler(BaseHTTPRequestHandler):
             parts = urllib.parse.urlsplit(self.path)
             if parts.path == "/api/files/upload" and method == "POST":
                 return self._upload()
+            if parts.path == "/api/billing/webhook" and method == "POST":
+                return self._stripe_webhook()
             job_file = re.fullmatch(r"/api/launcher/jobs/(\d+)/file", parts.path)
             if job_file and method == "POST":
                 return self._job_file(int(job_file.group(1)))
@@ -855,6 +906,7 @@ def make_server(host, port):
     catalog.load()
     con = db.connect()
     db.init(con)
+    settings.load(con)  # le impostazioni salvate dal gestore nel pannello valgono più del file .env
     con.close()
     if config.demo_mode() and not llm.DEMO_BASE:
         llm.DEMO_SERVER, llm.DEMO_BASE = fake_llm.start()

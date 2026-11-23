@@ -108,6 +108,14 @@ def production_report():
     import shutil
     from server import config, local
     config.load_env()  # gli stessi valori che legge il server all'avvio
+    if config.db_path().is_file():  # e quelli salvati dal gestore nel pannello, che valgono più del file
+        from server import db, settings
+        con = db.connect()
+        try:
+            settings.load(con)
+        except Exception:
+            pass  # database di una versione precedente: le impostazioni del pannello non ci sono ancora
+        con.close()
     out, url = [], config.get("SFB_PUBLIC_URL", "")
     def add(ok, good, bad, block=True):
         out.append(("OK", good) if ok else ("DA FARE" if block else "CONSIGLIO", bad))
@@ -125,6 +133,10 @@ def production_report():
     add(config.db_path().is_file(), "Database presente.", "Database assente: esegui «python3 manage.py init».")
     add(local.cloud_video_ready(), "FFmpeg presente: il montaggio video sui server è attivo.", "FFmpeg assente: il Video Editor funzionerà solo sui computer dei clienti.", block=False)
     add(bool(config.get("SFB_SMTP_HOST")), "Posta di servizio configurata: chi si registra conferma l'email.", "Senza SFB_SMTP_HOST chi si registra non conferma l'email.", block=False)
+    stripe = [k for k in ("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET") if not config.get(k)]
+    prices = [p for p in ("START", "BUSINESS", "COMPLETO") if config.get("STRIPE_PRICE_" + p)]
+    add(not stripe and bool(prices), "Pagamenti con carta attivi per: %s." % ", ".join(p.capitalize() for p in prices),
+        "Pagamenti con carta non attivi (mancano %s): la scadenza si sposta a mano dal pannello del gestore." % (", ".join(stripe) or "i prezzi dei pacchetti"), block=False)
     add(bool(shutil.which("openssl")), "openssl presente.", "openssl assente: non potrai firmare i pacchetti da questo computer.", block=False)
     return out
 
