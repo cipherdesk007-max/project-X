@@ -13,7 +13,7 @@ var SFBOffice = (function () {
     fermo: { label: "Fermo", color: "#ff5d5d" },
     lavora: { label: "Al lavoro", color: "#38d6ff" },
     ragiona: { label: "Sta ragionando", color: "#a78bfa" },
-    attesa: { label: "Attende approvazione", color: "#ffb547" },
+    attesa: { label: "Attende approvazione", color: "#ffd166" },
     da_collegare: { label: "Da collegare", color: "#8a93a6" },
     pronto: { label: "Pronto", color: "#46d39a" },
     monta: { label: "Sta montando un video", color: "#ff7ad9" }
@@ -123,7 +123,7 @@ var SFBOffice = (function () {
   // ---------- postazioni ----------
   var COL = null;
   function colors() {
-    return { floor: M.hex("#161d25"), tile: M.hex("#212b35"), wall: M.hex("#11171e"), trim: M.hex("#00c38a"), desk: M.hex("#28333d"), top: M.hex("#3b4a56"),
+    return { floor: M.hex("#161d25"), tile: M.hex("#212b35"), wall: M.hex("#11171e"), trim: M.hex("#ff6a00"), desk: M.hex("#28333d"), top: M.hex("#3b4a56"),
       metal: M.hex("#5c6c77"), dark: M.hex("#0b0f14"), light: M.hex("#e6ecfb"), paper: M.hex("#f4f7ff"), box: M.hex("#b98a5a"), plant: M.hex("#3fae6b"), pot: M.hex("#7b5a45") };
   }
   function Station(ox, oz, tone) { this.g = new M.Geo(); this.ox = ox; this.oz = oz; this.tone = tone; this.screens = []; }
@@ -247,7 +247,7 @@ var SFBOffice = (function () {
     });
     room.box(0, 2.75, zBack + 0.03, 4.3, 1.0, 0.06, COL.metal);
     sc.meshes.push(own(R.mesh(room)));
-    addPanel({ x: 0, y: 2.75, z: zBack + 0.07, w: 4.1, h: 0.82, kind: "insegna", ry: 0 }, "#00c38a", title);
+    addPanel({ x: 0, y: 2.75, z: zBack + 0.07, w: 4.1, h: 0.82, kind: "insegna", ry: 0 }, "#ff6a00", title);
 
     // Pezzi uguali per tutti: si disegnano più volte con colore e posizione diversi.
     var gem = own(R.mesh(new M.Geo().octa(0.13, 0.2, [1, 1, 1])));
@@ -312,7 +312,7 @@ var SFBOffice = (function () {
   function poseHub(h, t, picked, hovered) {
     var c = M.hex(STATES[h.state].color), k = h.state === "fermo" || h.state === "da_collegare" ? 0 : 1, fast = h.state === "ragiona" || h.state === "lavora" || h.state === "monta";
     h.orb.model = M.trs(0, 1.5 + k * Math.sin(t * (fast ? 4 : 1.3)) * 0.07, h.z, t * (fast ? 2.4 : 0.5) * k, fast ? 1 + 0.08 * Math.sin(t * 7) : 1);
-    h.orb.tint = h.state === "pronto" ? M.hex("#4be3b4") : c;
+    h.orb.tint = h.state === "pronto" ? M.hex("#46d39a") : c;
     h.orb.glow = k ? 0.6 : 0.2;
     h.ring.model = M.trs(0, 0.14, h.z, 0, picked ? 0.92 : 0.84);
     h.ring.tint = c; h.ring.alpha = picked ? 0.95 : (hovered ? 0.75 : 0.5);

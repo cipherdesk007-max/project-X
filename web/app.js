@@ -450,7 +450,7 @@
     return rows.map(function (r) {
       var b = el("button", { class: "orow", type: "button", onclick: function () { pickOffice(r.id); } },
         el("span", { class: "tone" }), el("span", { class: "n", text: r.id === "centrale" ? "Centrale" : "Agente " + r.name }), stateChip(r));
-      b.style.setProperty("--tone", r.tone || "#4be3b4");
+      b.style.setProperty("--tone", r.tone || "#ff9a4d");
       return b;
     });
   }

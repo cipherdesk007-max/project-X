@@ -32,6 +32,13 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 10: installazione con un comando, collaudo, nuovo marchio
+
+- **`deploy/installa.sh`**: un solo comando installa tutto sul server (programmi, `.env` con chiave di cifratura, database, gestore, firma di tutti i pacchetti, avvio automatico, HTTPS) e finisce con il collaudo. Rilanciarlo non tocca quello che c'è già. Con `--prova` non tocca il sistema.
+- **`python3 manage.py collaudo`**: prova un server acceso — pagina e regole di sicurezza, 18 agenti nel catalogo, pacchetti presenti, firmati e consegnati, launcher scaricabile, dati chiusi senza accesso, avvisi di pagamento senza firma rifiutati. Con le credenziali di un'azienda e `--agenti` scrive a ogni agente acceso.
+- **Marchio**: nuovo logo e arancione `#FF6A00` su quasi nero `#0B0F14` in schermata, ufficio 3D e icona. Il verde resta solo dove significa «pronto» o «riuscito», gli avvisi sono gialli per non confondersi con l'arancione del marchio.
+- Prove in `tests/test_v10.py`.
+
 ## Novità della versione 9: quello che succede dopo il primo pagamento
 
 - **Addebito non riuscito** (`invoice.payment_failed`): avviso nella schermata, voce nelle novità ed email agli amministratori dell'azienda; sparisce al primo pagamento riuscito.
@@ -264,7 +271,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 130 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 135 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

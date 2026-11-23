@@ -150,6 +150,105 @@ def cmd_produzione(args):
     return 1 if todo else 0
 
 
+def acceptance(url, email=None, password=None, agents=False):
+    """Collaudo di un server acceso: quello che deve funzionare subito dopo l'installazione. Ritorna [(riuscito, testo)].
+    Senza credenziali controlla solo le parti pubbliche. Con `agents` scrive a ogni agente attivo (in produzione consuma token)."""
+    import io
+    import json
+    import time
+    import urllib.error
+    import urllib.request
+    import zipfile
+    from server import local
+    url, out = url.rstrip("/"), []
+
+    def call(method, path, body=None, token=None, raw=False):
+        headers = {"Content-Type": "application/json"} if body is not None else {}
+        if token:
+            headers["Authorization"] = "Bearer " + token
+        req = urllib.request.Request(url + path, json.dumps(body).encode() if body is not None else None, headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                data = r.read()
+                return r.status, dict(r.headers), data if raw else (json.loads(data) if data[:1] in (b"{", b"[") else data)
+        except urllib.error.HTTPError as e:
+            return e.code, dict(e.headers), e.read()
+        except (urllib.error.URLError, OSError) as e:
+            return 0, {}, str(e).encode()
+
+    def add(ok, text):
+        out.append((bool(ok), text))
+
+    status, _, health = call("GET", "/api/health")
+    add(status == 200, "Il server risponde su %s%s" % (url, " (modalità demo)" if status == 200 and health.get("demo") else ""))
+    if status != 200:
+        return out
+    status, headers, _ = call("GET", "/", raw=True)
+    csp = headers.get("Content-Security-Policy", "")
+    add(status == 200 and "default-src 'self'" in csp and "http" not in csp, "Pagina servita con regole di sicurezza che ammettono solo file di questo server")
+    missing = [p for p in ("/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/icon.png") if call("GET", p, raw=True)[0] != 200]
+    add(not missing, "File della schermata e marchio presenti" if not missing else "File della schermata mancanti: %s" % ", ".join(missing))
+    agents_all = catalog.load()["agents"]
+    status, _, cat = call("GET", "/api/launcher/catalog")
+    add(status == 200 and len(cat.get("agents", [])) == len(agents_all), "Catalogo pubblico con tutti i %d agenti" % len(agents_all))
+    names = local.package_names()
+    unsigned = [n for n in names if not local.signed(n)]
+    add(names and not unsigned and local.public_key(), "Pacchetti locali presenti e firmati: %s" % ", ".join(names) if not unsigned
+        else "Pacchetti non firmati: %s (esegui «python3 manage.py firma-pacchetti»)" % ", ".join(unsigned))
+    need = sorted({a["run"]["local"]["package"] for a in agents_all if (a["run"].get("local") or {}).get("ready")} | {catalog.load()["local_model"]["package"]})
+    lost = [n for n in need if n not in names]
+    add(not lost, "Ogni agente che può girare sul computer del cliente ha il suo pacchetto" if not lost else "Pacchetti mancanti nella cartella packages/: %s" % ", ".join(lost))
+    served = [n for n in names if call("GET", "/api/launcher/packages/" + n)[0] != 200]
+    add(not served, "Il server consegna i pacchetti firmati ai launcher" if not served else "Pacchetti che il server non consegna: %s" % ", ".join(served))
+    status, _, data = call("GET", "/api/launcher/download", raw=True)
+    try:
+        z = zipfile.ZipFile(io.BytesIO(data))
+        inside = json.loads(z.read("alvea-launcher/server.json"))
+        ok = status == 200 and "alvea-launcher/alvea_launcher.py" in z.namelist() and bool(inside.get("public_key"))
+        where = inside.get("server", "")
+    except (zipfile.BadZipFile, KeyError, ValueError):
+        ok, where = False, ""
+    add(ok, "Launcher scaricabile, con la chiave per controllare i pacchetti (si collegherà a %s)" % where if ok else "Il launcher non si scarica o è incompleto")
+    add(call("GET", "/api/me")[0] == 401, "Senza accesso i dati non si leggono")
+    add(call("POST", "/api/billing/webhook", {"id": "evt_collaudo", "type": "invoice.paid", "data": {"object": {}}})[0] in (400, 503),
+        "Un avviso di pagamento senza firma viene rifiutato")
+    if email and password:
+        status, _, login = call("POST", "/api/login", {"email": email, "password": password})
+        add(status == 200, "Accesso riuscito come %s" % email if status == 200 else "Accesso non riuscito come %s" % email)
+        if status == 200:
+            token = login["token"]
+            me = call("GET", "/api/me", token=token)[2]
+            if not me.get("tenant"):
+                status, _, sets = call("GET", "/api/admin/settings", token=token)
+                groups = sorted({f["group"] for f in sets.get("fields", [])}) if status == 200 else []
+                add(len(groups) >= 6, "Impostazioni della piattaforma raggiungibili: %s" % ", ".join(groups))
+            elif agents:
+                names = {a["id"]: a["name"] for a in agents_all}
+                model = next((m["id"] for m in me.get("models", []) if m.get("configured")), "claude")
+                failed = []
+                for agent_id in me.get("entitled", []):
+                    status = call("POST", "/api/chat", {"message": "Collaudo: rispondi solo «ok».", "agent_id": agent_id, "model": model}, token)[0]
+                    if status == 429:  # limite di messaggi al minuto: si aspetta e si riprova una volta
+                        time.sleep(61)
+                        status = call("POST", "/api/chat", {"message": "Collaudo: rispondi solo «ok».", "agent_id": agent_id, "model": model}, token)[0]
+                    if status != 200:
+                        failed.append("%s (%s)" % (names.get(agent_id, agent_id), status))
+                add(me.get("entitled") and not failed, "Tutti i %d agenti accesi rispondono con il modello «%s»" % (len(me.get("entitled", [])), model) if not failed
+                    else "Agenti che non rispondono: %s" % ", ".join(failed))
+    return out
+
+
+def cmd_collaudo(args):
+    config.load_env()
+    url = args.url or "http://127.0.0.1:%s" % config.get("SFB_PORT", "8787")
+    report = acceptance(url, args.email, args.password, args.agenti)
+    for ok, text in report:
+        print("%-7s %s" % ("OK" if ok else "ERRORE", text))
+    bad = sum(1 for ok, _ in report if not ok)
+    print("\nCollaudo superato: %d controlli." % len(report) if not bad else "\nCollaudo NON superato: %d controlli falliti su %d." % (bad, len(report)))
+    return 1 if bad else 0
+
+
 def cmd_firma(args):
     from server import local
     names = local.sign_all(args.chiave)
@@ -176,6 +275,12 @@ def main():
     s.set_defaults(fn=cmd_pacchetto)
     sub.add_parser("verifica-registro").set_defaults(fn=cmd_verifica)
     sub.add_parser("controlla-produzione", help="dice cosa manca prima di aprire il server ai clienti").set_defaults(fn=cmd_produzione)
+    s = sub.add_parser("collaudo", help="prova un server acceso: pagina, agenti, pacchetti, launcher")
+    s.add_argument("--url", help="indirizzo del server (se manca: quello locale)")
+    s.add_argument("--email")
+    s.add_argument("--password")
+    s.add_argument("--agenti", action="store_true", help="scrive a ogni agente attivo dell'azienda: in produzione consuma token")
+    s.set_defaults(fn=cmd_collaudo)
     s = sub.add_parser("firma-pacchetti", help="firma i pacchetti locali che i launcher dei clienti scaricano")
     s.add_argument("--chiave", help="percorso della chiave privata (tienila fuori dal server); se manca viene creata")
     s.set_defaults(fn=cmd_firma)

@@ -8,20 +8,28 @@ Per i dettagli di ogni funzione c'è `LEGGIMI.md`. Per provarlo sul tuo computer
 - Un server Linux raggiungibile da Internet e un nome (`app.tuodominio.it`) che punta al suo indirizzo.
 - Almeno una chiave di un modello (Claude, Kimi o ChatGPT), oppure Ollama sul server.
 
-## 2. Installare (10 minuti)
+## 2. Installare con un solo comando
 
 ```sh
-sudo apt update && sudo apt install -y git python3 python3-cryptography ffmpeg openssl caddy
-sudo useradd --system --home /opt/alvea --shell /usr/sbin/nologin alvea
+sudo apt update && sudo apt install -y git
 sudo git clone https://github.com/cipherdesk007-max/project-X /opt/alvea
 cd /opt/alvea
-sudo cp .env.example .env
-sudo python3 manage.py init --email tu@tuodominio.it --nome "Il tuo nome"
+sudo bash deploy/installa.sh --dominio app.tuodominio.it --email tu@tuodominio.it
 ```
 
-`init` crea il database, la chiave che cifra le credenziali e il tuo utente **gestore**. La password te la chiede lui.
+Lo script fa tutto in ordine e ti dice a che punto è: installa i programmi che servono, crea il file `.env` con la chiave di cifratura, crea il database e il tuo utente **gestore** (la password te la chiede lui), **firma tutti i pacchetti per i computer dei clienti**, accende l'avvio automatico, configura l'HTTPS e alla fine fa il collaudo. Si può rilanciare quante volte vuoi: non cancella e non riscrive niente di quello che c'è già.
 
-## 3. Impostare il file `.env`
+Quando ha finito apri `https://app.tuodominio.it`, entra come gestore e scrivi le chiavi dei modelli in **Impostazioni della piattaforma**. I punti 3, 4 e 5 qui sotto servono solo se preferisci fare i passi a mano o vuoi capire cosa ha fatto lo script.
+
+Per rifare il collaudo in qualsiasi momento:
+
+```sh
+sudo -u alvea python3 manage.py collaudo
+```
+
+Controlla che il server risponda, che ci siano tutti i 18 agenti, che i quattro pacchetti siano presenti, firmati e consegnati ai launcher, che il launcher si scarichi. Con `--email` e `--password` di un'azienda e l'opzione `--agenti` scrive anche a ogni agente acceso (con i modelli veri consuma qualche token).
+
+## 3. (A mano) Impostare il file `.env`
 
 Apri `/opt/alvea/.env` e cambia solo queste righe:
 
@@ -33,7 +41,7 @@ SFB_TRUST_PROXY=1
 ANTHROPIC_API_KEY=...        # oppure MOONSHOT_API_KEY, OPENAI_API_KEY, OLLAMA_BASE_URL
 ```
 
-## 4. Firmare i pacchetti per i computer dei clienti
+## 4. (A mano, e dopo ogni aggiornamento) Firmare i pacchetti per i computer dei clienti
 
 ```sh
 sudo python3 manage.py firma-pacchetti
@@ -41,7 +49,7 @@ sudo python3 manage.py firma-pacchetti
 
 Va rifatto ogni volta che aggiorni il codice. **Prima di avere clienti veri** sposta `data/firma_privata.pem` su un altro computer e firma da lì con `--chiave`: se resta sul server, chi entra nel server può mandare codice ai computer dei clienti.
 
-## 5. HTTPS e avvio automatico
+## 5. (A mano) HTTPS e avvio automatico
 
 ```sh
 sudo chown -R alvea: /opt/alvea/data /opt/alvea/.env
@@ -131,6 +139,7 @@ Da mettere in cron una volta al giorno. La copia contiene dati dei clienti: tien
 cd /opt/alvea && sudo git pull
 sudo python3 manage.py firma-pacchetti     # oppure dal computer che tiene la chiave
 sudo systemctl restart alvea
+sudo -u alvea python3 manage.py collaudo     # controlla che dopo l'aggiornamento ci sia ancora tutto
 ```
 
 Il database si aggiorna da solo all'avvio. `.env`, `data/` e `storage/` non sono nel repository e non vengono toccati.
