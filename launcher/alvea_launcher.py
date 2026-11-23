@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Alvea.ai Launcher: il programma che gira sul computer del cliente.
+"""Alvea Launcher: il programma che gira sul computer del cliente.
 
 Cosa fa:
   verifica      controlla questo computer e dice, agente per agente, se può girare qui. Non serve un account.
@@ -68,7 +68,7 @@ class Api:
     def __init__(self, cfg):
         self.base, self.token = str(cfg.get("server") or "").rstrip("/"), cfg.get("token") or ""
         if not self.base.startswith(("http://", "https://")):
-            raise LauncherError("Manca l'indirizzo del server Alvea.ai (file server.json oppure --server).")
+            raise LauncherError("Manca l'indirizzo del server Alvea (file server.json oppure --server).")
 
     def call(self, method, path, body=None, timeout=40):
         headers = {"Content-Type": "application/json"}
@@ -424,7 +424,7 @@ def cmd_posta(cfg, args):
     _set(cfg, "email", imap_host=args.imap_host or input("Server IMAP (es. imap.tuodominio.it): "), smtp_host=args.smtp_host or input("Server SMTP: "),
          utente=args.utente or input("Indirizzo email: "), password=args.password or getpass.getpass("Password della casella (resta su questo computer): "),
          imap_port=args.imap_port, smtp_port=args.smtp_port)
-    print("Casella salvata su questo computer. Il server Alvea.ai non la riceve.")
+    print("Casella salvata su questo computer. Il server Alvea non la riceve.")
     return 0
 
 
@@ -454,7 +454,7 @@ def cmd_modello(cfg, args):
 
 
 def cmd_guidato(cfg, args):
-    print("Alvea.ai Launcher %s\n" % VERSION)
+    print("Alvea Launcher %s\n" % VERSION)
     cmd_verifica(cfg, args)
     if not cfg.get("token"):
         code = input("\nCodice di collegamento (Centro di controllo, scheda Computer), oppure Invio per uscire: ").strip()
@@ -467,8 +467,8 @@ def cmd_guidato(cfg, args):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="Alvea.ai Launcher")
-    p.add_argument("--server", help="indirizzo del server Alvea.ai, se diverso da quello nel file server.json")
+    p = argparse.ArgumentParser(description="Alvea Launcher")
+    p.add_argument("--server", help="indirizzo del server Alvea, se diverso da quello nel file server.json")
     sub = p.add_subparsers(dest="cmd")
     sub.add_parser("verifica").set_defaults(fn=cmd_verifica)
     s = sub.add_parser("collega")

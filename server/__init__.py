@@ -1,1 +1,1 @@
-"""Alvea.ai: server degli agenti a pacchetti."""
+"""Alvea: server degli agenti a pacchetti."""

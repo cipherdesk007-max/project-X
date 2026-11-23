@@ -1,4 +1,4 @@
-/* Alvea.ai: schermata. Tutto il testo che arriva dal server entra con textContent, mai come HTML. */
+/* Alvea: schermata. Tutto il testo che arriva dal server entra con textContent, mai come HTML. */
 (function () {
   "use strict";
 
@@ -87,7 +87,8 @@
   function seg(items, current, onPick, label) {
     return el("div", { class: "seg", role: "group", "aria-label": label }, items.map(function (it) {
       return el("button", { type: "button", "aria-pressed": String(it.id === current), disabled: !!it.disabled, title: it.title || null,
-                            onclick: function () { onPick(it.id); } }, it.label, it.small ? el("small", { text: it.small }) : null);
+                            onclick: function () { onPick(it.id); } },
+                            it.short ? [el("span", { class: "l", text: it.label }), el("span", { class: "s", text: it.short })] : it.label, it.small ? el("small", { text: it.small }) : null);
     }));
   }
   function field(label, id, attrs) {
@@ -100,7 +101,8 @@
   function table(headers, rows) {
     return el("div", { class: "scroll" }, el("table", {},
       el("thead", {}, el("tr", {}, headers.map(function (h) { return el("th", { text: h }); }))),
-      el("tbody", {}, rows.map(function (r) { return el("tr", {}, r.map(function (c) { return c && c.nodeType ? el("td", {}, c) : el("td", { class: "wrapcell", text: c == null ? "" : String(c) }); })); }))));
+      el("tbody", {}, rows.map(function (r) { return el("tr", {}, r.map(function (c, i) { var label = headers[i] || "";  // su telefono la riga diventa una scheda e questa è l'etichetta
+        return c && c.nodeType ? el("td", { "data-label": label }, c) : el("td", { class: "wrapcell", "data-label": label, text: c == null ? "" : String(c) }); })); }))));
   }
   function when(iso) {
     if (!iso) return "";
@@ -194,7 +196,7 @@
         .then(function (out) { setToken(out.token); return loadMe(); })
         .catch(function (err) { S.loginError = err.message; render(); });
     } },
-      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
+      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
       el("p", { text: "Entra con l'email e la password della tua azienda." }),
       S.notice ? el("p", { class: S.noticeBad ? "error" : "okmsg", role: "status", text: S.notice }) : null,
       el("div", { class: "panel form" },
@@ -220,7 +222,7 @@
         .then(function () { back(reset ? "Password cambiata: ora puoi entrare." : "Se l'indirizzo è registrato, tra poco ricevi un'email con il collegamento. Vale un'ora."); })
         .catch(function (e2) { send.disabled = false; err.textContent = e2.message; });
     } },
-      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
+      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
       el("p", { text: reset ? "Scegli una nuova password di almeno 10 caratteri." : "Scrivi l'email con cui entri: ti mandiamo un collegamento per scegliere una nuova password." }),
       el("div", { class: "panel form" },
         reset ? field("Nuova password", "new_password", { type: "password", required: true, minlength: "10", autocomplete: "new-password" })
@@ -252,7 +254,7 @@
         })
         .catch(function (e2) { send.disabled = false; err.textContent = e2.message; });
     } },
-      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
+      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
       el("p", { text: "Registra la tua azienda e scegli gli agenti del tuo team. Potrai accenderli e spegnerli quando vuoi." }),
       el("div", { class: "panel form" },
         field("Nome dell'azienda", "reg_company", { required: true, maxlength: "120", autocomplete: "organization" }),
@@ -291,7 +293,7 @@
         el("p", { text: "Gestione della piattaforma: aziende e pacchetti" }));
     }
     return el("header", { class: "top" },
-      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
+      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
       ticker,
       el("div", { class: "who" }, me.demo ? el("span", { class: "chip wait", title: "Risponde un modello finto a regole fisse", text: "Demo" }) : null,
         me.tenant ? el("span", { text: me.tenant.name + " · " + me.tenant.package_name }) : null,
@@ -811,7 +813,7 @@
     } });
     return el("div", { class: "panel" }, head, flash,
       g.connected ? el("p", { text: "Collegato come " + (g.email || "account Google") + ". La posta in uscita e gli eventi su Calendar partono solo dopo approvazione." })
-                  : el("p", { text: "Si apre la pagina di consenso di Google e poi torni qui. La password di Google non passa mai da Alvea.ai." }),
+                  : el("p", { text: "Si apre la pagina di consenso di Google e poi torni qui. La password di Google non passa mai da Alvea." }),
       g.broken ? el("p", { class: "error", text: g.broken }) : null,
       g.storage_ok ? null : el("p", { class: "error", text: "Per collegare Google le credenziali devono essere cifrate: serve SFB_SECRET_KEY e il pacchetto cryptography (vedi LEGGIMI)." }),
       boxes, el("div", { class: "acts" }, go,
@@ -1069,22 +1071,25 @@
     api("GET", "/admin/tenants").then(function (out) {
       var err = el("p", { class: "error", role: "alert" });
       var options = function (current) { return cat().packages.map(function (p) { return el("option", { value: p.id, selected: p.id === current, text: p.name }); }); };
-      var rows = out.tenants.map(function (t) {
-        var select = el("select", { "aria-label": "Pacchetto di " + t.name, onchange: function () { act(api("POST", "/admin/tenants/" + t.id, { package_id: select.value }), err); } }, options(t.package_id));
-        return [t.name, t.origin === "registrazione" ? "registrata da sola" : "creata da te", el("div", { class: "field" }, select), t.users, t.tokens,
-          el("button", { class: "btn small", type: "button", title: "Chiavi dei modelli messe nel file .env", text: t.platform_keys ? "usa le tue chiavi: togli" : "usa le sue chiavi: concedi le tue",
-            onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { platform_keys: !t.platform_keys }), err); } }),
-          el("label", { class: "cap", title: "Token al mese con i modelli a pagamento; 0 = nessun tetto. Usati questo mese: " + (t.tokens_month || 0) },
-            "Tetto mensile ", el("input", { id: "cap_" + t.id, type: "number", min: "0", step: "100000", value: String(t.monthly_token_cap || 0) })),
-          el("label", { class: "cap", title: "Ultimo giorno pagato. Vuoto = nessuna scadenza. Dopo quella data gli agenti dell'azienda vanno in pausa." },
-            "Pagato fino al ", el("input", { id: "paid_" + t.id, type: "date", value: t.paid_until || "" })),
-          el("button", { class: "btn small", type: "button", text: "Salva scadenza",
-            onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { paid_until: val("paid_" + t.id) }), err); } }),
-          el("button", { class: "btn small", type: "button", text: "Salva tetto",
-            onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { monthly_token_cap: Math.max(0, Math.round(Number(val("cap_" + t.id)) || 0)) }), err); } }),
-          t.active ? "attiva" : "sospesa",
-          el("button", { class: "btn small" + (t.active ? " danger" : ""), type: "button", text: t.active ? "Sospendi" : "Riattiva",
-            onclick: function () { act(api("POST", "/admin/tenants/" + t.id, { active: !t.active }), err); } })];
+      var num = function (n) { return Number(n || 0).toLocaleString("it-IT"); };
+      var rows = out.tenants.map(function (t) {  // una scheda per azienda: si legge uguale su computer e su telefono
+        var post = function (body) { return function () { act(api("POST", "/admin/tenants/" + t.id, body()), err); }; };
+        var select = el("select", { id: "pkg_" + t.id, onchange: function () { act(api("POST", "/admin/tenants/" + t.id, { package_id: select.value }), err); } }, options(t.package_id));
+        return el("article", { class: "company" },
+          el("header", {}, el("strong", { text: t.name }), el("span", { class: "pill " + (t.active ? "ok" : "no"), text: t.active ? "attiva" : "sospesa" }),
+            el("span", { class: "meta", text: (t.origin === "registrazione" ? "Registrata da sola" : "Creata da te") + " · " + num(t.users) + (t.users === 1 ? " utente" : " utenti") + " · " + num(t.tokens) + " token usati, " + num(t.tokens_month) + " questo mese" })),
+          el("div", { class: "company-grid" },
+            el("div", { class: "field" }, el("label", { for: "pkg_" + t.id, text: "Pacchetto (tetto degli agenti)" }), select),
+            el("div", { class: "field" }, el("label", { for: "cap_" + t.id, text: "Tetto mensile di token (0 = nessuno)" }), el("div", { class: "inline" },
+              el("input", { id: "cap_" + t.id, type: "number", min: "0", step: "100000", value: String(t.monthly_token_cap || 0) }),
+              el("button", { class: "btn small", type: "button", text: "Salva tetto", onclick: post(function () { return { monthly_token_cap: Math.max(0, Math.round(Number(val("cap_" + t.id)) || 0)) }; }) }))),
+            el("div", { class: "field" }, el("label", { for: "paid_" + t.id, text: "Pagato fino al (vuoto = nessuna scadenza)" }), el("div", { class: "inline" },
+              el("input", { id: "paid_" + t.id, type: "date", value: t.paid_until || "" }),
+              el("button", { class: "btn small", type: "button", text: "Salva scadenza", onclick: post(function () { return { paid_until: val("paid_" + t.id) }; }) })))),
+          el("div", { class: "acts" },
+            el("span", { class: "meta", text: t.platform_keys ? "Usa le tue chiavi dei modelli." : "Usa solo le proprie chiavi dei modelli." }),
+            el("button", { class: "btn small", type: "button", text: t.platform_keys ? "Togli le tue chiavi" : "Concedi le tue chiavi", onclick: post(function () { return { platform_keys: !t.platform_keys }; }) }),
+            el("button", { class: "btn small" + (t.active ? " danger" : ""), type: "button", text: t.active ? "Sospendi" : "Riattiva", onclick: post(function () { return { active: !t.active }; }) })));
       });
       var form = el("form", { class: "form row", autocomplete: "off", onsubmit: function (e) {
         e.preventDefault();
@@ -1099,7 +1104,7 @@
       append(body, [
         el("div", { class: "panel" }, el("h2", { text: "Aziende" }),
           el("p", { text: "Il pacchetto è il tetto massimo: dentro quel tetto ogni azienda accende gli agenti che vuole. Le aziende registrate da sole usano le proprie chiavi dei modelli, finché non concedi le tue." }),
-          rows.length ? table(["Azienda", "Origine", "Tetto (pacchetto)", "Utenti attivi", "Token usati", "Chiavi dei modelli", "Stato", ""], rows) : el("p", { class: "empty", text: "Nessuna azienda. Creane una qui sotto." }), err),
+          rows.length ? rows : el("p", { class: "empty", text: "Nessuna azienda. Creane una qui sotto." }), err),
         el("div", { class: "panel" }, el("h2", { text: "Nuova azienda" }),
           el("p", { text: "Crea l'azienda e il suo primo amministratore. Comunicagli email e password iniziale: potrà cambiarla un altro amministratore." }), form)]);
     }).catch(function (e) { body.textContent = ""; append(body, el("p", { class: "error", role: "alert", text: e.message })); });
@@ -1168,8 +1173,8 @@
     if (S.view === "ufficio" && !canOffice()) S.view = "agente";
     append(root, S.view === "ufficio" ? viewUfficio() : (S.view === "agente" ? viewAgente() : viewCentro()));
     append(root, el("footer", { class: "foot" }, seg([
-      { id: "ufficio", label: "Ufficio 3D", disabled: !canOffice(), title: canOffice() ? null : "Questo browser non mette a disposizione WebGL" },
-      { id: "agente", label: "Modalità Compatta / Mobile" }, { id: "centro", label: "Centro di controllo" }],
+      { id: "ufficio", label: "Ufficio 3D", short: "Ufficio", disabled: !canOffice(), title: canOffice() ? null : "Questo browser non mette a disposizione WebGL" },
+      { id: "agente", label: "Modalità Compatta / Mobile", short: "Chat" }, { id: "centro", label: "Centro di controllo", short: "Controllo" }],
       S.view, function (id) { keepDraft(); S.view = id; render(); }, "Vista")));
     if (typing) { box = document.getElementById("chatInput"); if (box) box.focus(); }  // ridisegnare non toglie il cursore a chi scrive
     if (S.view === "ufficio" && !S.osnap) pollOffice();

@@ -239,7 +239,7 @@ class V4(Base):
                 self.assertIsNone(re.search(r"(https?:)?//[a-z0-9.-]+\.[a-z]{2,}", text.replace("http://www.w3.org/2000/svg", "")), "indirizzo esterno in %s" % f.name)
                 for word in ("eval(", "new Function", "importScripts", "document.write"):
                     self.assertNotIn(word, text, "%s in %s" % (word, f.name))
-        self.assertEqual(set(app.STATIC), {"/", "/app.js", "/app.css", "/logo.png", "/icon.png", "/favicon.ico", "/office.js", "/vendor/mini3d.js"})
+        self.assertEqual(set(app.STATIC), {"/", "/app.js", "/app.css", "/logo.png", "/logo-alvea.png", "/icon.png", "/favicon.ico", "/office.js", "/vendor/mini3d.js"})
 
     def test_ogni_agente_del_catalogo_ha_una_postazione_che_la_pagina_sa_disegnare(self):
         script = (ROOT / "web" / "office.js").read_text(encoding="utf-8")

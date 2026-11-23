@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installa Alvea.ai con un solo comando, dentro la cartella dove hai scaricato il repository.
+# Installa Alvea con un solo comando, dentro la cartella dove hai scaricato il repository.
 #
 #   sudo bash deploy/installa.sh --dominio app.tuodominio.it --email tu@tuodominio.it
 #

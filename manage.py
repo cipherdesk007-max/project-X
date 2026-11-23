@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Comandi di gestione di Alvea.ai.
+"""Comandi di gestione di Alvea.
 
   python3 manage.py init                 crea database, file .env e il gestore della piattaforma
   python3 manage.py demo                 crea tre aziende di prova, una per pacchetto
@@ -186,7 +186,7 @@ def acceptance(url, email=None, password=None, agents=False):
     status, headers, _ = call("GET", "/", raw=True)
     csp = headers.get("Content-Security-Policy", "")
     add(status == 200 and "default-src 'self'" in csp and "http" not in csp, "Pagina servita con regole di sicurezza che ammettono solo file di questo server")
-    missing = [p for p in ("/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/icon.png") if call("GET", p, raw=True)[0] != 200]
+    missing = [p for p in ("/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/logo-alvea.png", "/icon.png") if call("GET", p, raw=True)[0] != 200]
     add(not missing, "File della schermata e marchio presenti" if not missing else "File della schermata mancanti: %s" % ", ".join(missing))
     agents_all = catalog.load()["agents"]
     status, _, cat = call("GET", "/api/launcher/catalog")
@@ -259,7 +259,7 @@ def cmd_firma(args):
 
 
 def main():
-    p = argparse.ArgumentParser(description="Gestione di Alvea.ai")
+    p = argparse.ArgumentParser(description="Gestione di Alvea")
     sub = p.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("init")
     s.add_argument("--email")

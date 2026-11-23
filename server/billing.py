@@ -96,7 +96,7 @@ def remind(con, today=None):
             continue  # un altro processo l'ha già presa
         how = ("Per rinnovare con carta apri la scheda Abbonamento: %s/#abbonamento" % google.public_url() if status(t)["enabled"]
                else "Per rinnovare contatta chi ti ha venduto il servizio.")
-        if mail_admins(con, t["id"], "Alvea.ai: l'abbonamento scade il %s" % _day(t["paid_until"]),
+        if mail_admins(con, t["id"], "Alvea: l'abbonamento scade il %s" % _day(t["paid_until"]),
                        "L'abbonamento di %s scade il %s.\n\nDopo quella data gli agenti vanno in pausa; i dati restano al loro posto.\n\n%s\n"
                        % (t["name"], _day(t["paid_until"]), how), wait=True):
             audit.record(con, t["id"], None, "avviso_scadenza_inviato", {"scadenza": t["paid_until"]})
@@ -192,7 +192,7 @@ def webhook(con, raw, header):
         audit.record(con, tid, None, "pagamento_non_riuscito", {"importo": obj.get("amount_due"), "valuta": obj.get("currency")})
         text = "L'addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta dalla scheda Abbonamento."
         news.add(con, tid, "pagamento", "Pagamento non riuscito", text)
-        mail_admins(con, tid, "Alvea.ai: pagamento non riuscito", "%s\n\n%s/#abbonamento\n\nSe la scadenza passa senza un pagamento, gli agenti vanno in pausa; i dati restano al loro posto.\n"
+        mail_admins(con, tid, "Alvea: pagamento non riuscito", "%s\n\n%s/#abbonamento\n\nSe la scadenza passa senza un pagamento, gli agenti vanno in pausa; i dati restano al loro posto.\n"
                     % (text, google.public_url()))
     elif kind == "customer.subscription.updated":
         ends = [obj.get("cancel_at")] if isinstance(obj.get("cancel_at"), int) else []

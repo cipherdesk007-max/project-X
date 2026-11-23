@@ -1,7 +1,7 @@
-# Avvio automatico di Alvea.ai su un server Linux con systemd.
+# Avvio automatico di Alvea su un server Linux con systemd.
 # Copia in /etc/systemd/system/alvea.service, poi: systemctl daemon-reload && systemctl enable --now alvea
 [Unit]
-Description=Alvea.ai
+Description=Alvea
 After=network-online.target
 Wants=network-online.target
 

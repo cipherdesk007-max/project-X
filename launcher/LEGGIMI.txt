@@ -1,4 +1,4 @@
-Alvea.ai Launcher
+Alvea Launcher
 ==================
 
 Serve Python 3.9 o successivo (macOS e Linux: python3; Windows: python.org).

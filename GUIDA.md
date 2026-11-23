@@ -1,4 +1,4 @@
-# Guida semplice: installare Alvea.ai sul server e collegarlo al sito
+# Guida semplice: installare Alvea sul server e collegarlo al sito
 
 Questa guida è per un server Linux (Ubuntu o Debian) con un indirizzo tipo `app.tuodominio.it`.
 Per i dettagli di ogni funzione c'è `LEGGIMI.md`. Per provarlo sul tuo computer senza server: fondo pagina.

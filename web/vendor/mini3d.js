@@ -1,4 +1,4 @@
-/* Mini3D: piccolo motore 3D in WebGL scritto per Alvea.ai.
+/* Mini3D: piccolo motore 3D in WebGL scritto per Alvea.
  * NON è Three.js e non ne imita le API. Nessuna dipendenza, nessun file esterno: gira tutto in locale.
  * Offre: matrici, costruzione di solidi colorati (parallelepipedi, cilindri, sfere, dischi, ottaedri),
  * pannelli con immagine presa da un canvas 2D, luce diffusa con nebbia, camera a orbita con zoom,

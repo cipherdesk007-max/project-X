@@ -1,4 +1,4 @@
-/* Ufficio 3D di Alvea.ai: costruisce la stanza a partire dai dati del server e la tiene aggiornata.
+/* Ufficio 3D di Alvea: costruisce la stanza a partire dai dati del server e la tiene aggiornata.
  * Una postazione per ogni agente acceso, attrezzata secondo il suo tipo (`station` nel catalogo),
  * un personaggio seduto e un indicatore sopra la testa che segue lo stato vero dell'agente.
  * Dipende solo da Mini3D (web/vendor/mini3d.js). Tutti i testi che arrivano dal server finiscono
@@ -51,7 +51,7 @@ var SFBOffice = (function () {
     function lines(a, b, n, gap, col, maxw) { for (var k = 0; k < n; k++) rect(col, a, b + k * gap, Math.round(maxw * (0.45 + r() * 0.55)), 4); }
     if (kind === "insegna") {
       rect("#0b0f14", 0, 0, W, H); rect(tone, 0, H - 5, W, 5);
-      text("alvea.ai", 14, H * 0.5, Math.round(H * 0.36), "#e9f0ff", true);
+      text("alvea", 14, H * 0.5, Math.round(H * 0.36), "#e9f0ff", true);
       text(name, 14, H * 0.82, Math.round(H * 0.2), "#8ea2c8", false);
       return c;
     }

@@ -51,7 +51,7 @@ class V9(V8):
         self.assertTrue(self.sub(a)["payment_failed"])
         self.assertTrue(self.call("GET", "/api/billing", token=a)[1]["payment_failed"])
         self.assertFalse(self.sub(b)["payment_failed"], "l'altra azienda non è toccata")
-        self.assertEqual([(to, s) for to, s, _ in self.sent], [("admin@fallito-uno.it", "Alvea.ai: pagamento non riuscito")], "solo agli amministratori di quell'azienda")
+        self.assertEqual([(to, s) for to, s, _ in self.sent], [("admin@fallito-uno.it", "Alvea: pagamento non riuscito")], "solo agli amministratori di quell'azienda")
         self.assertIn("/#abbonamento", self.sent[0][2])
         self.assertIn("Pagamento non riuscito", [n["title"] for n in self.call("GET", "/api/news", token=a)[1]["news"]])
         self.assertTrue(json.loads(self.hook(failed)[2])["duplicate"])

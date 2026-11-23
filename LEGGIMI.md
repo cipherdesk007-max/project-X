@@ -1,4 +1,4 @@
-# Alvea.ai — server, schermata e launcher (versione 5)
+# Alvea — server, schermata e launcher (versione 5)
 
 > Per installarlo su un server e collegarlo al sito segui **`GUIDA.md`**: dieci passi, con il controllo finale `python3 manage.py controlla-produzione`. Questo file descrive ogni funzione nel dettaglio.
 
@@ -37,6 +37,8 @@ Prima di aggiornare un'installazione con dati veri, fai una copia di `data/sales
 - **`deploy/installa.sh`**: un solo comando installa tutto sul server (programmi, `.env` con chiave di cifratura, database, gestore, firma di tutti i pacchetti, avvio automatico, HTTPS) e finisce con il collaudo. Rilanciarlo non tocca quello che c'è già. Con `--prova` non tocca il sistema.
 - **`python3 manage.py collaudo`**: prova un server acceso — pagina e regole di sicurezza, 18 agenti nel catalogo, pacchetti presenti, firmati e consegnati, launcher scaricabile, dati chiusi senza accesso, avvisi di pagamento senza firma rifiutati. Con le credenziali di un'azienda e `--agenti` scrive a ogni agente acceso.
 - **Marchio**: nuovo logo e arancione `#FF6A00` su quasi nero `#0B0F14` in schermata, ufficio 3D e icona. Il verde resta solo dove significa «pronto» o «riuscito», gli avvisi sono gialli per non confondersi con l'arancione del marchio.
+- **Nome e logo**: il prodotto si chiama «Alvea», senza «.ai». Nell'intestazione c'è il logo completo del foglio del marchio (`web/logo-alvea.png`), non una scritta rifatta con un altro carattere.
+- **Rifiniture dell'aspetto**, trovate fotografando tutte le schermate su computer (1280 px) e telefono (390 px): campi dei moduli che si allungavano lasciando grandi vuoti, pulsante principale che al passaggio del mouse diventava blu, grigi con una punta di verde, elenco delle aziende più largo dello schermo (ora a schede), tabelle illeggibili su telefono (ora una scheda per riga), pulsanti troppo piccoli per il dito, barra in basso su due righe.
 - Prove in `tests/test_v10.py`.
 
 ## Novità della versione 9: quello che succede dopo il primo pagamento
@@ -65,7 +67,7 @@ Prima di aggiornare un'installazione con dati veri, fai una copia di `data/sales
 
 - **Recupero della password.** Nella pagina di accesso compare «Password dimenticata?» quando il server ha la posta configurata (`SFB_SMTP_HOST`). L'utente riceve un collegamento che vale un'ora e una volta sola; scelta la nuova password, tutte le sessioni aperte con la vecchia vengono chiuse. La risposta è la stessa che l'indirizzo esista o no, così non si scopre chi è cliente; cinque richieste all'ora per indirizzo di rete. Senza posta configurata resta la strada di prima: la password la cambia un amministratore dell'azienda. Rotte `POST /api/password/forgot` e `POST /api/password/reset`.
 - **Tetto mensile di consumo per azienda.** Il gestore, nella sua schermata, scrive quanti token al mese può consumare ogni azienda con i modelli a pagamento (0 = nessun tetto). Raggiunto il tetto, chat e lavori automatici si fermano con un messaggio chiaro fino al mese dopo o finché il gestore non lo alza. Il modello «Locale» non costa: non entra nel conto e resta disponibile. L'azienda vede il suo consumo del mese nella scheda Consumi.
-- Il nome del progetto è **Alvea.ai**, con logo e colori del marchio. Le variabili del file `.env` conservano il prefisso `SFB_` e il database il nome `salesforb.db`: sono nomi interni, cambiarli romperebbe gli aggiornamenti.
+- Il nome del progetto è **Alvea**, con logo e colori del marchio. Le variabili del file `.env` conservano il prefisso `SFB_` e il database il nome `salesforb.db`: sono nomi interni, cambiarli romperebbe gli aggiornamenti.
 
 ## Novità della versione 5: launcher, agenti sul computer del cliente, video, modello locale
 
@@ -197,7 +199,7 @@ Serve una volta sola, per tutta la piattaforma. Lo fai tu come gestore nella con
 4. Metti `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` nel `.env`. Se il server non è su 127.0.0.1:8787, imposta anche `SFB_PUBLIC_URL`.
 5. Riavvia. Ogni amministratore collega l'account della sua azienda da Centro di controllo, scheda Collegamenti.
 
-Apri Alvea.ai sempre allo stesso indirizzo di `SFB_PUBLIC_URL` (per esempio `http://127.0.0.1:8787`, non `http://localhost:8787`): altrimenti al ritorno da Google il browser non riconosce la sessione.
+Apri Alvea sempre allo stesso indirizzo di `SFB_PUBLIC_URL` (per esempio `http://127.0.0.1:8787`, non `http://localhost:8787`): altrimenti al ritorno da Google il browser non riconosce la sessione.
 
 Tre limiti di Google da conoscere prima di venderlo (documentazione Google, letta il 23 novembre 2026):
 
@@ -271,7 +273,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 135 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 137 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 
@@ -291,7 +293,7 @@ A mano: entra con Demo Start, tocca un agente bloccato, e manda `POST /api/chat`
    **Tetto di spesa** per azienda sui modelli: non c'è.
    **Proxy**: i caricamenti grandi richiedono che il proxy HTTPS accetti corpi fino a `SFB_UPLOAD_MAX_MB`.
 6. **Privacy**: messaggi, posta letta e documenti in memoria vanno ai fornitori dei modelli e restano in chiaro nel database. Servono informativa e accordi sul trattamento dei dati con i clienti: da far vedere a un legale.
-7. **Nome**: «Alvea.ai» è vicino a un marchio noto. Controllo sul marchio prima di venderlo.
+7. **Nome**: «Alvea» è vicino a un marchio noto. Controllo sul marchio prima di venderlo.
 8. **Fatturazione**: non c'è. La scheda Consumi dà i token per azienda, da moltiplicare per i listini.
 
 ## Rapporto con il SourceKit

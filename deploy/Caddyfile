@@ -1,4 +1,4 @@
-# HTTPS automatico con Caddy davanti a Alvea.ai. Sostituisci app.tuodominio.it con il tuo indirizzo
+# HTTPS automatico con Caddy davanti a Alvea. Sostituisci app.tuodominio.it con il tuo indirizzo
 # (il DNS deve già puntare a questo server), copia in /etc/caddy/Caddyfile e riavvia: systemctl reload caddy
 app.tuodominio.it {
     encode gzip

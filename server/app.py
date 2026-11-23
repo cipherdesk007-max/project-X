@@ -1,4 +1,4 @@
-"""Server HTTP di Alvea.ai: API JSON e schermata. Solo libreria standard di Python."""
+"""Server HTTP di Alvea: API JSON e schermata. Solo libreria standard di Python."""
 from __future__ import annotations
 
 import json
@@ -18,7 +18,7 @@ MAX_BODY = 1000000
 CHAT_PER_MINUTE = 30
 # Elenco chiuso dei file serviti: niente percorsi costruiti dalla richiesta.
 STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"),
-          "/app.css": ("app.css", "text/css; charset=utf-8"), "/logo.png": ("logo.png", "image/png"), "/icon.png": ("icon.png", "image/png"),
+          "/app.css": ("app.css", "text/css; charset=utf-8"), "/logo.png": ("logo.png", "image/png"), "/logo-alvea.png": ("logo-alvea.png", "image/png"), "/icon.png": ("icon.png", "image/png"),
           "/favicon.ico": ("icon.png", "image/png"), "/office.js": ("office.js", "text/javascript; charset=utf-8"),
           "/vendor/mini3d.js": ("vendor/mini3d.js", "text/javascript; charset=utf-8")}
 # Tutto viene dallo stesso server: nessun CDN, nessuno script in linea, nessun eval. Il motore 3D è un file locale.
@@ -499,7 +499,7 @@ def r_admin_test_email(q):
     if not registration.smtp_cfg():
         raise ApiError(400, "Prima salva il server SMTP nelle impostazioni della posta.")
     try:
-        registration.send_mail(q.user["email"], "Alvea.ai: email di prova", "Se leggi questo messaggio, la posta di servizio funziona.")
+        registration.send_mail(q.user["email"], "Alvea: email di prova", "Se leggi questo messaggio, la posta di servizio funziona.")
     except connectors.ConnectorError as e:
         raise ApiError(502, "L'email di prova non è partita: %s" % str(e)[:300])
     return {"ok": True, "to": q.user["email"]}
@@ -675,7 +675,7 @@ def handle_api(method, path, query, body, token, cookies=None, ip=None):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "Alvea.ai"
+    server_version = "Alvea"
     sys_version = ""
     timeout = 120  # una connessione ferma non tiene occupato un thread per sempre
 
@@ -928,7 +928,7 @@ def main():
     con = db.connect()
     has_owner = con.execute("SELECT 1 FROM users WHERE role='superadmin'").fetchone()
     con.close()
-    print("Alvea.ai in ascolto su http://%s:%d" % (host, port))
+    print("Alvea in ascolto su http://%s:%d" % (host, port))
     if not has_owner:
         print("ATTENZIONE: nessun gestore creato. Esegui prima: python3 manage.py init")
     if config.demo_mode():

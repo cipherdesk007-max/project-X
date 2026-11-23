@@ -1,6 +1,6 @@
 """Pacchetto locale «email»: legge e invia la posta dal computer del cliente.
 
-L'indirizzo del server di posta e la password restano nel launcher, su questo computer: il server Alvea.ai non li riceve mai.
+L'indirizzo del server di posta e la password restano nel launcher, su questo computer: il server Alvea non li riceve mai.
 """
 import email
 import imaplib

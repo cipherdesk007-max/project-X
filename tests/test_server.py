@@ -260,7 +260,7 @@ class TestSicurezzaStrumenti(Base):
     def test_pagine_e_intestazioni(self):
         with urllib.request.urlopen(self.base + "/", timeout=10) as r:
             self.assertIn("default-src 'self'", r.headers["Content-Security-Policy"])
-            self.assertIn(b"<title>alvea.ai</title>", r.read())
+            self.assertIn(b"<title>alvea</title>", r.read())
         self.assertEqual(self.call("GET", "/../manage.py")[0], 404)
         self.assertEqual(self.call("GET", "/api/non-esiste")[0], 404)
 

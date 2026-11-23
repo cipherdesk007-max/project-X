@@ -38,7 +38,7 @@ def smtp_cfg():
     if not host:
         return None
     return {"smtp_host": host, "smtp_port": config.get("SFB_SMTP_PORT", "465"), "username": config.get("SFB_SMTP_USER"),
-            "password": config.get("SFB_SMTP_PASSWORD"), "from_name": config.get("SFB_SMTP_FROM_NAME", "Alvea.ai")}
+            "password": config.get("SFB_SMTP_PASSWORD"), "from_name": config.get("SFB_SMTP_FROM_NAME", "Alvea")}
 
 
 def verification_on():
@@ -87,7 +87,7 @@ def _send_verification(con, user_id, email):
     con.execute("INSERT INTO email_tokens(token_hash,user_id,expires_at) VALUES(?,?,?)", (_hash(token), user_id, int(time.time()) + TOKEN_SECONDS))
     link = "%s/api/verify?token=%s" % (google.public_url(), token)
     try:
-        send_mail(email, "Conferma il tuo indirizzo per Alvea.ai",
+        send_mail(email, "Conferma il tuo indirizzo per Alvea",
                   "Per attivare l'account apri questo collegamento entro 24 ore:\n\n%s\n\nSe non hai chiesto tu la registrazione, ignora questo messaggio." % link)
         return True
     except connectors.ConnectorError as e:
@@ -199,7 +199,7 @@ def forgot(con, body, ip):
 
         def deliver(to=user["email"]):  # in un filo a parte: il tempo di risposta non rivela se l'indirizzo esiste
             try:
-                send_mail(to, "Alvea.ai: scegli una nuova password", text)
+                send_mail(to, "Alvea: scegli una nuova password", text)
             except Exception as e:
                 print("ATTENZIONE: email di recupero non inviata: %s" % type(e).__name__)
 

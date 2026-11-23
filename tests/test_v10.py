@@ -58,9 +58,30 @@ class Collaudo(Base):
             for old in ("#00c38a", "#4be3b4", "0, 195, 138"):
                 self.assertNotIn(old, text, path)
         self.assertIn("--accent: #ff6a00", self.fetch("/app.css")[2].decode("utf-8"))
-        for path in ("/logo.png", "/icon.png"):
+        for path in ("/logo.png", "/logo-alvea.png", "/icon.png"):
             status, headers, data = self.fetch(path)
             self.assertEqual((status, data[:8]), (200, b"\x89PNG\r\n\x1a\n"), path)
+
+
+class Aspetto(Base):
+    """Guardie sui difetti di aspetto trovati guardando le schermate: se tornano, la prova fallisce."""
+
+    def test_nome_senza_punto_ai_e_logo_completo(self):
+        for path in ("/", "/app.js", "/office.js", "/app.css"):
+            self.assertNotIn("alvea.ai", self.fetch(path)[2].decode("utf-8").lower(), path)
+        self.assertIn("<title>alvea</title>", self.fetch("/")[2].decode("utf-8"))
+        js = self.fetch("/app.js")[2].decode("utf-8")
+        self.assertEqual(js.count('src: "/logo-alvea.png", alt: "alvea"'), 4, "il logo completo in tutte le intestazioni")
+        self.assertEqual(self.fetch("/logo-alvea.png")[2][:8], b"\x89PNG\r\n\x1a\n")
+
+    def test_difetti_di_aspetto_che_non_devono_tornare(self):
+        css, js = self.fetch("/app.css")[2].decode("utf-8"), self.fetch("/app.js")[2].decode("utf-8")
+        self.assertIn(".form:not(.row) > .field { flex: 0 0 auto; }", css, "senza questa regola i campi dei moduli in colonna diventano alti 180px")
+        for old in ("#4a9bff", "rgba(120, 180, 255", "rgba(150, 190, 255", "#8fa39d", "rgba(160, 190, 180"):
+            self.assertNotIn(old, css, "colore di una tavolozza vecchia: %s" % old)
+        self.assertIn('"data-label": label', js, "su telefono le tabelle diventano schede e serve l'etichetta di ogni cella")
+        self.assertIn("min-height: 38px", css, "pulsanti comodi per il dito su telefono")
+        self.assertNotIn('table(["Azienda", "Origine"', js, "l'elenco delle aziende è a schede, non una tabella più larga dello schermo")
 
 
 @unittest.skipUnless(shutil.which("openssl") and shutil.which("bash"), "servono bash e openssl")
