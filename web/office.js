@@ -1,4 +1,4 @@
-/* Ufficio 3D di SalesForB: costruisce la stanza a partire dai dati del server e la tiene aggiornata.
+/* Ufficio 3D di Alvea.ai: costruisce la stanza a partire dai dati del server e la tiene aggiornata.
  * Una postazione per ogni agente acceso, attrezzata secondo il suo tipo (`station` nel catalogo),
  * un personaggio seduto e un indicatore sopra la testa che segue lo stato vero dell'agente.
  * Dipende solo da Mini3D (web/vendor/mini3d.js). Tutti i testi che arrivano dal server finiscono
@@ -50,14 +50,14 @@ var SFBOffice = (function () {
     function text(s, a, b, size, col, bold, max) { x.fillStyle = col; x.font = (bold ? "600 " : "") + size + "px system-ui, -apple-system, Segoe UI, sans-serif"; x.fillText(s, a, b, max || W - a - 6); }
     function lines(a, b, n, gap, col, maxw) { for (var k = 0; k < n; k++) rect(col, a, b + k * gap, Math.round(maxw * (0.45 + r() * 0.55)), 4); }
     if (kind === "insegna") {
-      rect("#081430", 0, 0, W, H); rect(tone, 0, H - 5, W, 5);
-      text("SalesForB", 14, H * 0.5, Math.round(H * 0.36), "#e9f0ff", true);
+      rect("#0b0f14", 0, 0, W, H); rect(tone, 0, H - 5, W, 5);
+      text("alvea.ai", 14, H * 0.5, Math.round(H * 0.36), "#e9f0ff", true);
       text(name, 14, H * 0.82, Math.round(H * 0.2), "#8ea2c8", false);
       return c;
     }
     var light = kind === "lavagna" || kind === "calendario" || kind === "testo";
-    var ink = light ? "#1c2a4a" : "#c9d6f5", soft = light ? "#b9c5e0" : "#2a3d66";
-    rect(light ? "#eef3ff" : "#071226", 0, 0, W, H);
+    var ink = light ? "#1c2a4a" : "#c9d6f5", soft = light ? "#b9c8c2" : "#2a3640";
+    rect(light ? "#eef4f1" : "#0c1218", 0, 0, W, H);
     rect(tone, 0, 0, W, 22);
     text(name, 8, 16, 13, "#04101f", true);
     y = 32;
@@ -80,7 +80,7 @@ var SFBOffice = (function () {
       var cw = (W - 20) / 7, rows = kind === "calendario" ? 5 : 4, ch = (H - y - 10) / rows;
       for (j = 0; j < rows; j++) for (i = 0; i < 7; i++) {
         var pick = r();
-        rect(pick > 0.82 ? tone : (pick > 0.7 ? ink : (light ? "#dbe4f7" : "#12224a")), 10 + i * cw + 2, y + j * ch + 2, cw - 4, ch - 4);
+        rect(pick > 0.82 ? tone : (pick > 0.7 ? ink : (light ? "#dbe4f7" : "#1a232c")), 10 + i * cw + 2, y + j * ch + 2, cw - 4, ch - 4);
       }
     } else if (kind === "testo") {
       rect(ink, 18, y + 4, W * 0.5, 8); lines(18, y + 24, Math.floor((H - y - 30) / 11), 11, "#8493b5", W - 40);
@@ -107,7 +107,7 @@ var SFBOffice = (function () {
       x.fillStyle = tone; x.beginPath(); x.arc(W / 2, y + 20, 13, 0, 6.3); x.fill();
       for (i = 0; i < 3; i++) { x.fillStyle = ink; x.beginPath(); x.arc(W * (0.22 + i * 0.28), H - 30, 11, 0, 6.3); x.fill(); }
     } else if (kind === "anteprima") {
-      rect("#12224a", 12, y, W - 24, H - y - 34); x.fillStyle = "#ffffff"; x.beginPath(); x.moveTo(W / 2 - 10, y + (H - y - 34) / 2 - 12); x.lineTo(W / 2 + 12, y + (H - y - 34) / 2); x.lineTo(W / 2 - 10, y + (H - y - 34) / 2 + 12); x.fill();
+      rect("#1a232c", 12, y, W - 24, H - y - 34); x.fillStyle = "#ffffff"; x.beginPath(); x.moveTo(W / 2 - 10, y + (H - y - 34) / 2 - 12); x.lineTo(W / 2 + 12, y + (H - y - 34) / 2); x.lineTo(W / 2 - 10, y + (H - y - 34) / 2 + 12); x.fill();
       rect(soft, 12, H - 24, W - 24, 4); rect(tone, 12, H - 24, (W - 24) * 0.4, 4);
     } else if (kind === "timeline") {
       for (i = 0; i < 12; i++) rect(soft, 12 + i * (W - 24) / 12, y, 1, 6);
@@ -123,8 +123,8 @@ var SFBOffice = (function () {
   // ---------- postazioni ----------
   var COL = null;
   function colors() {
-    return { floor: M.hex("#13234a"), tile: M.hex("#1d3262"), wall: M.hex("#11224a"), trim: M.hex("#2f8bff"), desk: M.hex("#2a3b63"), top: M.hex("#3d5486"),
-      metal: M.hex("#55688f"), dark: M.hex("#0a1226"), light: M.hex("#e6ecfb"), paper: M.hex("#f4f7ff"), box: M.hex("#b98a5a"), plant: M.hex("#3fae6b"), pot: M.hex("#7b5a45") };
+    return { floor: M.hex("#161d25"), tile: M.hex("#212b35"), wall: M.hex("#11171e"), trim: M.hex("#00c38a"), desk: M.hex("#28333d"), top: M.hex("#3b4a56"),
+      metal: M.hex("#5c6c77"), dark: M.hex("#0b0f14"), light: M.hex("#e6ecfb"), paper: M.hex("#f4f7ff"), box: M.hex("#b98a5a"), plant: M.hex("#3fae6b"), pot: M.hex("#7b5a45") };
   }
   function Station(ox, oz, tone) { this.g = new M.Geo(); this.ox = ox; this.oz = oz; this.tone = tone; this.screens = []; }
   Station.prototype.b = function (x, y, z, w, h, d, col, ry) { this.g.box(this.ox + x, y, this.oz + z, w, h, d, col, ry); return this; };
@@ -247,7 +247,7 @@ var SFBOffice = (function () {
     });
     room.box(0, 2.75, zBack + 0.03, 4.3, 1.0, 0.06, COL.metal);
     sc.meshes.push(own(R.mesh(room)));
-    addPanel({ x: 0, y: 2.75, z: zBack + 0.07, w: 4.1, h: 0.82, kind: "insegna", ry: 0 }, "#2f8bff", title);
+    addPanel({ x: 0, y: 2.75, z: zBack + 0.07, w: 4.1, h: 0.82, kind: "insegna", ry: 0 }, "#00c38a", title);
 
     // Pezzi uguali per tutti: si disegnano più volte con colore e posizione diversi.
     var gem = own(R.mesh(new M.Geo().octa(0.13, 0.2, [1, 1, 1])));
@@ -312,7 +312,7 @@ var SFBOffice = (function () {
   function poseHub(h, t, picked, hovered) {
     var c = M.hex(STATES[h.state].color), k = h.state === "fermo" || h.state === "da_collegare" ? 0 : 1, fast = h.state === "ragiona" || h.state === "lavora" || h.state === "monta";
     h.orb.model = M.trs(0, 1.5 + k * Math.sin(t * (fast ? 4 : 1.3)) * 0.07, h.z, t * (fast ? 2.4 : 0.5) * k, fast ? 1 + 0.08 * Math.sin(t * 7) : 1);
-    h.orb.tint = h.state === "pronto" ? M.hex("#7fd6ff") : c;
+    h.orb.tint = h.state === "pronto" ? M.hex("#4be3b4") : c;
     h.orb.glow = k ? 0.6 : 0.2;
     h.ring.model = M.trs(0, 0.14, h.z, 0, picked ? 0.92 : 0.84);
     h.ring.tint = c; h.ring.alpha = picked ? 0.95 : (hovered ? 0.75 : 0.5);
@@ -454,7 +454,7 @@ var SFBOffice = (function () {
       cam = orbit.camera(canvas.width / canvas.height);
       scene.agents.forEach(function (a) { pose(a, t, selected === a.id, hover === a.id); });
       poseHub(scene.hub, t, selected === "centrale", hover === "centrale");
-      R.draw(scene.meshes, scene.panels, cam, { light: [0.42, 0.8, 0.43], fog: M.hex("#050e22"), fogNear: orbit.dist * 1.25, fogFar: orbit.dist * 3.4 });
+      R.draw(scene.meshes, scene.panels, cam, { light: [0.42, 0.8, 0.43], fog: M.hex("#0b0f14"), fogNear: orbit.dist * 1.25, fogFar: orbit.dist * 3.4 });
       everyone().forEach(function (item) {
         var p = M.project(cam, item.top, w, h), l = labels[item.id], pos = p.front ? Math.round(p.x) + "px," + Math.round(p.y) + "px" : "";
         if (l.pos === pos) return;

@@ -52,7 +52,7 @@ def decide(text, tool_names):
         num = re.search(r"\+?\d[\d ]{7,16}\d", text)
         return "whatsapp_invia_messaggio", {"numero": num.group(0) if num else "", "testo": _after_colon(text)}
     if has("email_invia") and EMAIL_RE.search(text) and re.search(r"(manda|invia|scrivi)", low):
-        return "email_invia", {"a": EMAIL_RE.search(text).group(0), "oggetto": "Messaggio da SalesForB",
+        return "email_invia", {"a": EMAIL_RE.search(text).group(0), "oggetto": "Messaggio da Alvea.ai",
                                "testo": _after_colon(text)}
     if has("calendario_crea_evento") and re.search(r"(fissa|crea|aggiungi).*(appuntamento|evento|riunione)", low):
         start = (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%dT10:00")

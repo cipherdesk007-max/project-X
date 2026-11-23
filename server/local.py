@@ -151,10 +151,10 @@ def launcher_zip():
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for p in sorted(LAUNCHER_DIR.rglob("*")):
             if p.is_file() and "__pycache__" not in p.parts:
-                info = zipfile.ZipInfo("salesforb-launcher/" + p.relative_to(LAUNCHER_DIR).as_posix(), date_time=time.localtime()[:6])
+                info = zipfile.ZipInfo("alvea-launcher/" + p.relative_to(LAUNCHER_DIR).as_posix(), date_time=time.localtime()[:6])
                 info.external_attr = (0o755 if p.suffix in (".py", ".command", ".sh") else 0o644) << 16
                 z.writestr(info, p.read_bytes())
-        z.writestr("salesforb-launcher/server.json", json.dumps({"server": config.get("SFB_PUBLIC_URL", "http://127.0.0.1:8787").rstrip("/"),
+        z.writestr("alvea-launcher/server.json", json.dumps({"server": config.get("SFB_PUBLIC_URL", "http://127.0.0.1:8787").rstrip("/"),
                                                               "public_key": public_key()}, indent=1))
     return out.getvalue()
 
@@ -170,7 +170,7 @@ def public_catalog():
 
 def launcher_version():
     try:
-        text = (LAUNCHER_DIR / "salesforb_launcher.py").read_text(encoding="utf-8")
+        text = (LAUNCHER_DIR / "alvea_launcher.py").read_text(encoding="utf-8")
         return text.split('VERSION = "', 1)[1].split('"', 1)[0]
     except (OSError, IndexError):
         return ""

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Comandi di gestione di SalesForB.
+"""Comandi di gestione di Alvea.ai.
 
   python3 manage.py init                 crea database, file .env e il gestore della piattaforma
   python3 manage.py demo                 crea tre aziende di prova, una per pacchetto
@@ -148,7 +148,7 @@ def cmd_firma(args):
 
 
 def main():
-    p = argparse.ArgumentParser(description="Gestione di SalesForB")
+    p = argparse.ArgumentParser(description="Gestione di Alvea.ai")
     sub = p.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("init")
     s.add_argument("--email")

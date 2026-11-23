@@ -192,7 +192,7 @@ def http_json(method, url, headers=None, body=None, timeout=30, form=None):
     """Chiamata HTTP con risposta JSON. `body` viene mandato come JSON, `form` come modulo.
     In caso di errore alza ConnectorError con .status (codice HTTP o None) e .detail (testo della risposta)."""
     data = None
-    hdrs = {"Accept": "application/json", "User-Agent": "SalesForB/1.0"}
+    hdrs = {"Accept": "application/json", "User-Agent": "Alvea.ai/1.0"}
     if form is not None:
         data = urllib.parse.urlencode(form).encode("utf-8")
         hdrs["Content-Type"] = "application/x-www-form-urlencoded"
@@ -240,7 +240,7 @@ def fetch_page(url, max_bytes=1000000):
             raise ConnectorError("Sono ammessi solo indirizzi http o https.")
         _check_public_host(parts.hostname)
         opener = urllib.request.build_opener(_NoRedirect)
-        req = urllib.request.Request(url, headers={"User-Agent": "SalesForB/1.0", "Accept": "text/html,text/plain"})
+        req = urllib.request.Request(url, headers={"User-Agent": "Alvea.ai/1.0", "Accept": "text/html,text/plain"})
         try:
             with opener.open(req, timeout=20) as r:
                 charset = r.headers.get_content_charset() or "utf-8"

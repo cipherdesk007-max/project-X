@@ -68,7 +68,7 @@ def dev_scrivi_file(args, env):
     path.parent.mkdir(parents=True, exist_ok=True)
     if (path.parent.resolve() != root and root not in path.parent.resolve().parents) or path.is_symlink():
         raise WorkerError("Percorso fuori dalla cartella di lavoro: rifiutato.")
-    tmp = path.with_name(path.name + ".tmp-salesforb")
+    tmp = path.with_name(path.name + ".tmp-alvea")
     tmp.write_text(text, encoding="utf-8")
     os.replace(str(tmp), str(path))
     return {"text": "Scritto %s (%d byte)." % (path.relative_to(root).as_posix(), len(text.encode("utf-8")))}

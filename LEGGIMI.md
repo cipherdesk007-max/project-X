@@ -1,4 +1,4 @@
-# SalesForB — server, schermata e launcher (versione 5)
+# Alvea.ai — server, schermata e launcher (versione 5)
 
 > Per installarlo su un server e collegarlo al sito segui **`GUIDA.md`**: dieci passi, con il controllo finale `python3 manage.py controlla-produzione`. Questo file descrive ogni funzione nel dettaglio.
 
@@ -26,7 +26,7 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 ## Aggiornare dalla versione 1, 2, 3 o 4
 
 1. Ferma il server.
-2. Estrai questo archivio **sopra** la cartella `salesforb` esistente. Il file `.env` e la cartella `data/` non sono nell'archivio, quindi restano i tuoi.
+2. Estrai questo archivio **sopra** la cartella `alvea` esistente. Il file `.env` e la cartella `data/` non sono nell'archivio, quindi restano i tuoi.
 3. Riavvia. Il database si aggiorna da solo all'avvio (tabelle e colonne nuove): aziende, utenti, conversazioni e registro restano. Le aziende esistenti tengono accesi tutti gli agenti del loro pacchetto, come prima.
 4. Aggiungi al tuo `.env` le righe nuove che ti servono, copiandole da `.env.example` (registrazione, posta di servizio, archivio, Google, fuso orario).
 
@@ -162,7 +162,7 @@ Serve una volta sola, per tutta la piattaforma. Lo fai tu come gestore nella con
 4. Metti `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` nel `.env`. Se il server non è su 127.0.0.1:8787, imposta anche `SFB_PUBLIC_URL`.
 5. Riavvia. Ogni amministratore collega l'account della sua azienda da Centro di controllo, scheda Collegamenti.
 
-Apri SalesForB sempre allo stesso indirizzo di `SFB_PUBLIC_URL` (per esempio `http://127.0.0.1:8787`, non `http://localhost:8787`): altrimenti al ritorno da Google il browser non riconosce la sessione.
+Apri Alvea.ai sempre allo stesso indirizzo di `SFB_PUBLIC_URL` (per esempio `http://127.0.0.1:8787`, non `http://localhost:8787`): altrimenti al ritorno da Google il browser non riconosce la sessione.
 
 Tre limiti di Google da conoscere prima di venderlo (documentazione Google, letta il 23 novembre 2026):
 
@@ -255,7 +255,7 @@ A mano: entra con Demo Start, tocca un agente bloccato, e manda `POST /api/chat`
    **Tetto di spesa** per azienda sui modelli: non c'è.
    **Proxy**: i caricamenti grandi richiedono che il proxy HTTPS accetti corpi fino a `SFB_UPLOAD_MAX_MB`.
 6. **Privacy**: messaggi, posta letta e documenti in memoria vanno ai fornitori dei modelli e restano in chiaro nel database. Servono informativa e accordi sul trattamento dei dati con i clienti: da far vedere a un legale.
-7. **Nome**: «SalesForB» è vicino a un marchio noto. Controllo sul marchio prima di venderlo.
+7. **Nome**: «Alvea.ai» è vicino a un marchio noto. Controllo sul marchio prima di venderlo.
 8. **Fatturazione**: non c'è. La scheda Consumi dà i token per azienda, da moltiplicare per i listini.
 
 ## Rapporto con il SourceKit

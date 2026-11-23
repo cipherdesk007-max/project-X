@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SalesForB Launcher: il programma che gira sul computer del cliente.
+"""Alvea.ai Launcher: il programma che gira sul computer del cliente.
 
 Cosa fa:
   verifica      controlla questo computer e dice, agente per agente, se può girare qui. Non serve un account.
@@ -30,7 +30,7 @@ from pathlib import Path
 
 VERSION = "1.0.0"
 HERE = Path(__file__).resolve().parent
-HOME = Path(os.environ.get("SALESFORB_HOME") or str(Path.home() / ".salesforb"))
+HOME = Path(os.environ.get("ALVEA_HOME") or str(Path.home() / ".alvea"))
 DIGEST_INFO = bytes.fromhex("3031300d060960864801650304020105000420")
 EXTRA_PATHS = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", r"C:\ffmpeg\bin", r"C:\Program Files\ffmpeg\bin"]
 VERDICTS = {"gira": "GIRA", "non_gira": "NON GIRA", "solo_cloud": "SOLO SUI NOSTRI SERVER", "in_arrivo": "COMPUTER ADATTO, COLLEGAMENTO IN ARRIVO"}
@@ -68,7 +68,7 @@ class Api:
     def __init__(self, cfg):
         self.base, self.token = str(cfg.get("server") or "").rstrip("/"), cfg.get("token") or ""
         if not self.base.startswith(("http://", "https://")):
-            raise LauncherError("Manca l'indirizzo del server SalesForB (file server.json oppure --server).")
+            raise LauncherError("Manca l'indirizzo del server Alvea.ai (file server.json oppure --server).")
 
     def call(self, method, path, body=None, timeout=40):
         headers = {"Content-Type": "application/json"}
@@ -100,7 +100,7 @@ class Api:
 
     def upload(self, path, file_path, name):
         """Consegna un file prodotto da un lavoro, letto a pezzi: va bene anche per video grandi."""
-        boundary = "----salesforb" + hashlib.sha256(os.urandom(16)).hexdigest()[:24]
+        boundary = "----alvea" + hashlib.sha256(os.urandom(16)).hexdigest()[:24]
         head = ('--%s\r\nContent-Disposition: form-data; name="file"; filename="%s"\r\nContent-Type: application/octet-stream\r\n\r\n' % (
             boundary, name.replace('"', "_"))).encode("utf-8")
         tail = ("\r\n--%s--\r\n" % boundary).encode("ascii")
@@ -424,7 +424,7 @@ def cmd_posta(cfg, args):
     _set(cfg, "email", imap_host=args.imap_host or input("Server IMAP (es. imap.tuodominio.it): "), smtp_host=args.smtp_host or input("Server SMTP: "),
          utente=args.utente or input("Indirizzo email: "), password=args.password or getpass.getpass("Password della casella (resta su questo computer): "),
          imap_port=args.imap_port, smtp_port=args.smtp_port)
-    print("Casella salvata su questo computer. Il server SalesForB non la riceve.")
+    print("Casella salvata su questo computer. Il server Alvea.ai non la riceve.")
     return 0
 
 
@@ -454,7 +454,7 @@ def cmd_modello(cfg, args):
 
 
 def cmd_guidato(cfg, args):
-    print("SalesForB Launcher %s\n" % VERSION)
+    print("Alvea.ai Launcher %s\n" % VERSION)
     cmd_verifica(cfg, args)
     if not cfg.get("token"):
         code = input("\nCodice di collegamento (Centro di controllo, scheda Computer), oppure Invio per uscire: ").strip()
@@ -467,8 +467,8 @@ def cmd_guidato(cfg, args):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="SalesForB Launcher")
-    p.add_argument("--server", help="indirizzo del server SalesForB, se diverso da quello nel file server.json")
+    p = argparse.ArgumentParser(description="Alvea.ai Launcher")
+    p.add_argument("--server", help="indirizzo del server Alvea.ai, se diverso da quello nel file server.json")
     sub = p.add_subparsers(dest="cmd")
     sub.add_parser("verifica").set_defaults(fn=cmd_verifica)
     s = sub.add_parser("collega")

@@ -19,7 +19,7 @@ from base import PW, ROOT, Base
 from server import catalog, config, db, llm, local, ops
 
 FFMPEG = shutil.which("ffmpeg") and shutil.which("ffprobe")
-_spec = importlib.util.spec_from_file_location("sfb_launcher", str(ROOT / "launcher" / "salesforb_launcher.py"))
+_spec = importlib.util.spec_from_file_location("sfb_launcher", str(ROOT / "launcher" / "alvea_launcher.py"))
 L = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(L)
 MAIL = {"sent": [], "logins": []}
@@ -245,8 +245,8 @@ class V5(Base):
         self.assertEqual(status, 200)
         z = zipfile.ZipFile(io.BytesIO(data))
         names = z.namelist()
-        self.assertIn("salesforb-launcher/salesforb_launcher.py", names)
-        info = json.loads(z.read("salesforb-launcher/server.json"))
+        self.assertIn("alvea-launcher/alvea_launcher.py", names)
+        info = json.loads(z.read("alvea-launcher/server.json"))
         self.assertEqual(info["public_key"], local.public_key())
         everything = b"".join(z.read(n) for n in names)
         self.assertNotIn(b"BEGIN", everything, "la chiave privata non viaggia mai")

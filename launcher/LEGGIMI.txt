@@ -1,4 +1,4 @@
-SalesForB Launcher
+Alvea.ai Launcher
 ==================
 
 Serve Python 3.9 o successivo (macOS e Linux: python3; Windows: python.org).
@@ -9,11 +9,11 @@ Serve Python 3.9 o successivo (macOS e Linux: python3; Windows: python.org).
    e scrivilo nel launcher. Il codice vale dieci minuti e una volta sola.
 3. Lascia aperta la finestra: il launcher scarica i pacchetti scelti dall'azienda ed esegue i lavori.
 
-Impostazioni che restano solo su questo computer (file .salesforb/launcher.json nella tua cartella utente):
-  python3 salesforb_launcher.py posta                                  casella di posta per l'Agente Email
-  python3 salesforb_launcher.py cartella-dev /percorso/del/progetto    cartella in cui lavora l'Agente Dev
-  python3 salesforb_launcher.py comando-dev prove python3 -m unittest  un comando che l'Agente Dev può chiedere per nome
-  python3 salesforb_launcher.py modello --nome llama3.1                modello di Ollama da usare
+Impostazioni che restano solo su questo computer (file .alvea/launcher.json nella tua cartella utente):
+  python3 alvea_launcher.py posta                                  casella di posta per l'Agente Email
+  python3 alvea_launcher.py cartella-dev /percorso/del/progetto    cartella in cui lavora l'Agente Dev
+  python3 alvea_launcher.py comando-dev prove python3 -m unittest  un comando che l'Agente Dev può chiedere per nome
+  python3 alvea_launcher.py modello --nome llama3.1                modello di Ollama da usare
 
 Programmi che il launcher cerca, se scegli gli agenti che li usano: FFmpeg (Video Editor), Ollama (modello locale).
 Il launcher non li installa da solo: ti dice cosa manca.

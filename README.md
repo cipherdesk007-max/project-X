@@ -1,4 +1,4 @@
-# SalesForB
+# Alvea.ai
 
 Piattaforma di agenti AI per aziende: server, schermata con ufficio 3D e launcher per far girare alcuni agenti sul computer del cliente.
 

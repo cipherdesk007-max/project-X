@@ -54,7 +54,7 @@ RULES = (
 
 def system_prompt(tenant, agent_id, entitled, remembered=""):
     names = ", ".join(sorted(catalog.agent(a)["name"] for a in entitled)) or "nessuno"
-    base = "Sei %s, dentro SalesForB, per l'azienda «%s». Oggi è il %s.\nAgenti attivi nel team: %s.\n%s" % (
+    base = "Sei %s, dentro Alvea.ai, per l'azienda «%s». Oggi è il %s.\nAgenti attivi nel team: %s.\n%s" % (
         ROLES[agent_id], tenant["name"], datetime.now(timezone.utc).strftime("%Y-%m-%d"), names, RULES)
     return base + ("\n\n" + remembered if remembered else "")
 

@@ -1,4 +1,4 @@
-"""Server HTTP di SalesForB: API JSON e schermata. Solo libreria standard di Python."""
+"""Server HTTP di Alvea.ai: API JSON e schermata. Solo libreria standard di Python."""
 from __future__ import annotations
 
 import json
@@ -18,8 +18,8 @@ MAX_BODY = 1000000
 CHAT_PER_MINUTE = 30
 # Elenco chiuso dei file serviti: niente percorsi costruiti dalla richiesta.
 STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"),
-          "/app.css": ("app.css", "text/css; charset=utf-8"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-          "/favicon.ico": ("favicon.svg", "image/svg+xml"), "/office.js": ("office.js", "text/javascript; charset=utf-8"),
+          "/app.css": ("app.css", "text/css; charset=utf-8"), "/logo.png": ("logo.png", "image/png"), "/icon.png": ("icon.png", "image/png"),
+          "/favicon.ico": ("icon.png", "image/png"), "/office.js": ("office.js", "text/javascript; charset=utf-8"),
           "/vendor/mini3d.js": ("vendor/mini3d.js", "text/javascript; charset=utf-8")}
 # Tutto viene dallo stesso server: nessun CDN, nessuno script in linea, nessun eval. Il motore 3D è un file locale.
 CSP = "; ".join([
@@ -625,7 +625,7 @@ def handle_api(method, path, query, body, token, cookies=None, ip=None):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "SalesForB"
+    server_version = "Alvea.ai"
     sys_version = ""
     timeout = 120  # una connessione ferma non tiene occupato un thread per sempre
 
@@ -770,7 +770,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._job_file(int(job_file.group(1)))
             if parts.path == "/api/launcher/download" and method == "GET":
                 return self._send(200, local.launcher_zip(), "application/zip",
-                                  [("Content-Disposition", 'attachment; filename="salesforb-launcher.zip"')])
+                                  [("Content-Disposition", 'attachment; filename="alvea-launcher.zip"')])
             content = re.fullmatch(r"/api/files/(\d+)/content", parts.path)
             if content and method == "GET":
                 return self._file_content(int(content.group(1)), urllib.parse.parse_qs(parts.query))
@@ -847,7 +847,7 @@ def main():
     con = db.connect()
     has_owner = con.execute("SELECT 1 FROM users WHERE role='superadmin'").fetchone()
     con.close()
-    print("SalesForB in ascolto su http://%s:%d" % (host, port))
+    print("Alvea.ai in ascolto su http://%s:%d" % (host, port))
     if not has_owner:
         print("ATTENZIONE: nessun gestore creato. Esegui prima: python3 manage.py init")
     if config.demo_mode():

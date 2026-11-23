@@ -1,0 +1,22 @@
+# Avvio automatico di Alvea.ai su un server Linux con systemd.
+# Copia in /etc/systemd/system/alvea.service, poi: systemctl daemon-reload && systemctl enable --now alvea
+[Unit]
+Description=Alvea.ai
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=alvea
+WorkingDirectory=/opt/alvea
+ExecStart=/usr/bin/python3 -m server
+Restart=on-failure
+RestartSec=3
+# Il servizio scrive solo in data/ e storage/
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/alvea/data /opt/alvea/storage
+
+[Install]
+WantedBy=multi-user.target

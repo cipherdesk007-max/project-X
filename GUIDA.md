@@ -1,4 +1,4 @@
-# Guida semplice: installare SalesForB sul server e collegarlo al sito
+# Guida semplice: installare Alvea.ai sul server e collegarlo al sito
 
 Questa guida è per un server Linux (Ubuntu o Debian) con un indirizzo tipo `app.tuodominio.it`.
 Per i dettagli di ogni funzione c'è `LEGGIMI.md`. Per provarlo sul tuo computer senza server: fondo pagina.
@@ -12,9 +12,9 @@ Per i dettagli di ogni funzione c'è `LEGGIMI.md`. Per provarlo sul tuo computer
 
 ```sh
 sudo apt update && sudo apt install -y git python3 python3-cryptography ffmpeg openssl caddy
-sudo useradd --system --home /opt/salesforb --shell /usr/sbin/nologin salesforb
-sudo git clone https://github.com/cipherdesk007-max/project-X /opt/salesforb
-cd /opt/salesforb
+sudo useradd --system --home /opt/alvea --shell /usr/sbin/nologin alvea
+sudo git clone https://github.com/cipherdesk007-max/project-X /opt/alvea
+cd /opt/alvea
 sudo cp .env.example .env
 sudo python3 manage.py init --email tu@tuodominio.it --nome "Il tuo nome"
 ```
@@ -23,7 +23,7 @@ sudo python3 manage.py init --email tu@tuodominio.it --nome "Il tuo nome"
 
 ## 3. Impostare il file `.env`
 
-Apri `/opt/salesforb/.env` e cambia solo queste righe:
+Apri `/opt/alvea/.env` e cambia solo queste righe:
 
 ```
 SFB_DEMO=0
@@ -44,10 +44,10 @@ Va rifatto ogni volta che aggiorni il codice. **Prima di avere clienti veri** sp
 ## 5. HTTPS e avvio automatico
 
 ```sh
-sudo chown -R salesforb: /opt/salesforb/data /opt/salesforb/.env
-sudo mkdir -p /opt/salesforb/storage && sudo chown salesforb: /opt/salesforb/storage
-sudo cp deploy/salesforb.service /etc/systemd/system/
-sudo systemctl daemon-reload && sudo systemctl enable --now salesforb
+sudo chown -R alvea: /opt/alvea/data /opt/alvea/.env
+sudo mkdir -p /opt/alvea/storage && sudo chown alvea: /opt/alvea/storage
+sudo cp deploy/alvea.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now alvea
 sudo cp deploy/Caddyfile /etc/caddy/Caddyfile     # poi cambia app.tuodominio.it dentro il file
 sudo systemctl reload caddy
 ```
@@ -57,7 +57,7 @@ Caddy prende da solo il certificato HTTPS. Apri `https://app.tuodominio.it`: dev
 ## 6. Controllo finale
 
 ```sh
-sudo -u salesforb python3 manage.py controlla-produzione
+sudo -u alvea python3 manage.py controlla-produzione
 ```
 
 Scrive `OK`, `DA FARE` o `CONSIGLIO` per ogni punto. Finché c'è un `DA FARE` non aprire ai clienti.
@@ -83,7 +83,7 @@ L'applicazione **non si può mettere dentro una cornice** (iframe) del sito: è 
 ## 9. Copie di sicurezza
 
 ```sh
-sudo -u salesforb deploy/backup.sh /percorso/delle/copie
+sudo -u alvea deploy/backup.sh /percorso/delle/copie
 ```
 
 Da mettere in cron una volta al giorno. La copia contiene dati dei clienti: tienila cifrata e fuori dal server.
@@ -91,9 +91,9 @@ Da mettere in cron una volta al giorno. La copia contiene dati dei clienti: tien
 ## 10. Aggiornare
 
 ```sh
-cd /opt/salesforb && sudo git pull
+cd /opt/alvea && sudo git pull
 sudo python3 manage.py firma-pacchetti     # oppure dal computer che tiene la chiave
-sudo systemctl restart salesforb
+sudo systemctl restart alvea
 ```
 
 Il database si aggiorna da solo all'avvio. `.env`, `data/` e `storage/` non sono nel repository e non vengono toccati.

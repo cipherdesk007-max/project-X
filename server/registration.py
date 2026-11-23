@@ -37,7 +37,7 @@ def smtp_cfg():
     if not host:
         return None
     return {"smtp_host": host, "smtp_port": config.get("SFB_SMTP_PORT", "465"), "username": config.get("SFB_SMTP_USER"),
-            "password": config.get("SFB_SMTP_PASSWORD"), "from_name": config.get("SFB_SMTP_FROM_NAME", "SalesForB")}
+            "password": config.get("SFB_SMTP_PASSWORD"), "from_name": config.get("SFB_SMTP_FROM_NAME", "Alvea.ai")}
 
 
 def verification_on():
@@ -85,7 +85,7 @@ def _send_verification(con, user_id, email):
     con.execute("INSERT INTO email_tokens(token_hash,user_id,expires_at) VALUES(?,?,?)", (_hash(token), user_id, int(time.time()) + TOKEN_SECONDS))
     link = "%s/api/verify?token=%s" % (google.public_url(), token)
     try:
-        send_mail(email, "Conferma il tuo indirizzo per SalesForB",
+        send_mail(email, "Conferma il tuo indirizzo per Alvea.ai",
                   "Per attivare l'account apri questo collegamento entro 24 ore:\n\n%s\n\nSe non hai chiesto tu la registrazione, ignora questo messaggio." % link)
         return True
     except connectors.ConnectorError as e:

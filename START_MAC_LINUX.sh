@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Avvia SalesForB. La prima volta chiede email e password del gestore della piattaforma.
+# Avvia Alvea.ai. La prima volta chiede email e password del gestore della piattaforma.
 set -euo pipefail
 cd "$(dirname "$0")"
 python3 manage.py init --se-manca

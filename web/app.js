@@ -1,4 +1,4 @@
-/* SalesForB: schermata. Tutto il testo che arriva dal server entra con textContent, mai come HTML. */
+/* Alvea.ai: schermata. Tutto il testo che arriva dal server entra con textContent, mai come HTML. */
 (function () {
   "use strict";
 
@@ -193,7 +193,7 @@
         .then(function (out) { setToken(out.token); return loadMe(); })
         .catch(function (err) { S.loginError = err.message; render(); });
     } },
-      el("div", { class: "brand" }, "Sales", el("b", { text: "ForB" })),
+      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
       el("p", { text: "Entra con l'email e la password della tua azienda." }),
       S.notice ? el("p", { class: S.noticeBad ? "error" : "okmsg", role: "status", text: S.notice }) : null,
       el("div", { class: "panel form" },
@@ -228,7 +228,7 @@
         })
         .catch(function (e2) { send.disabled = false; err.textContent = e2.message; });
     } },
-      el("div", { class: "brand" }, "Sales", el("b", { text: "ForB" })),
+      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
       el("p", { text: "Registra la tua azienda e scegli gli agenti del tuo team. Potrai accenderli e spegnerli quando vuoi." }),
       el("div", { class: "panel form" },
         field("Nome dell'azienda", "reg_company", { required: true, maxlength: "120", autocomplete: "organization" }),
@@ -240,7 +240,7 @@
         el("div", { class: "field" }, el("label", { text: "Agenti del team" }), boxes),
         S.reg.verify_email ? el("p", { class: "empty", text: "Ti manderemo un'email per confermare l'indirizzo." }) : null,
         el("p", { class: "empty" }, "Vuoi far girare Video Editor, Email o Dev sul tuo computer? ",
-          el("a", { href: "/api/launcher/download", download: "salesforb-launcher.zip", text: "Scarica il launcher" }),
+          el("a", { href: "/api/launcher/download", download: "alvea-launcher.zip", text: "Scarica il launcher" }),
           " e verifica prima di scegliere: ti dice cosa gira e cosa no, senza account."),
         err, send),
       el("button", { class: "btn", type: "button", text: "Ho già un account", onclick: function () { S.auth = "login"; render(); } }));
@@ -266,7 +266,7 @@
         el("p", { text: "Gestione della piattaforma: aziende e pacchetti" }));
     }
     return el("header", { class: "top" },
-      el("div", { class: "brand" }, "Sales", el("b", { text: "ForB" })),
+      el("div", { class: "brand" }, el("img", { class: "mark", src: "/logo.png", alt: "" }), el("span", {}, "alvea", el("b", { text: "." }), "ai")),
       ticker,
       el("div", { class: "who" }, me.demo ? el("span", { class: "chip wait", title: "Risponde un modello finto a regole fisse", text: "Demo" }) : null,
         me.tenant ? el("span", { text: me.tenant.name + " · " + me.tenant.package_name }) : null,
@@ -425,7 +425,7 @@
     return rows.map(function (r) {
       var b = el("button", { class: "orow", type: "button", onclick: function () { pickOffice(r.id); } },
         el("span", { class: "tone" }), el("span", { class: "n", text: r.id === "centrale" ? "Centrale" : "Agente " + r.name }), stateChip(r));
-      b.style.setProperty("--tone", r.tone || "#7fd6ff");
+      b.style.setProperty("--tone", r.tone || "#4be3b4");
       return b;
     });
   }
@@ -754,7 +754,7 @@
     } });
     return el("div", { class: "panel" }, head, flash,
       g.connected ? el("p", { text: "Collegato come " + (g.email || "account Google") + ". La posta in uscita e gli eventi su Calendar partono solo dopo approvazione." })
-                  : el("p", { text: "Si apre la pagina di consenso di Google e poi torni qui. La password di Google non passa mai da SalesForB." }),
+                  : el("p", { text: "Si apre la pagina di consenso di Google e poi torni qui. La password di Google non passa mai da Alvea.ai." }),
       g.broken ? el("p", { class: "error", text: g.broken }) : null,
       g.storage_ok ? null : el("p", { class: "error", text: "Per collegare Google le credenziali devono essere cifrate: serve SFB_SECRET_KEY e il pacchetto cryptography (vedi LEGGIMI)." }),
       boxes, el("div", { class: "acts" }, go,
@@ -942,7 +942,7 @@
       return [el("div", { class: "panel" }, el("h2", { text: "Computer dell'azienda" }),
           el("p", { text: "Alcuni agenti possono girare su un tuo computer invece che sui nostri server. Il launcher controlla il computer e dice, agente per agente, se può girare lì: lo puoi fare prima di scegliere. Le chiavi dei modelli restano sempre sui nostri server." }),
           el("div", { class: "acts" },
-            el("a", { class: "btn primary", href: "/api/launcher/download", download: "salesforb-launcher.zip", text: "Scarica il launcher" }),
+            el("a", { class: "btn primary", href: "/api/launcher/download", download: "alvea-launcher.zip", text: "Scarica il launcher" }),
             admin ? el("button", { class: "btn", type: "button", text: "Crea codice di collegamento", onclick: function () {
               api("POST", "/devices/code", {}).then(function (c) { codeBox.textContent = c.code; codeBox.title = "Vale " + Math.round(c.expires_in / 60) + " minuti e una volta sola: scrivilo nel launcher"; })
                 .catch(function (e) { err.textContent = e.message; });
