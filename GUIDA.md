@@ -13,7 +13,7 @@ Per i dettagli di ogni funzione c'è `LEGGIMI.md`. Per provarlo sul tuo computer
 ```sh
 sudo apt update && sudo apt install -y git python3 python3-cryptography ffmpeg openssl caddy
 sudo useradd --system --home /opt/salesforb --shell /usr/sbin/nologin salesforb
-sudo git clone -b salesforb https://github.com/cipherdesk007-max/project-X /opt/salesforb
+sudo git clone https://github.com/cipherdesk007-max/project-X /opt/salesforb
 cd /opt/salesforb
 sudo cp .env.example .env
 sudo python3 manage.py init --email tu@tuodominio.it --nome "Il tuo nome"
@@ -101,7 +101,7 @@ Il database si aggiorna da solo all'avvio. `.env`, `data/` e `storage/` non sono
 ## Provarlo sul proprio computer, senza server
 
 ```sh
-git clone -b salesforb https://github.com/cipherdesk007-max/project-X && cd project-X
+git clone https://github.com/cipherdesk007-max/project-X && cd project-X
 cp .env.example .env
 python3 manage.py demo        # crea tre aziende di prova e stampa le password
 python3 -m server             # poi apri http://127.0.0.1:8787
