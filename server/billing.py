@@ -9,13 +9,15 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import threading
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from . import audit, config, connectors, db, google, news
+from . import audit, config, connectors, db, google, news, registration
 from .errors import ApiError
 
 TOLERANCE = 300
+ASYNC = True  # le email partono in un filo a parte, così Stripe riceve subito la risposta; le prove lo spengono
 
 
 def _api():
@@ -29,7 +31,79 @@ def price_for(package_id):
 def status(tenant):
     ready = bool(config.get("STRIPE_SECRET_KEY") and config.get("STRIPE_WEBHOOK_SECRET"))
     return {"enabled": ready and bool(price_for(tenant["package_id"])), "subscribed": bool(tenant.get("stripe_subscription")),
-            "paid_until": tenant.get("paid_until") or ""}
+            "paid_until": tenant.get("paid_until") or "", "payment_failed": bool(tenant.get("payment_failed_at")),
+            "cancel_at": tenant.get("stripe_cancel_at") or "",
+            "portal": bool(config.get("STRIPE_SECRET_KEY") and tenant.get("stripe_customer"))}
+
+
+def _day(iso):
+    return "/".join(reversed(str(iso).split("-")))
+
+
+def mail_admins(con, tenant_id, subject, text, wait=False):
+    """Scrive agli amministratori attivi dell'azienda, se la posta è configurata. Un invio fallito non ferma niente.
+    Ritorna gli indirizzi a cui l'email è partita davvero; se parte in un filo a parte, quelli a cui proverà."""
+    if registration.smtp_cfg() is None:
+        return []
+    to = [r["email"] for r in con.execute("SELECT email FROM users WHERE tenant_id=? AND role='admin' AND active=1 ORDER BY id", (tenant_id,))]
+
+    def deliver():
+        done = []
+        for address in to:
+            try:
+                registration.send_mail(address, subject, text)
+                done.append(address)
+            except Exception as e:
+                print("ATTENZIONE: email «%s» non inviata: %s" % (subject, type(e).__name__))
+        return done
+
+    if to and ASYNC and not wait:
+        threading.Thread(target=deliver, daemon=True).start()
+        return to
+    return deliver()
+
+
+def portal(con, tenant, user):
+    """Pagina di Stripe dove il cliente cambia carta, scarica le ricevute e disdice. Ritorna {"url"}."""
+    if not status(tenant)["portal"]:
+        raise ApiError(400, "Non c'è ancora un pagamento con carta da gestire per questa azienda.")
+    try:
+        session = connectors.http_json("POST", _api() + "/v1/billing_portal/sessions",
+                                       headers={"Authorization": "Bearer " + config.get("STRIPE_SECRET_KEY")},
+                                       form={"customer": tenant["stripe_customer"], "return_url": google.public_url() + "/#abbonamento"})
+    except connectors.ConnectorError as e:
+        raise ApiError(502, "Stripe non ha aperto la pagina di gestione: %s" % str(e)[:200])
+    url = str(session.get("url") or "")
+    if not url.startswith(("https://billing.stripe.com/", _api() + "/")):
+        raise ApiError(502, "Stripe ha risposto con un indirizzo inatteso.")
+    audit.record(con, tenant["id"], user["id"], "pagamento_gestione_aperta", {})
+    return {"url": url}
+
+
+def remind(con, today=None):
+    """Email agli amministratori delle aziende che scadono entro sette giorni e non si rinnovano da sole.
+    Una sola per scadenza: se la data viene spostata, l'avviso riparte per la data nuova. Ritorna quante aziende ha avvisato."""
+    if registration.smtp_cfg() is None:
+        return 0  # senza posta non si segna niente: l'avviso partirà quando la posta c'è
+    today = today or datetime.now(timezone.utc).date()
+    due = db.rows(con.execute(
+        "SELECT * FROM tenants WHERE active=1 AND paid_until!='' AND paid_until>=? AND paid_until<=? AND expiry_notice_for!=paid_until "
+        "AND (stripe_subscription='' OR stripe_cancel_at!='')", (today.isoformat(), (today + timedelta(days=7)).isoformat())))
+    sent = 0
+    for t in due:
+        claimed = con.execute("UPDATE tenants SET expiry_notice_for=? WHERE id=? AND expiry_notice_for!=?", (t["paid_until"], t["id"], t["paid_until"]))
+        if claimed.rowcount != 1:
+            continue  # un altro processo l'ha già presa
+        how = ("Per rinnovare con carta apri la scheda Abbonamento: %s/#abbonamento" % google.public_url() if status(t)["enabled"]
+               else "Per rinnovare contatta chi ti ha venduto il servizio.")
+        if mail_admins(con, t["id"], "Alvea.ai: l'abbonamento scade il %s" % _day(t["paid_until"]),
+                       "L'abbonamento di %s scade il %s.\n\nDopo quella data gli agenti vanno in pausa; i dati restano al loro posto.\n\n%s\n"
+                       % (t["name"], _day(t["paid_until"]), how), wait=True):
+            audit.record(con, t["id"], None, "avviso_scadenza_inviato", {"scadenza": t["paid_until"]})
+            sent += 1
+        else:  # non è partita a nessuno: si riprova al prossimo giro
+            con.execute("UPDATE tenants SET expiry_notice_for=? WHERE id=? AND expiry_notice_for=?", (t["expiry_notice_for"], t["id"], t["paid_until"]))
+    return sent
 
 
 def checkout(con, tenant, user):
@@ -110,11 +184,29 @@ def webhook(con, raw, header):
         end = max([e for e in ends if isinstance(e, int)] or [0])
         if end:
             until = max(datetime.fromtimestamp(end, timezone.utc).date().isoformat(), tenant["paid_until"] or "")
-            con.execute("UPDATE tenants SET paid_until=? WHERE id=?", (until, tid))
+            con.execute("UPDATE tenants SET paid_until=?, payment_failed_at='' WHERE id=?", (until, tid))
             audit.record(con, tid, None, "pagamento_ricevuto", {"fino_al": until, "importo": obj.get("amount_paid"), "valuta": obj.get("currency")})
             news.add(con, tid, "pagamento", "Pagamento ricevuto", "Abbonamento attivo fino al %s." % "/".join(reversed(until.split("-"))))
+    elif kind == "invoice.payment_failed":
+        con.execute("UPDATE tenants SET payment_failed_at=? WHERE id=?", (db.now(), tid))
+        audit.record(con, tid, None, "pagamento_non_riuscito", {"importo": obj.get("amount_due"), "valuta": obj.get("currency")})
+        text = "L'addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta dalla scheda Abbonamento."
+        news.add(con, tid, "pagamento", "Pagamento non riuscito", text)
+        mail_admins(con, tid, "Alvea.ai: pagamento non riuscito", "%s\n\n%s/#abbonamento\n\nSe la scadenza passa senza un pagamento, gli agenti vanno in pausa; i dati restano al loro posto.\n"
+                    % (text, google.public_url()))
+    elif kind == "customer.subscription.updated":
+        ends = [obj.get("cancel_at")] if isinstance(obj.get("cancel_at"), int) else []
+        if not ends and obj.get("cancel_at_period_end"):
+            ends = [e for e in [obj.get("current_period_end")] + [i.get("current_period_end") for i in ((obj.get("items") or {}).get("data") or []) if isinstance(i, dict)]
+                    if isinstance(e, int)]
+        day = datetime.fromtimestamp(max(ends), timezone.utc).date().isoformat() if ends else ""
+        if day != (tenant["stripe_cancel_at"] or ""):
+            con.execute("UPDATE tenants SET stripe_cancel_at=? WHERE id=?", (day, tid))
+            audit.record(con, tid, None, "disdetta_registrata" if day else "disdetta_ritirata", {"dal": day} if day else {})
+            news.add(con, tid, "pagamento", "Disdetta registrata" if day else "Disdetta ritirata",
+                     "La carta non verrà più addebitata. Gli agenti restano attivi fino al %s." % _day(day) if day else "L'abbonamento con carta continua a rinnovarsi.")
     elif kind == "customer.subscription.deleted":
-        con.execute("UPDATE tenants SET stripe_subscription='' WHERE id=?", (tid,))
+        con.execute("UPDATE tenants SET stripe_subscription='', stripe_cancel_at='', payment_failed_at='' WHERE id=?", (tid,))
         audit.record(con, tid, None, "abbonamento_disdetto", {})
         news.add(con, tid, "pagamento", "Abbonamento con carta disdetto", "Gli agenti restano attivi fino alla scadenza già pagata.")
     return {"ok": True}

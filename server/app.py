@@ -513,6 +513,10 @@ def r_billing_checkout(q):
     return billing.checkout(q.con, q.tenant, q.user)
 
 
+def r_billing_portal(q):
+    return billing.portal(q.con, q.tenant, q.user)
+
+
 def r_password_forgot(q):
     return registration.forgot(q.con, q.body, q.ip)
 
@@ -594,6 +598,7 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("POST", "/api/admin/settings/test-email", "super", r_admin_test_email),
     ("GET", "/api/billing", "user", r_billing),
     ("POST", "/api/billing/checkout", "admin", r_billing_checkout),
+    ("POST", "/api/billing/portal", "admin", r_billing_portal),
     ("POST", "/api/password/forgot", "public", r_password_forgot),
     ("POST", "/api/password/reset", "public", r_password_reset),
     ("GET", "/api/launcher/catalog", "public", r_launcher_catalog),

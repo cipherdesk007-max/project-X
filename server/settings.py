@@ -35,6 +35,7 @@ FIELDS = [
     ("Registrazione", "SFB_REGISTRATION", "Registrazione aperta (1 sì, 0 no)", False, "bool"),
     ("Registrazione", "SFB_TRIAL_DAYS", "Giorni di prova gratuita (0 = nessuna scadenza)", False, "int"),
     ("Registrazione", "SFB_REGISTER_PLATFORM_KEYS", "Chi si registra usa le tue chiavi dei modelli (1 sì, 0 no)", False, "bool"),
+    ("Pagamenti", "SFB_GRACE_DAYS", "Giorni di tolleranza dopo la scadenza, da 0 a 30 (0 = pausa dal giorno dopo)", False, "int"),
     ("Pagamenti", "STRIPE_SECRET_KEY", "Chiave segreta di Stripe (sk_…)", True, "text"),
     ("Pagamenti", "STRIPE_WEBHOOK_SECRET", "Segreto del webhook di Stripe (whsec_…)", True, "text"),
     ("Pagamenti", "STRIPE_PRICE_START", "ID del prezzo mensile del pacchetto Start (price_…)", False, "text"),

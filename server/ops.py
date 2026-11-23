@@ -6,7 +6,7 @@ import sqlite3
 
 from datetime import date, datetime, timezone
 
-from . import audit, auth, catalog, db, news, team
+from . import audit, auth, catalog, config, db, news, team
 from .errors import ApiError
 
 EMAIL_RE = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
@@ -71,12 +71,17 @@ def create_tenant(con, name, package_id, admin_email, admin_name, admin_password
 
 
 def subscription(tenant):
-    """Stato dell'abbonamento: {"paid_until", "days_left", "expired"}. Senza data non scade mai. I giorni si contano in UTC."""
-    until = (tenant.get("paid_until") or "") if isinstance(tenant, dict) else (tenant["paid_until"] or "")
+    """Stato dell'abbonamento: {"paid_until", "days_left", "expired", "grace", "grace_left", "payment_failed"}.
+    Senza data non scade mai. I giorni si contano in UTC. Dopo la scadenza ci sono SFB_GRACE_DAYS giorni di tolleranza
+    (0 se non impostati) in cui gli agenti lavorano ancora: `expired` diventa vero solo quando sono finiti."""
+    tenant = dict(tenant)
+    until, failed = tenant.get("paid_until") or "", bool(tenant.get("payment_failed_at"))
     if not until:
-        return {"paid_until": "", "days_left": None, "expired": False}
+        return {"paid_until": "", "days_left": None, "expired": False, "grace": False, "grace_left": 0, "payment_failed": failed}
+    grace = max(0, min(30, config.get_int("SFB_GRACE_DAYS", 0)))
     left = (date.fromisoformat(until) - datetime.now(timezone.utc).date()).days
-    return {"paid_until": until, "days_left": left, "expired": left < 0}
+    return {"paid_until": until, "days_left": left, "expired": left < -grace, "grace": -grace <= left < 0,
+            "grace_left": max(0, grace + left), "payment_failed": failed}
 
 
 def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, platform_keys=None, token_cap=None, paid_until=None):

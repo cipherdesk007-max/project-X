@@ -32,6 +32,14 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 9: quello che succede dopo il primo pagamento
+
+- **Addebito non riuscito** (`invoice.payment_failed`): avviso nella schermata, voce nelle novità ed email agli amministratori dell'azienda; sparisce al primo pagamento riuscito.
+- **Giorni di tolleranza** (`SFB_GRACE_DAYS`, da 0 a 30, anche dal pannello): dopo la scadenza gli agenti lavorano ancora per quei giorni, poi vanno in pausa. Con 0 tutto resta come prima.
+- **Carta, ricevute e disdetta**: un pulsante porta l'amministratore sul portale clienti di Stripe (`POST /api/billing/portal`). La disdetta arriva come `customer.subscription.updated`: la scheda mostra fino a quando resta attivo.
+- **Email prima della scadenza**: una sola per scadenza, sette giorni prima, alle aziende che non si rinnovano da sole; un invio fallito viene riprovato al giro dopo (un giro all'ora).
+- Prove in `tests/test_v9.py`.
+
 ## Novità della versione 8: impostazioni dal pannello e pagamenti con carta
 
 - **Impostazioni della piattaforma** nella schermata del gestore: chiavi dei modelli, posta, ricerca, Google, registrazione e prova gratuita, Stripe. Valgono subito e hanno la precedenza sul file `.env`; un campo svuotato torna al valore del file. I segreti sono cifrati nel database (`SFB_SECRET_KEY`), non tornano mai al browser e nel registro finiscono solo i nomi delle voci cambiate. Non si possono cambiare dal pannello l'indirizzo pubblico, la chiave di cifratura e la modalità demo.
@@ -256,7 +264,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 126 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 130 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

@@ -174,7 +174,8 @@ class Abbonamento(Base):
         return self.call("POST", "/api/admin/tenants/%d" % tid, {"paid_until": value}, token)
 
     def sub(self, token):
-        return self.call("GET", "/api/me", token=token)[1]["tenant"]["subscription"]
+        full = self.call("GET", "/api/me", token=token)[1]["tenant"]["subscription"]
+        return {k: full[k] for k in ("paid_until", "days_left", "expired")}  # le voci aggiunte dopo si provano in test_v9
 
     def test_dopo_la_scadenza_gli_agenti_vanno_in_pausa_ma_i_dati_restano(self):
         gestore = self.login("gestore@test.it")

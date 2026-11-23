@@ -218,10 +218,24 @@ def reschedule_all(con, tenant_id):
                     (next_run(row["kind"], row["hour"], row["minute"], row["weekdays"], row["every_minutes"]), row["id"], tenant_id))
 
 
+def reminders():
+    """Avvisi di scadenza per email. Basta un giro all'ora: `billing.remind` manda una sola email per scadenza."""
+    from . import billing
+    con = db.connect()
+    try:
+        return billing.remind(con)
+    finally:
+        con.close()
+
+
 def _loop(poll):
+    last = 0.0
     while not _stop.wait(poll):
         try:
             tick()
+            if time.time() - last >= 3600:
+                last = time.time()
+                reminders()
         except Exception:
             traceback.print_exc(file=sys.stderr)
 

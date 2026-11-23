@@ -95,10 +95,18 @@ Quello che salvi vale subito, senza riavviare, e vale più del file `.env`. Chia
 
 1. Apri un conto su stripe.com e crea **tre prodotti con prezzo mensile ricorrente**, uno per pacchetto. Di ognuno copia il codice del prezzo (comincia con `price_`).
 2. In Stripe, in Sviluppatori → Chiavi API, copia la **chiave segreta** (`sk_live_...`).
-3. In Stripe, in Sviluppatori → Webhook, aggiungi una destinazione con l'indirizzo che leggi nel pannello sotto Pagamenti (`https://app.tuodominio.it/api/billing/webhook`) e gli eventi `checkout.session.completed`, `invoice.paid`, `customer.subscription.deleted`. Copia il **segreto della firma** (`whsec_...`).
+3. In Stripe, in Sviluppatori → Webhook, aggiungi una destinazione con l'indirizzo che leggi nel pannello sotto Pagamenti (`https://app.tuodominio.it/api/billing/webhook`) e gli eventi `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copia il **segreto della firma** (`whsec_...`).
 4. Nel pannello, gruppo **Pagamenti**, incolla chiave, segreto e i tre prezzi. Salva.
+5. In Stripe attiva il **portale clienti** (Impostazioni → Fatturazione → Portale clienti) e lascia accese «aggiorna metodo di pagamento», «storico fatture» e «annulla abbonamento» alla fine del periodo. Senza questo passo il pulsante «Carta, ricevute e disdetta» dà errore.
 
 Da quel momento ogni azienda vede la scheda **Abbonamento** con il pulsante **Paga con carta**: il numero della carta si scrive sulla pagina di Stripe, mai sul tuo server. A ogni addebito riuscito Stripe avvisa il server e la data «Pagato fino al» si sposta da sola. Se il cliente disdice, resta attivo fino all'ultimo giorno pagato e poi gli agenti vanno in pausa.
+
+Cosa succede da solo, dopo:
+
+- **Carta, ricevute e disdetta**: il cliente le gestisce da sé con un pulsante nella scheda Abbonamento, che lo porta sulla pagina di Stripe.
+- **Addebito non riuscito**: il cliente vede un avviso e riceve un'email; Stripe riprova nei giorni seguenti secondo le regole che scegli in Stripe.
+- **Giorni di tolleranza** (gruppo Pagamenti, da 0 a 30): per quanti giorni dopo la scadenza gli agenti lavorano ancora. Consiglio 3–5, così un addebito riprovato non ferma nessuno. Vale anche per chi paga con bonifico.
+- **Email prima della scadenza**: sette giorni prima parte un'email agli amministratori delle aziende che non si rinnovano da sole (bonifico, prova gratuita, disdetta). Serve la posta configurata.
 
 Prima di usare le chiavi vere fai un giro con quelle di prova (`sk_test_...`) e la carta di prova 4242 4242 4242 4242: è l'unica verifica che qui non ho potuto fare io.
 
@@ -141,5 +149,5 @@ python3 -m server             # poi apri http://127.0.0.1:8787
 - Installatore del launcher con doppio clic per macOS e Windows (oggi serve Python).
 - Collegamento locale per Ascolto, Voce, WhatsApp e Ricerca sul computer del cliente: il launcher li verifica soltanto.
 - Fatture: Stripe incassa e manda la ricevuta, ma la fattura elettronica italiana (SDI) la fai ancora tu o il commercialista.
-- Cambio di pacchetto e disdetta dal pannello del cliente: oggi il pacchetto lo cambi tu e la disdetta si fa da Stripe.
+- Cambio di pacchetto dal pannello del cliente: oggi il pacchetto lo cambi tu, e il prezzo su Stripe va cambiato a mano.
 - Prove con servizi veri: fin qui modelli, Google, posta, Telegram, WhatsApp e Shopify sono stati provati solo con servizi finti.

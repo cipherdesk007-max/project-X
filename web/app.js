@@ -727,20 +727,30 @@
   function tabAbbonamento() {
     return api("GET", "/billing").then(function (b) {
       var sub = S.me.tenant.subscription, admin = S.me.user.role === "admin", err = el("p", { class: "error", role: "alert" });
-      var day = (sub.paid_until || "").split("-").reverse().join("/"), msg = S.payMsg;
+      var it = function (d) { return (d || "").split("-").reverse().join("/"); }, day = it(sub.paid_until), msg = S.payMsg;
       S.payMsg = "";
-      var pay = el("button", { class: "btn primary", type: "button", text: sub.paid_until ? "Rinnova con carta" : "Paga con carta", onclick: function () {
-        pay.disabled = true; err.textContent = "";
-        api("POST", "/billing/checkout", {}).then(function (out) { window.location.href = out.url; })  // il numero della carta si scrive su Stripe, non qui
-          .catch(function (e) { pay.disabled = false; err.textContent = e.message; });
-      } });
+      function go(path, btn) {  // sia il pagamento sia la gestione si fanno sulle pagine di Stripe: qui la carta non si scrive mai
+        return function () {
+          btn.disabled = true; err.textContent = "";
+          api("POST", path, {}).then(function (out) { window.location.href = out.url; }).catch(function (e) { btn.disabled = false; err.textContent = e.message; });
+        };
+      }
+      var pay = el("button", { class: "btn primary", type: "button", text: sub.paid_until ? "Rinnova con carta" : "Paga con carta" });
+      var manage = el("button", { class: "btn", type: "button", id: "portalBtn", text: "Carta, ricevute e disdetta" });
+      pay.onclick = go("/billing/checkout", pay); manage.onclick = go("/billing/portal", manage);
+      var state = !sub.paid_until ? "Nessuna scadenza impostata."
+        : (sub.expired ? "Scaduto il " + day + ": gli agenti sono in pausa."
+          : (sub.grace ? "Scaduto il " + day + ": gli agenti lavorano ancora " + (sub.grace_left === 0 ? "solo oggi" : "per " + sub.grace_left + (sub.grace_left === 1 ? " giorno" : " giorni")) + ", poi vanno in pausa."
+            : "Attivo fino al " + day + " compreso."));
       return el("div", { class: "panel" }, el("h2", { text: "Abbonamento" }),
         msg ? el("p", { class: "okmsg", role: "status", text: msg }) : null,
-        el("p", { id: "subLine", text: "Pacchetto " + S.me.tenant.package_name + ". " + (!sub.paid_until ? "Nessuna scadenza impostata."
-          : (sub.expired ? "Scaduto il " + day + ": gli agenti sono in pausa." : "Attivo fino al " + day + " compreso.")) }),
-        b.subscribed ? el("p", { text: "Pagamento con carta attivo: si rinnova da solo ogni mese. Per disdire scrivi a chi ti ha venduto il servizio." }) : null,
-        !b.enabled ? el("p", { class: "empty", text: "Il pagamento con carta non è attivo: per rinnovare contatta chi ti ha venduto il servizio." })
-          : (b.subscribed ? null : (admin ? el("div", { class: "acts" }, pay) : el("p", { class: "empty", text: "Il pagamento lo fa un amministratore dell'azienda." }))),
+        el("p", { id: "subLine", text: "Pacchetto " + S.me.tenant.package_name + ". " + state }),
+        b.payment_failed ? el("div", { class: "banner", role: "alert", id: "payFailed", text: "L'ultimo addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta." }) : null,
+        b.subscribed ? el("p", { id: "renewLine", text: b.cancel_at ? "Disdetta registrata: la carta non verrà più addebitata e l'abbonamento finisce il " + it(b.cancel_at) + "."
+                                                                    : "Pagamento con carta attivo: si rinnova da solo ogni mese." }) : null,
+        !b.enabled && !b.portal ? el("p", { class: "empty", text: "Il pagamento con carta non è attivo: per rinnovare contatta chi ti ha venduto il servizio." })
+          : (admin ? el("div", { class: "acts" }, b.enabled && !b.subscribed ? pay : null, b.portal ? manage : null)
+                   : el("p", { class: "empty", text: "Pagamento e disdetta li fa un amministratore dell'azienda." })),
         err);
     });
   }
@@ -1124,7 +1134,7 @@
               f.secret && f.source === "pannello" ? el("button", { class: "btn small danger", type: "button", text: "Togli dal pannello",
                 onclick: function () { var v = {}; v[f.key] = ""; send(v, render); } }) : null];
           }),
-          g === "Pagamenti" ? el("p", { class: "empty", text: "In Stripe crea un webhook verso " + out.webhook_url + " con gli eventi checkout.session.completed, invoice.paid e customer.subscription.deleted, e copia qui il suo segreto. I prezzi sono abbonamenti mensili creati in Stripe, uno per pacchetto." }) : null,
+          g === "Pagamenti" ? el("p", { class: "empty", text: "In Stripe crea un webhook verso " + out.webhook_url + " con gli eventi checkout.session.completed, invoice.paid, invoice.payment_failed, customer.subscription.updated e customer.subscription.deleted, e copia qui il suo segreto. Per la disdetta e il cambio carta attiva in Stripe il portale clienti. I prezzi sono abbonamenti mensili creati in Stripe, uno per pacchetto." }) : null,
           err, ok,
           el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", text: "Salva " + g.toLowerCase() }),
             g === "Posta" ? el("button", { class: "btn small", type: "button", text: "Manda un'email di prova", onclick: function () {
@@ -1145,9 +1155,13 @@
     if (!S.me) { append(root, viewLogin()); return; }
     append(root, header());
     var sub = S.me.tenant && S.me.tenant.subscription;  // scadenza dell'abbonamento: avviso negli ultimi sette giorni, blocco dopo
+    if (sub && sub.payment_failed && !sub.expired) {
+      append(root, el("div", { class: "banner", role: "alert", id: "payBanner", text: "L'ultimo addebito sulla carta non è riuscito: controlla la carta nella scheda Abbonamento del Centro di controllo." }));
+    }
     if (sub && sub.paid_until && sub.days_left <= 7) {
       append(root, el("div", { class: "banner" + (sub.expired ? " stopbanner" : ""), role: "alert", id: "subBanner",
-        text: sub.expired ? "Abbonamento scaduto il " + sub.paid_until.split("-").reverse().join("/") + ": gli agenti sono in pausa finché non viene rinnovato. I dati restano al loro posto."
+        text: sub.grace ? "Abbonamento scaduto il " + sub.paid_until.split("-").reverse().join("/") + ": gli agenti lavorano ancora " + (sub.grace_left === 0 ? "solo oggi" : "per " + sub.grace_left + (sub.grace_left === 1 ? " giorno" : " giorni")) + ", poi vanno in pausa."
+            : sub.expired ? "Abbonamento scaduto il " + sub.paid_until.split("-").reverse().join("/") + ": gli agenti sono in pausa finché non viene rinnovato. I dati restano al loro posto."
                           : (sub.days_left === 0 ? "L'abbonamento scade oggi." : "L'abbonamento scade tra " + sub.days_left + (sub.days_left === 1 ? " giorno" : " giorni") + ", il " + sub.paid_until.split("-").reverse().join("/") + ".") }));
     }
     if (!S.me.tenant) { append(root, viewGestore()); return; }
@@ -1168,10 +1182,10 @@
       S.auth = "reset"; S.resetToken = resetLink[1]; found = true;
     } else if (window.location.hash === "#registrati") {
       S.auth = "register"; found = true;
-    } else if (/^#pagamento-(ok|annullato)$/.test(window.location.hash || "")) {  // ritorno da Stripe
+    } else if (/^#(pagamento-(ok|annullato)|abbonamento)$/.test(window.location.hash || "")) {  // ritorno da Stripe, o collegamento di un'email
       S.view = "centro"; S.tab = "abbonamento"; found = true;
       S.payMsg = window.location.hash === "#pagamento-ok" ? "Pagamento ricevuto da Stripe: la scadenza si aggiorna entro pochi secondi. Se non cambia, ricarica la pagina."
-                                                           : "Pagamento annullato: non è stato addebitato niente.";
+               : (window.location.hash === "#pagamento-annullato" ? "Pagamento annullato: non è stato addebitato niente." : "");
     }
     if (found) history.replaceState(null, "", window.location.pathname);
     return found;
