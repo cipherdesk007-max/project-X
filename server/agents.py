@@ -5,7 +5,7 @@ import json
 import re
 from datetime import datetime, timezone
 
-from . import audit, catalog, config, connectors, db, live, llm, local, memory, news, ops, team, tools
+from . import audit, catalog, config, connectors, credits, db, live, llm, local, memory, news, ops, team, tools
 from .errors import ApiError
 
 CENTRAL = "centrale"
@@ -172,6 +172,7 @@ def run_chat(con, tenant, user, agent_id, model_id, conversation_id, text, sourc
         tenant_keys = connectors.load(con, tenant["id"], "modelli")
     except connectors.ConnectorError:
         tenant_keys = {}
+    credits.check(con, tenant, model_id, tenant_keys)
     conv_id = _conversation(con, tenant, user, agent_id, conversation_id)
     history = db.rows(con.execute(
         "SELECT role, content FROM (SELECT id, role, content FROM messages WHERE tenant_id=? AND conversation_id=? "
@@ -226,6 +227,7 @@ def run_chat(con, tenant, user, agent_id, model_id, conversation_id, text, sourc
         if tokens_in or tokens_out:
             con.execute("INSERT INTO usage(tenant_id,user_id,model,input_tokens,output_tokens,created_at) VALUES(?,?,?,?,?,?)",
                         (tenant["id"], user["id"], model_id, tokens_in, tokens_out, db.now()))
+            credits.charge(con, tenant, user["id"], model_id, tokens_in + tokens_out, tenant_keys)
             cap = tenant.get("monthly_token_cap") or 0
             if cap and model_id != "locale" and used_before < 0.8 * cap <= month_tokens(con, tenant["id"]):
                 news.add(con, tenant["id"], "consumi", "Consumo all'80% del tetto del mese",  # una volta sola: quando si attraversa la soglia

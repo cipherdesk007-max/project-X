@@ -35,6 +35,15 @@ FIELDS = [
     ("Registrazione", "SFB_REGISTRATION", "Registrazione aperta (1 sì, 0 no)", False, "bool"),
     ("Registrazione", "SFB_TRIAL_DAYS", "Giorni di prova gratuita (0 = nessuna scadenza)", False, "int"),
     ("Registrazione", "SFB_REGISTER_PLATFORM_KEYS", "Chi si registra usa le tue chiavi dei modelli (1 sì, 0 no)", False, "bool"),
+    ("Crediti", "SFB_CREDITS", "Crediti attivi (1 sì, 0 no). Da spenti non cambia niente", False, "bool"),
+    ("Crediti", "CREDIT_RATE_KIMI", "Kimi: crediti ogni 1.000 token", False, "int"),
+    ("Crediti", "CREDIT_RATE_CLAUDE", "Claude: crediti ogni 1.000 token", False, "int"),
+    ("Crediti", "CREDIT_RATE_CHATGPT", "ChatGPT: crediti ogni 1.000 token", False, "int"),
+    ("Crediti", "CREDITS_START", "Crediti inclusi ogni mese nel pacchetto Start", False, "int"),
+    ("Crediti", "CREDITS_BUSINESS", "Crediti inclusi ogni mese nel pacchetto Business", False, "int"),
+    ("Crediti", "CREDITS_COMPLETO", "Crediti inclusi ogni mese nel pacchetto Completo", False, "int"),
+    ("Crediti", "CREDIT_PACK_SIZE", "Crediti in una ricarica comprata a parte (0 = non si vendono)", False, "int"),
+    ("Crediti", "STRIPE_PRICE_CREDITS", "ID del prezzo Stripe di una ricarica, pagamento singolo (price_…)", False, "text"),
     ("Pagamenti", "SFB_GRACE_DAYS", "Giorni di tolleranza dopo la scadenza, da 0 a 30 (0 = pausa dal giorno dopo)", False, "int"),
     ("Pagamenti", "STRIPE_SECRET_KEY", "Chiave segreta di Stripe (sk_…)", True, "text"),
     ("Pagamenti", "STRIPE_WEBHOOK_SECRET", "Segreto del webhook di Stripe (whsec_…)", True, "text"),
@@ -89,7 +98,7 @@ def _clean(key, value):
         return ""
     if len(v) > 500 or any(c in v for c in "\r\n\x00"):
         raise ApiError(400, "Valore non valido per «%s»." % label)
-    if kind == "int" and not (v.isdigit() and int(v) <= 100000):
+    if kind == "int" and not (v.isdigit() and int(v) <= 100000000):
         raise ApiError(400, "«%s» deve essere un numero intero." % label)
     if kind == "bool" and v not in ("0", "1"):
         raise ApiError(400, "«%s» deve essere 1 oppure 0." % label)

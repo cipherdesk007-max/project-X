@@ -595,10 +595,10 @@
 
   // ---------- Centro di controllo ----------
   function tabsFor() {
-    var all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["dati", "Dati"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"]];
+    var all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["dati", "Dati"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"], ["crediti", "Crediti"]];
     if (S.me.user.role === "admin") all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["agenti", "Agenti"], ["automazioni", "Automazioni"],
       ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["collegamenti", "Collegamenti"], ["registro", "Registro"], ["utenti", "Utenti"], ["dati", "Dati"],
-      ["consumi", "Consumi"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"]];
+      ["consumi", "Consumi"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"], ["crediti", "Crediti"]];
     return all;
   }
   function viewCentro() {
@@ -609,7 +609,7 @@
     if (!tabsFor().some(function (t) { return t[0] === S.tab; })) S.tab = "approvazioni";
     var loader = { approvazioni: tabApprovazioni, registro: tabRegistro, collegamenti: tabCollegamenti, utenti: tabUtenti,
                    dati: tabDati, consumi: tabConsumi, pacchetti: tabPacchetti, novita: tabNovita, automazioni: tabAutomazioni,
-                   memoria: tabMemoria, agenti: tabAgenti, archivio: tabArchivio, computer: tabComputer, abbonamento: tabAbbonamento }[S.tab];
+                   memoria: tabMemoria, agenti: tabAgenti, archivio: tabArchivio, computer: tabComputer, abbonamento: tabAbbonamento, crediti: tabCrediti }[S.tab];
     Promise.resolve().then(loader).then(function (nodes) { body.textContent = ""; append(body, nodes); })
       .catch(function (err) { body.textContent = ""; append(body, el("p", { class: "error", role: "alert", text: err.message })); });
     return el("section", {}, tabs,
@@ -726,6 +726,42 @@
           res[1].rows.map(function (r) { return [when(r.starts_at), when(r.ends_at), r.title, r.location, r.notes]; })),
         block("Bozze", "Testi, post, campagne, copioni e verbali preparati dagli agenti. La pubblicazione è manuale.", ["N.", "Canale", "Titolo", "Testo", "Quando"],
           res[2].rows.map(function (r) { return [r.id, r.channel, r.title, r.body, when(r.created_at)]; }))];
+    });
+  }
+  function tabCrediti() {
+    return api("GET", "/credits").then(function (c) {
+      var n = function (v) { return Number(v || 0).toLocaleString("it-IT"); }, it = function (d) { return (d || "").split("-").reverse().join("/"); };
+      var admin = S.me.user.role === "admin", err = el("p", { class: "error", role: "alert" }), msg = S.payMsg;
+      S.payMsg = "";
+      if (!c.enabled) {
+        return el("div", { class: "panel" }, el("h2", { text: "Crediti" }), el("p", { id: "creditsOff", text: "I crediti non sono attivi su questa piattaforma: l'uso dei modelli segue le regole del tuo pacchetto (scheda Consumi)." }));
+      }
+      var qty = el("select", { id: "creditQty", "aria-label": "Quante ricariche" }, [1, 2, 3, 5, 10].map(function (q) {
+        return el("option", { value: String(q), text: q + (q === 1 ? " ricarica" : " ricariche") + " · " + n(q * c.pack.size) + " crediti" });
+      }));
+      var buy = el("button", { class: "btn primary", type: "button", id: "creditBuy", text: "Compra con carta", onclick: function () {
+        buy.disabled = true; err.textContent = "";
+        api("POST", "/credits/checkout", { quantity: Number(qty.value) }).then(function (out) { window.location.href = out.url; })  // il pagamento si fa sulla pagina di Stripe
+          .catch(function (e) { buy.disabled = false; err.textContent = e.message; });
+      } });
+      return [el("div", { class: "panel" }, el("h2", { text: "Crediti" }),
+        msg ? el("p", { class: "okmsg", role: "status", text: msg }) : null,
+        el("p", { class: "bignum", id: "creditsNow" }, el("b", { text: n(c.available) }), " crediti disponibili"),
+        el("ul", { class: "caplist" },
+          el("li", {}, el("span", { class: "pill ok", text: "inclusi" }), el("span", { id: "creditsIncluded", text: n(c.included_left) + " su " + n(c.included) + " del pacchetto. Si ricaricano il " + it(c.resets_on) + "; quelli non usati non si sommano al mese dopo." })),
+          el("li", {}, el("span", { class: "pill ok", text: "comprati" }), el("span", { id: "creditsExtra", text: n(c.extra) + " crediti comprati o ricevuti. Non scadono e si usano solo dopo quelli inclusi." }))),
+        c.available <= 0 ? el("div", { class: "banner", role: "alert", text: "Crediti finiti: gli agenti che usano i modelli della piattaforma sono fermi fino alla ricarica del " + it(c.resets_on) + ", oppure finché non ne compri altri." }) : null,
+        !c.pack.buyable ? el("p", { class: "empty", text: "L'acquisto di ricariche non è attivo: per averne altri contatta chi ti ha venduto il servizio." })
+          : (admin ? el("div", { class: "acts" }, el("div", { class: "field" }, qty), buy) : el("p", { class: "empty", text: "Le ricariche le compra un amministratore dell'azienda." })),
+        err),
+      el("div", { class: "panel" }, el("h2", { text: "Quanto costa ogni modello" }),
+        el("p", { text: "Il costo dipende dal modello che scegli nella chat. Il modello «Locale» e le chiavi proprie dell'azienda non consumano crediti." }),
+        table(["Modello", "Crediti ogni 1.000 token", "Usati questo mese"], c.rates.map(function (r) {
+          var used = c.month.filter(function (m) { return m.model === r.model; })[0];
+          return [r.name, r.per_1000 ? n(r.per_1000) : "gratis", n(used ? used.credits : 0)];
+        }))),
+      c.moves.length ? el("div", { class: "panel" }, el("h2", { text: "Ricariche" }),
+        table(["Quando", "Tipo", "Crediti"], c.moves.map(function (m) { return [when(m.created_at), m.kind === "acquisto" ? "Comprati con carta" : "Dal gestore", (m.amount > 0 ? "+" : "") + n(m.amount)]; }))) : null];
     });
   }
   function tabAbbonamento() {
@@ -965,6 +1001,7 @@
   function tabComputer() {
     return api("GET", "/devices").then(function (out) {
       var admin = S.me.user.role === "admin", err = el("p", { class: "error", role: "alert" }), codeBox = el("p", { class: "codebox", "aria-live": "polite" });
+      if (out.blocked) err.textContent = out.blocked + " La verifica del computer con il launcher resta gratuita.";
       var VERD = { gira: ["gira", "done"], non_gira: ["non gira", "bad"], in_arrivo: ["in arrivo", "wait"] };
       var devices = out.devices.map(function (d) {
         var sp = d.specs, shown = cat().agents.filter(function (a) { var c = d.checks["agent:" + a.id]; return c && VERD[c.verdict]; });
@@ -1088,6 +1125,10 @@
             el("div", { class: "field" }, el("label", { for: "paid_" + t.id, text: "Pagato fino al (vuoto = nessuna scadenza)" }), el("div", { class: "inline" },
               el("input", { id: "paid_" + t.id, type: "date", value: t.paid_until || "" }),
               el("button", { class: "btn small", type: "button", text: "Salva scadenza", onclick: post(function () { return { paid_until: val("paid_" + t.id) }; }) })))),
+          t.credits == null ? null : el("div", { class: "acts creditrow" },
+            el("span", { class: "meta", id: "cred_" + t.id, text: num(t.credits) + " crediti disponibili." }),
+            el("label", { class: "cap" }, "Aggiungi o togli ", el("input", { id: "addcred_" + t.id, type: "number", step: "100", placeholder: "es. 500 o -200" })),
+            el("button", { class: "btn small", type: "button", text: "Applica crediti", onclick: post(function () { return { credits_add: Math.round(Number(val("addcred_" + t.id)) || 0) }; }) })),
           el("div", { class: "acts" },
             el("span", { class: "meta", text: t.platform_keys ? "Usa le tue chiavi dei modelli." : "Usa solo le proprie chiavi dei modelli." }),
             el("button", { class: "btn small", type: "button", text: t.platform_keys ? "Togli le tue chiavi" : "Concedi le tue chiavi", onclick: post(function () { return { platform_keys: !t.platform_keys }; }) }),
@@ -1218,6 +1259,10 @@
       S.auth = "reset"; S.resetToken = resetLink[1]; found = true;
     } else if (window.location.hash === "#registrati") {
       S.auth = "register"; found = true;
+    } else if (/^#crediti-(ok|annullato)$/.test(window.location.hash || "")) {  // ritorno da Stripe dopo una ricarica
+      S.view = "centro"; S.tab = "crediti"; found = true;
+      S.payMsg = window.location.hash === "#crediti-ok" ? "Pagamento ricevuto da Stripe: i crediti arrivano entro pochi secondi. Se non li vedi, ricarica la pagina."
+                                                         : "Acquisto annullato: non è stato addebitato niente.";
     } else if (/^#(pagamento-(ok|annullato)|abbonamento)$/.test(window.location.hash || "")) {  // ritorno da Stripe, o collegamento di un'email
       S.view = "centro"; S.tab = "abbonamento"; found = true;
       S.payMsg = window.location.hash === "#pagamento-ok" ? "Pagamento ricevuto da Stripe: la scadenza si aggiorna entro pochi secondi. Se non cambia, ricarica la pagina."

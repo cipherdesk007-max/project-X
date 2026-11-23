@@ -216,6 +216,9 @@ class Abbonamento(Base):
         self.assertEqual(status, 200, out)
         sub = self.sub(out["token"])
         self.assertEqual((sub["paid_until"], sub["days_left"], sub["expired"]), ((self.today + timedelta(days=14)).isoformat(), 14, False))
+        status, blocked = self.call("POST", "/api/devices/code", {}, out["token"])
+        self.assertEqual(status, 402, "in prova gratuita il computer non si collega: prima si paga")
+        self.assertIn("prova gratuita", blocked["error"])
         os.environ["SFB_TRIAL_DAYS"] = "0"
         registration.reset_throttle()
         status, out = self.call("POST", "/api/register", dict(body, company="Senza Prova Srl", email="titolare@senza-prova.it"))

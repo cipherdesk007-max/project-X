@@ -32,6 +32,14 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 14: crediti e pagamento prima di usare il proprio computer
+
+- **Crediti** (`server/credits.py`, spenti finché il gestore non scrive `SFB_CREDITS=1` nel gruppo «Crediti» delle impostazioni): ogni modello ha il suo costo in crediti ogni 1.000 token (Kimi, Claude e ChatGPT costano diverso, il modello locale è gratis); ogni pacchetto include dei crediti al mese, che si ricaricano il primo del mese e non si accumulano; i crediti comprati a parte o dati dal gestore non scadono e si usano dopo quelli inclusi; chi usa una propria chiave del modello non consuma crediti. A zero la chat si ferma con un messaggio chiaro; il modello locale resta disponibile.
+- **Scheda Crediti** per ogni azienda: quanti ne restano, quando si ricaricano, quanto costa ogni modello, quanti ne ha usati nel mese, e il pulsante per comprare ricariche con la carta (pagamento singolo su Stripe; i crediti arrivano solo quando Stripe conferma il pagamento, una volta sola).
+- **Gestore**: decide costi, crediti inclusi e ricarica dal pannello; nella scheda di ogni azienda vede i crediti e può aggiungerne o toglierne.
+- **Prima si paga, poi si usa il proprio computer**: verificare il computer con il launcher resta gratuito e senza account. Collegarlo, scaricare i pacchetti dell'azienda e ricevere lavori richiede un abbonamento pagato: non scaduto e non in prova gratuita. Vale come pagamento anche la data messa a mano dal gestore (bonifico). Un computer già collegato si ferma alla scadenza e riprende al rinnovo.
+- Prove in `tests/test_v13.py`.
+
 ## Novità della versione 13: quanto regge il server e console del gestore
 
 - **Capacità del server** (`python3 manage.py capacita`, mostrata anche a fine installazione e nel pannello del gestore): memoria, processore, disco, FFmpeg, e una stima di quante persone possono lavorare nello stesso momento, con «OK», «ATTENZIONE» o «NON REGGE» per ogni voce e le ipotesi scritte sotto. I numeri di base sono misurati: 240 chat partite insieme tutte riuscite, circa 125 al secondo su 2 core con un modello finto; la stima usa un quarto di quella velocità. Non comprende i limiti del fornitore del modello.
@@ -287,7 +295,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 152 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 160 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

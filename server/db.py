@@ -49,6 +49,11 @@ CREATE TABLE IF NOT EXISTS drafts(
 CREATE TABLE IF NOT EXISTS usage(
   id INTEGER PRIMARY KEY, tenant_id INTEGER NOT NULL, user_id INTEGER NOT NULL, model TEXT NOT NULL,
   input_tokens INTEGER NOT NULL, output_tokens INTEGER NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS credit_ledger(
+  id INTEGER PRIMARY KEY, tenant_id INTEGER NOT NULL, kind TEXT NOT NULL, amount INTEGER NOT NULL,
+  from_included INTEGER NOT NULL DEFAULT 0, from_extra INTEGER NOT NULL DEFAULT 0, model TEXT NOT NULL DEFAULT '',
+  note TEXT NOT NULL DEFAULT '', period TEXT NOT NULL, created_by INTEGER, created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS credit_ledger_tenant ON credit_ledger(tenant_id, period, kind);
 CREATE TABLE IF NOT EXISTS automations(
   id INTEGER PRIMARY KEY, tenant_id INTEGER NOT NULL, name TEXT NOT NULL, agent_id TEXT NOT NULL,
   model TEXT NOT NULL, prompt TEXT NOT NULL, kind TEXT NOT NULL, hour INTEGER, minute INTEGER,
@@ -141,6 +146,7 @@ MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("tenants", "paid_until", "TEXT NOT NULL DEFAULT ''"),            # ultimo giorno pagato (AAAA-MM-GG); vuoto = nessuna scadenza
               ("tenants", "stripe_customer", "TEXT NOT NULL DEFAULT ''"),
               ("tenants", "stripe_subscription", "TEXT NOT NULL DEFAULT ''"),
+              ("tenants", "on_trial", "INTEGER NOT NULL DEFAULT 0"),            # 1 finché l'azienda è in prova gratuita e non ha ancora pagato
               ("tenants", "payment_failed_at", "TEXT NOT NULL DEFAULT ''"),     # ultimo addebito non riuscito; si svuota al primo pagamento
               ("tenants", "stripe_cancel_at", "TEXT NOT NULL DEFAULT ''"),      # disdetta registrata: giorno in cui finisce l'abbonamento con carta
               ("tenants", "expiry_notice_for", "TEXT NOT NULL DEFAULT ''")]     # scadenza per cui l'email di avviso è già partita

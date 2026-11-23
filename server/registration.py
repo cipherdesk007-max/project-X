@@ -150,7 +150,7 @@ def register(con, body, ip):
                                   email_verified=0 if verify else 1, agents=set(agents))
     trial = config.get_int("SFB_TRIAL_DAYS", 0)
     if trial > 0:  # prova gratuita: l'azienda nasce con una scadenza, che il gestore sposta quando il cliente paga
-        con.execute("UPDATE tenants SET paid_until=? WHERE id=?",
+        con.execute("UPDATE tenants SET paid_until=?, on_trial=1 WHERE id=?",
                     ((datetime.now(timezone.utc).date() + timedelta(days=min(trial, 3650))).isoformat(), tenant_id))
     user = con.execute("SELECT * FROM users WHERE tenant_id=? ORDER BY id LIMIT 1", (tenant_id,)).fetchone()
     audit.record(con, tenant_id, user["id"], "registrazione", {"agenti": sorted(agents), "verifica_email": verify})

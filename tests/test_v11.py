@@ -52,7 +52,7 @@ class Sito(Base):
         self.assertIn('window.location.replace("/app" + hash)', js)
         pattern = re.search(r"/\^#\((.+?)\)/", js).group(1)
         rx = re.compile("^#(%s)" % pattern)
-        for link in ("#registrati", "#reimposta-" + "a" * 30, "#pagamento-ok", "#pagamento-annullato", "#abbonamento", "#google-ok", "#verifica-ok"):
+        for link in ("#registrati", "#reimposta-" + "a" * 30, "#pagamento-ok", "#pagamento-annullato", "#abbonamento", "#crediti-ok", "#crediti-annullato", "#google-ok", "#verifica-ok"):
             self.assertTrue(rx.match(link), "questo collegamento dell'applicazione resterebbe sul sito: %s" % link)
         _, page = self.page()
         for anchor in re.findall(r'href="(#[^"]+)"', page):

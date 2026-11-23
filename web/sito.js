@@ -4,7 +4,7 @@
   "use strict";
   var hash = window.location.hash || "", token = null;
   try { token = window.sessionStorage.getItem("sfb_token"); } catch (e) { token = null; }
-  if (token || /^#(registrati|reimposta-|pagamento-|abbonamento$|google-|verifica-)/.test(hash)) {
+  if (token || /^#(registrati|reimposta-|pagamento-|crediti-|abbonamento$|google-|verifica-)/.test(hash)) {
     window.location.replace("/app" + hash);
     return;
   }

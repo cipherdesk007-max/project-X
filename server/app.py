@@ -10,7 +10,7 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import (agents, audit, auth, billing, catalog, config, connectors, console, db, fake_llm, google, llm, local, media, memory, news, office, ops,
+from . import (agents, audit, auth, billing, catalog, config, connectors, console, credits, db, fake_llm, google, llm, local, media, memory, news, office, ops,
                registration, scheduler, settings, site, team)
 from .errors import ApiError
 
@@ -351,7 +351,7 @@ def r_launcher_result(q):
 def r_devices(q):
     return {"devices": local.devices(q.con, q.tenant), "jobs": local.listing(q.con, q.tenant, 20), "packages_signed": bool(local.public_key()),
             "cloud_video": local.cloud_video_ready(), "agents": [a for a in team.listing(q.con, q.tenant) if a["in_ceiling"]],
-            "launcher_version": local.launcher_version()}
+            "launcher_version": local.launcher_version(), "blocked": ops.local_block(q.tenant)}
 
 
 def r_device_code(q):
@@ -506,6 +506,14 @@ def r_admin_test_email(q):
     return {"ok": True, "to": q.user["email"]}
 
 
+def r_credits(q):
+    return credits.view(q.con, q.tenant)
+
+
+def r_credits_checkout(q):
+    return billing.credits_checkout(q.con, q.tenant, q.user, q.body.get("quantity", 1))
+
+
 def r_admin_console(q):
     return console.listing()
 
@@ -556,6 +564,8 @@ def r_admin_tenants(q):
         "(SELECT COUNT(*) FROM users u WHERE u.tenant_id=t.id AND u.active=1) AS users, "
         "(SELECT COALESCE(SUM(input_tokens+output_tokens),0) FROM usage g WHERE g.tenant_id=t.id) AS tokens "
         "FROM tenants t ORDER BY t.id", (db.now(),)))
+    for row in rows:  # crediti disponibili di ogni azienda, per le schede del gestore
+        row["credits"] = credits.balance(q.con, row)["available"] if credits.enabled() else None
     return {"tenants": rows, "catalog": catalog.load()}
 
 
@@ -569,6 +579,8 @@ def r_admin_tenant_update(q):
     ops.update_tenant(q.con, int(q.args[0]), package_id=q.body.get("package_id"), active=q.body.get("active"),
                       actor_id=q.user["id"], platform_keys=q.body.get("platform_keys"), token_cap=q.body.get("monthly_token_cap"),
                       paid_until=q.body.get("paid_until"))
+    if q.body.get("credits_add") not in (None, "", 0):
+        credits.grant(q.con, int(q.args[0]), q.body.get("credits_add"), "regalo", "Dal gestore", q.user["id"])
     return {"ok": True}
 
 
@@ -607,6 +619,8 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("POST", "/api/admin/settings/test-email", "super", r_admin_test_email),
     ("GET", "/api/admin/console", "super", r_admin_console),
     ("POST", "/api/admin/console", "super", r_admin_console_run),
+    ("GET", "/api/credits", "user", r_credits),
+    ("POST", "/api/credits/checkout", "admin", r_credits_checkout),
     ("GET", "/api/billing", "user", r_billing),
     ("POST", "/api/billing/checkout", "admin", r_billing_checkout),
     ("POST", "/api/billing/portal", "admin", r_billing_portal),

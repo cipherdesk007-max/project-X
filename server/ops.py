@@ -84,6 +84,21 @@ def subscription(tenant):
             "grace_left": max(0, grace + left), "payment_failed": failed}
 
 
+def local_block(tenant):
+    """Perché questa azienda non può ancora far lavorare gli agenti sul proprio computer, oppure "" se può.
+    La verifica del computer resta sempre gratuita e senza account; collegarlo, scaricare i pacchetti dell'azienda
+    e ricevere lavori richiede un abbonamento pagato: non scaduto, non in prova gratuita."""
+    t = dict(tenant)
+    if subscription(t)["expired"]:
+        return "Abbonamento scaduto: per usare gli agenti sul tuo computer va rinnovato (scheda Abbonamento)."
+    if t.get("on_trial"):
+        return "Sei in prova gratuita: gli agenti sul tuo computer si attivano dopo il primo pagamento (scheda Abbonamento). Intanto lavorano sui nostri server."
+    card = config.get("STRIPE_SECRET_KEY") and config.get("STRIPE_WEBHOOK_SECRET") and config.get("STRIPE_PRICE_" + str(t.get("package_id") or "").upper())
+    if card and t.get("origin") == "registrazione" and not t.get("paid_until"):
+        return "Prima di collegare un computer va attivato l'abbonamento (scheda Abbonamento). Intanto gli agenti lavorano sui nostri server."
+    return ""
+
+
 def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, platform_keys=None, token_cap=None, paid_until=None):
     row = con.execute("SELECT * FROM tenants WHERE id=?", (tenant_id,)).fetchone()
     if not row:
@@ -108,7 +123,7 @@ def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, p
         except (TypeError, ValueError):
             raise ApiError(400, "La scadenza è una data nel formato AAAA-MM-GG, oppure vuota per nessuna scadenza.")
         if clean != row["paid_until"]:
-            con.execute("UPDATE tenants SET paid_until=? WHERE id=?", (clean, tenant_id))
+            con.execute("UPDATE tenants SET paid_until=?, on_trial=0 WHERE id=?", (clean, tenant_id))  # la data messa dal gestore vale come pagamento
             audit.record(con, PLATFORM, actor_id, "scadenza_cambiata", {"azienda": row["name"], "da": row["paid_until"], "a": clean})
             audit.record(con, tenant_id, actor_id, "scadenza_cambiata", {"da": row["paid_until"], "a": clean})
     if token_cap is not None:

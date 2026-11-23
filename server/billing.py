@@ -13,7 +13,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import audit, config, connectors, db, google, news, registration
+from . import audit, config, connectors, credits, db, google, news, registration
 from .errors import ApiError
 
 TOLERANCE = 300
@@ -34,6 +34,37 @@ def status(tenant):
             "paid_until": tenant.get("paid_until") or "", "payment_failed": bool(tenant.get("payment_failed_at")),
             "cancel_at": tenant.get("stripe_cancel_at") or "",
             "portal": bool(config.get("STRIPE_SECRET_KEY") and tenant.get("stripe_customer"))}
+
+
+def credits_checkout(con, tenant, user, quantity=1):
+    """Pagina di Stripe per comprare ricariche di crediti (pagamento singolo). Ritorna {"url"}."""
+    size = config.get_int("CREDIT_PACK_SIZE", 0)
+    if not (credits.enabled() and config.get("STRIPE_SECRET_KEY") and config.get("STRIPE_WEBHOOK_SECRET") and config.get("STRIPE_PRICE_CREDITS") and size > 0):
+        raise ApiError(400, "L'acquisto di crediti non è attivo: il gestore deve impostare la ricarica e il suo prezzo.")
+    try:
+        quantity = int(quantity)
+    except (TypeError, ValueError):
+        quantity = 0
+    if not 1 <= quantity <= 20:
+        raise ApiError(400, "Puoi comprare da 1 a 20 ricariche alla volta.")
+    base = google.public_url()
+    form = {"mode": "payment", "line_items[0][price]": config.get("STRIPE_PRICE_CREDITS"), "line_items[0][quantity]": str(quantity),
+            "success_url": base + "/#crediti-ok", "cancel_url": base + "/#crediti-annullato", "client_reference_id": str(tenant["id"]),
+            "metadata[tenant_id]": str(tenant["id"]), "metadata[kind]": "crediti", "metadata[credits]": str(size * quantity)}
+    if tenant.get("stripe_customer"):
+        form["customer"] = tenant["stripe_customer"]
+    else:
+        form["customer_email"] = user["email"]
+    try:
+        session = connectors.http_json("POST", _api() + "/v1/checkout/sessions",
+                                       headers={"Authorization": "Bearer " + config.get("STRIPE_SECRET_KEY")}, form=form)
+    except connectors.ConnectorError as e:
+        raise ApiError(502, "Stripe non ha creato il pagamento: %s" % str(e)[:200])
+    url = str(session.get("url") or "")
+    if not url.startswith(("https://checkout.stripe.com/", _api() + "/")):
+        raise ApiError(502, "Stripe ha risposto con un indirizzo di pagamento inatteso.")
+    audit.record(con, tenant["id"], user["id"], "crediti_acquisto_avviato", {"crediti": size * quantity})
+    return {"url": url}
 
 
 def _day(iso):
@@ -175,7 +206,15 @@ def webhook(con, raw, header):
     if not tenant:
         return {"ok": True, "ignored": True}
     tid = tenant["id"]
-    if kind == "checkout.session.completed":
+    if kind == "checkout.session.completed" and obj.get("mode") == "payment":
+        # pagamento singolo: una ricarica di crediti. Non tocca l'abbonamento. Conta solo se Stripe dice che è pagato.
+        meta = obj.get("metadata") or {}
+        if meta.get("kind") == "crediti" and obj.get("payment_status") == "paid" and str(meta.get("credits") or "").isdigit():
+            amount = credits.grant(con, tid, int(meta["credits"]), "acquisto", "Ricarica pagata con carta")
+            if obj.get("customer") and not tenant["stripe_customer"]:
+                con.execute("UPDATE tenants SET stripe_customer=? WHERE id=?", (str(obj["customer"])[:120], tid))
+            news.add(con, tid, "pagamento", "Crediti aggiunti", "%d crediti comprati: non scadono e si usano dopo quelli inclusi nel pacchetto." % amount)
+    elif kind == "checkout.session.completed":
         con.execute("UPDATE tenants SET stripe_customer=?, stripe_subscription=? WHERE id=?",
                     (str(obj.get("customer") or "")[:120], str(obj.get("subscription") or "")[:120], tid))
         audit.record(con, tid, None, "pagamento_collegato", {})
@@ -184,7 +223,7 @@ def webhook(con, raw, header):
         end = max([e for e in ends if isinstance(e, int)] or [0])
         if end:
             until = max(datetime.fromtimestamp(end, timezone.utc).date().isoformat(), tenant["paid_until"] or "")
-            con.execute("UPDATE tenants SET paid_until=?, payment_failed_at='' WHERE id=?", (until, tid))
+            con.execute("UPDATE tenants SET paid_until=?, payment_failed_at='', on_trial=0 WHERE id=?", (until, tid))
             audit.record(con, tid, None, "pagamento_ricevuto", {"fino_al": until, "importo": obj.get("amount_paid"), "valuta": obj.get("currency")})
             news.add(con, tid, "pagamento", "Pagamento ricevuto", "Abbonamento attivo fino al %s." % "/".join(reversed(until.split("-"))))
     elif kind == "invoice.payment_failed":

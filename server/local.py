@@ -22,7 +22,7 @@ import time
 import zipfile
 from pathlib import Path
 
-from . import audit, catalog, config, db, media, news, team
+from . import audit, catalog, config, db, media, news, ops, team
 from .errors import ApiError
 
 PKG_DIR = config.ROOT / "packages"
@@ -195,8 +195,16 @@ def wanted_packages(con, tenant):
 
 # ---------- computer collegati ----------
 
+def _paid(tenant):
+    """Collegare un computer, scaricare i pacchetti dell'azienda e ricevere lavori si può solo con l'abbonamento pagato."""
+    reason = ops.local_block(tenant)
+    if reason:
+        raise ApiError(402, reason)
+
+
 def new_code(con, tenant, user):
     """Codice usa e getta, valido dieci minuti, da scrivere nel launcher. Si vede una volta sola."""
+    _paid(tenant)
     con.execute("DELETE FROM device_codes WHERE expires_at<?", (int(time.time()),))
     raw = "".join(secrets.choice(ALPHABET) for _ in range(8))
     con.execute("INSERT INTO device_codes(code_hash,tenant_id,user_id,expires_at) VALUES(?,?,?,?)",
@@ -225,6 +233,7 @@ def pair(con, body):
     tenant = con.execute("SELECT * FROM tenants WHERE id=? AND active=1", (row["tenant_id"],)).fetchone()
     if not tenant:
         raise ApiError(403, "Azienda non attiva.")
+    _paid(tenant)
     name = " ".join(str(body.get("name") or "Computer").replace("\x00", "").split())[:60] or "Computer"
     token = "sfbd_" + secrets.token_urlsafe(32)
     specs, checks = _clean_report(body) if body.get("specs") is not None else ("{}", "{}")
@@ -281,6 +290,7 @@ def online_device(con, tenant_id, package):
 
 
 def sync(con, device, tenant):
+    _paid(tenant)
     out = []
     for name in wanted_packages(con, tenant):
         sig = signed(name)
@@ -384,6 +394,7 @@ def _with_links(tenant_id, payload):
 
 def claim(con, device, tenant, wait_seconds=0):
     """Il launcher chiede lavoro. Aspetta fino a `wait_seconds` così gli strumenti brevi partono subito."""
+    _paid(tenant)
     tid, end = tenant["id"], time.time() + max(0, min(float(wait_seconds or 0), 20))
     ok = [k[4:] for k, v in json.loads(device["checks"]).items() if k.startswith("pkg:") and v.get("ok")]
     con.execute("UPDATE jobs SET status=CASE WHEN attempts>=? THEN 'errore' ELSE 'in_coda' END, device_id=NULL, "

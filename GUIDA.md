@@ -121,6 +121,21 @@ Cosa succede da solo, dopo:
 
 Prima di usare le chiavi vere fai un giro con quelle di prova (`sk_test_...`) e la carta di prova 4242 4242 4242 4242: è l'unica verifica che qui non ho potuto fare io.
 
+### Crediti
+
+Nel pannello, gruppo **Crediti**, decidi tutto tu:
+
+1. **Crediti attivi**: 1. Finché è 0 non cambia niente per nessuno.
+2. **Costo di ogni modello** in crediti ogni 1.000 token. Metti di più dove a te costa di più: per esempio Kimi 1, ChatGPT 4, Claude 5. Guarda i listini dei fornitori e aggiungi il tuo margine. Il modello locale non costa mai.
+3. **Crediti inclusi ogni mese** in Start, Business e Completo. Si ricaricano il primo del mese; quelli non usati non si sommano.
+4. **Ricarica**: quanti crediti contiene e l'ID del suo prezzo su Stripe (un prezzo a **pagamento singolo**, non ricorrente). Se lasci 0 le ricariche non si vendono.
+
+Il cliente vede tutto nella scheda **Crediti**: quanti ne ha, quando si ricaricano, quanto costa ogni modello, e compra le ricariche con la carta. Tu, nella scheda di ogni azienda, vedi i suoi crediti e puoi aggiungerne o toglierne. Chi usa una propria chiave del modello non consuma crediti.
+
+### Agenti sul computer del cliente: prima si paga
+
+Il launcher verifica il computer gratis e senza account. Per collegarlo e far lavorare gli agenti lì serve l'abbonamento pagato: chi è in prova gratuita o è scaduto vede il motivo nella scheda Computer e intanto usa gli agenti sui tuoi server.
+
 Chi paga con bonifico continua come prima: scrivi a mano **«Pagato fino al»** accanto alla sua azienda.
 
 ### Due impostazioni da gestore
