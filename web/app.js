@@ -1110,7 +1110,36 @@
         el("div", { class: "panel" }, el("h2", { text: "Nuova azienda" }),
           el("p", { text: "Crea l'azienda e il suo primo amministratore. Comunicagli email e password iniziale: potrà cambiarla un altro amministratore." }), form)]);
     }).catch(function (e) { body.textContent = ""; append(body, el("p", { class: "error", role: "alert", text: e.message })); });
-    return el("section", { class: "tabs-space" }, el("div", { class: "tabs" }), body, gestoreSettings());
+    return el("section", { class: "tabs-space" }, el("div", { class: "tabs" }), body, gestoreConsole(), gestoreSettings());
+  }
+  /* Console del gestore: stato del server e comandi di manutenzione scelti da un elenco chiuso. Non è un terminale libero. */
+  function gestoreConsole() {
+    var box = el("div", { id: "console" });
+    api("GET", "/admin/console").then(function (out) {
+      var screen = el("pre", { class: "console-out", id: "consoleOut", tabindex: "0", "aria-live": "polite", text: "Scegli un comando qui sopra: il risultato compare qui." });
+      var err = el("p", { class: "error", role: "alert" }), buttons = [];
+      append(box, el("div", { class: "panel" }, el("h2", { text: "Server" }),
+        el("p", { id: "capacityLine", text: "Circa " + Number(out.capacity.people).toLocaleString("it-IT") + " persone possono lavorare nello stesso momento su questo server." }),
+        el("ul", { class: "caplist" }, out.capacity.lines.map(function (l) {
+          return el("li", {}, el("span", { class: "pill " + (l.state === "OK" ? "ok" : "no"), text: l.state }), el("span", { text: l.text }));
+        })),
+        el("ul", { class: "capnotes" }, out.capacity.assumptions.map(function (a) { return el("li", { text: a }); }))));
+      append(box, el("div", { class: "panel" }, el("h2", { text: "Console" }),
+        el("p", { text: "Comandi di manutenzione pronti, senza scrivere niente. Non è un terminale libero: così chi rubasse la tua password non avrebbe in mano il server. Ogni comando lanciato finisce nel registro." }),
+        el("div", { class: "acts" }, out.commands.map(function (c) {
+          var b = el("button", { class: "btn small", type: "button", title: c.does, text: c.label, onclick: function () {
+            err.textContent = ""; screen.textContent = "$ " + c.label + "\n…";
+            buttons.forEach(function (x) { x.disabled = true; });
+            api("POST", "/admin/console", { command: c.id }).then(function (r) {
+              screen.textContent = "$ " + c.label + "   (" + r.seconds + " s, esito " + r.code + ")\n\n" + r.output;
+            }).catch(function (e) { screen.textContent = ""; err.textContent = e.message; })
+              .then(function () { buttons.forEach(function (x) { x.disabled = false; }); });
+          } });
+          buttons.push(b);
+          return b;
+        })), err, screen));
+    }).catch(function (e) { append(box, el("p", { class: "error", role: "alert", text: e.message })); });
+    return box;
   }
   /* Impostazioni della piattaforma: quello che prima si scriveva nel file .env. I segreti non tornano mai indietro dal server. */
   function gestoreSettings() {

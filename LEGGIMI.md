@@ -32,6 +32,13 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 13: quanto regge il server e console del gestore
+
+- **Capacità del server** (`python3 manage.py capacita`, mostrata anche a fine installazione e nel pannello del gestore): memoria, processore, disco, FFmpeg, e una stima di quante persone possono lavorare nello stesso momento, con «OK», «ATTENZIONE» o «NON REGGE» per ogni voce e le ipotesi scritte sotto. I numeri di base sono misurati: 240 chat partite insieme tutte riuscite, circa 125 al secondo su 2 core con un modello finto; la stima usa un quarto di quella velocità. Non comprende i limiti del fornitore del modello.
+- **Difetto trovato misurando**: con più di qualche connessione nello stesso istante il server ne rifiutava alcune (coda d'attesa di 5). Ora la coda è di 256 e una prova ne manda 150 insieme.
+- **Console del gestore**: sei comandi di manutenzione lanciabili dal pannello (capacità, collaudo, controllo di produzione, verifica del registro, elenco aziende, firma dei pacchetti). Non è un terminale libero, di proposito: chi rubasse la password del gestore avrebbe in mano il server e i dati di tutti i clienti. Per comandi liberi si usa SSH. Ogni comando finisce nel registro; uno alla volta.
+- Prove in `tests/test_v12.py`.
+
 ## Novità della versione 11: sito pubblico e due agenti nuovi
 
 - **Sito pubblico sullo stesso server**: la pagina principale `/` è il sito (presentazione, agenti, pacchetti, come funziona, launcher, sicurezza), l'applicazione sta su `/app`. La pagina è costruita dal catalogo (`server/site.py`), quindi mostra sempre gli agenti e i pacchetti veri, con quello che ogni agente fa e non fa ancora. Niente prezzi né promesse che il catalogo non contiene. Stesse regole di sicurezza dell'applicazione: nessuno stile o script in linea, nessuna risorsa esterna. Con `SFB_SITE=0` si spegne.
@@ -280,7 +287,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 144 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 152 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

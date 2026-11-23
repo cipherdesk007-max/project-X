@@ -249,6 +249,13 @@ def cmd_collaudo(args):
     return 1 if bad else 0
 
 
+def cmd_capacita(args):
+    config.load_env()
+    from server import capacity
+    print(capacity.text())
+    return 0
+
+
 def cmd_firma(args):
     from server import local
     names = local.sign_all(args.chiave)
@@ -275,6 +282,7 @@ def main():
     s.set_defaults(fn=cmd_pacchetto)
     sub.add_parser("verifica-registro").set_defaults(fn=cmd_verifica)
     sub.add_parser("controlla-produzione", help="dice cosa manca prima di aprire il server ai clienti").set_defaults(fn=cmd_produzione)
+    sub.add_parser("capacita", help="memoria, processore, disco e quante persone regge questo server").set_defaults(fn=cmd_capacita)
     s = sub.add_parser("collaudo", help="prova un server acceso: pagina, agenti, pacchetti, launcher")
     s.add_argument("--url", help="indirizzo del server (se manca: quello locale)")
     s.add_argument("--email")

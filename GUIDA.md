@@ -21,6 +21,8 @@ Lo script fa tutto in ordine e ti dice a che punto è: installa i programmi che 
 
 Quando ha finito apri `https://app.tuodominio.it`, entra come gestore e scrivi le chiavi dei modelli in **Impostazioni della piattaforma**. I punti 3, 4 e 5 qui sotto servono solo se preferisci fare i passi a mano o vuoi capire cosa ha fatto lo script.
 
+Alla fine lo script dice anche **quanto regge il server**: memoria, processore, disco e circa quante persone possono lavorarci insieme. Lo rivedi quando vuoi con `python3 manage.py capacita` oppure nel pannello del gestore, sezione Server, dove c'è anche la **Console** con i comandi di manutenzione pronti.
+
 Per rifare il collaudo in qualsiasi momento:
 
 ```sh

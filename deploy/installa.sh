@@ -91,6 +91,9 @@ else
   passo "5/7 e 6/7 saltati (--prova): niente avvio automatico né HTTPS"
 fi
 
+passo "Quanto regge questo server"
+python3 manage.py capacita || true
+
 passo "7/7 Collaudo"
 if [ "$PROVA" = 0 ]; then
   for _ in $(seq 1 20); do python3 manage.py collaudo >/dev/null 2>&1 && break; sleep 1; done

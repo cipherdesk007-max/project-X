@@ -10,7 +10,7 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import (agents, audit, auth, billing, catalog, config, connectors, db, fake_llm, google, llm, local, media, memory, news, office, ops,
+from . import (agents, audit, auth, billing, catalog, config, connectors, console, db, fake_llm, google, llm, local, media, memory, news, office, ops,
                registration, scheduler, settings, site, team)
 from .errors import ApiError
 
@@ -506,6 +506,14 @@ def r_admin_test_email(q):
     return {"ok": True, "to": q.user["email"]}
 
 
+def r_admin_console(q):
+    return console.listing()
+
+
+def r_admin_console_run(q):
+    return console.run(q.con, q.user, str(q.body.get("command") or ""))
+
+
 def r_billing(q):
     return billing.status(q.tenant)
 
@@ -597,6 +605,8 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("GET", "/api/admin/settings", "super", r_admin_settings),
     ("POST", "/api/admin/settings", "super", r_admin_settings_save),
     ("POST", "/api/admin/settings/test-email", "super", r_admin_test_email),
+    ("GET", "/api/admin/console", "super", r_admin_console),
+    ("POST", "/api/admin/console", "super", r_admin_console_run),
     ("GET", "/api/billing", "user", r_billing),
     ("POST", "/api/billing/checkout", "admin", r_billing_checkout),
     ("POST", "/api/billing/portal", "admin", r_billing_portal),
@@ -909,6 +919,13 @@ class Handler(BaseHTTPRequestHandler):
         self._dispatch("DELETE")
 
 
+class Server(ThreadingHTTPServer):
+    """La coda d'attesa predefinita è di 5 connessioni: sotto un'ondata di richieste insieme le altre venivano rifiutate.
+    Con 256 le richieste aspettano il loro turno invece di cadere (misurato con 240 chat contemporanee)."""
+    request_queue_size = 256
+    daemon_threads = True
+
+
 def make_server(host, port):
     """Prepara database, catalogo e, in demo, il modello finto. Ritorna il server pronto."""
     catalog.load()
@@ -919,7 +936,7 @@ def make_server(host, port):
     if config.demo_mode() and not llm.DEMO_BASE:
         llm.DEMO_SERVER, llm.DEMO_BASE = fake_llm.start()
     local.ensure_signed()
-    server = ThreadingHTTPServer((host, port), Handler)
+    server = Server((host, port), Handler)
     server.daemon_threads = True
     return server
 
