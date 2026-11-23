@@ -1,0 +1,1 @@
+{"name": "dev", "version": "1.0.0", "tools": ["dev_elenca_file", "dev_leggi_file", "dev_scrivi_file", "dev_esegui_comando"], "title": "Agente Dev nella cartella di lavoro"}

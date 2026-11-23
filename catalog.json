@@ -1,0 +1,549 @@
+{
+ "schema_version": 5,
+ "models": [
+  {
+   "id": "kimi",
+   "name": "Kimi"
+  },
+  {
+   "id": "claude",
+   "name": "Claude"
+  },
+  {
+   "id": "chatgpt",
+   "name": "ChatGPT",
+   "requires_agent": "chatgpt"
+  },
+  {
+   "id": "locale",
+   "name": "Locale"
+  }
+ ],
+ "packages": [
+  {
+   "id": "start",
+   "name": "Start",
+   "why": "Agenti che leggono, scrivono bozze e si collegano con credenziali semplici.",
+   "adds": [
+    "email",
+    "calendario",
+    "contenuti",
+    "ricerca",
+    "report",
+    "telegram"
+   ],
+   "limits": {
+    "automazioni": 2,
+    "documenti": 5,
+    "archivio_mb": 200
+   }
+  },
+  {
+   "id": "business",
+   "name": "Business",
+   "why": "Aggiunge vendite e lavoro di squadra: negozio, lead, campagne, terzo modello, più utenti con ruoli.",
+   "adds": [
+    "shopify",
+    "crm",
+    "marketing",
+    "chatgpt",
+    "team",
+    "video"
+   ],
+   "limits": {
+    "automazioni": 10,
+    "documenti": 50,
+    "archivio_mb": 2000
+   }
+  },
+  {
+   "id": "completo",
+   "name": "Completo",
+   "why": "Aggiunge WhatsApp, i canali social e gli agenti per voce e riunioni.",
+   "adds": [
+    "whatsapp",
+    "instagram",
+    "linkedin",
+    "voce",
+    "ascolto",
+    "dev"
+   ],
+   "limits": {
+    "automazioni": 50,
+    "documenti": 500,
+    "archivio_mb": 20000
+   }
+  }
+ ],
+ "agents": [
+  {
+   "id": "shopify",
+   "name": "Shopify",
+   "icon": "bag",
+   "tone": "#8fd16a",
+   "pos": [
+    1,
+    1
+   ],
+   "does": "Legge ordini e prodotti del negozio.",
+   "acts": "Solo lettura",
+   "ext": "Dominio del negozio e token Admin API",
+   "station": "negozio",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "email",
+   "name": "Email",
+   "icon": "mail",
+   "tone": "#ff6b5e",
+   "pos": [
+    2,
+    1
+   ],
+   "does": "Legge la posta, la ordina per priorità e prepara le risposte.",
+   "acts": "Invio solo dopo approvazione",
+   "ext": "Account Google collegato (Gmail) oppure server IMAP e SMTP",
+   "station": "posta",
+   "run": {
+    "cloud": true,
+    "local": {
+     "package": "email",
+     "ready": true,
+     "engine": "IMAP e SMTP",
+     "os": [
+      "linux",
+      "macos",
+      "windows"
+     ],
+     "ram_gb": 1,
+     "disk_gb": 1,
+     "cores": 1,
+     "needs": [],
+     "note": "La password della casella resta sul computer e non arriva al server."
+    }
+   }
+  },
+  {
+   "id": "calendario",
+   "name": "Calendario",
+   "icon": "calendar",
+   "tone": "#e8b06a",
+   "pos": [
+    1,
+    2
+   ],
+   "does": "Propone orari, legge e salva appuntamenti.",
+   "acts": "Su Google Calendar scrive solo dopo approvazione; senza Google usa il calendario interno",
+   "ext": "Facoltativo: account Google collegato. Outlook non è ancora collegato",
+   "station": "calendario",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "ascolto",
+   "name": "Ascolto",
+   "icon": "wave",
+   "tone": "#4aa8ff",
+   "pos": [
+    2,
+    2
+   ],
+   "does": "Da una trascrizione incollata ricava decisioni e cose da fare.",
+   "acts": "Salva i verbali come bozze",
+   "ext": "La trascrizione automatica dell'audio non è ancora collegata",
+   "station": "audio",
+   "run": {
+    "cloud": true,
+    "local": {
+     "package": null,
+     "ready": false,
+     "engine": "faster-whisper",
+     "os": [
+      "linux",
+      "macos",
+      "windows"
+     ],
+     "ram_gb": 8,
+     "disk_gb": 4,
+     "cores": 4,
+     "needs": [
+      {
+       "module": "faster_whisper",
+       "label": "faster-whisper"
+      },
+      {
+       "bin": "ffmpeg",
+       "label": "FFmpeg"
+      }
+     ],
+     "note": "Trascrizione sul computer: il launcher verifica i requisiti, il collegamento non è ancora incluso."
+    }
+   }
+  },
+  {
+   "id": "contenuti",
+   "name": "Contenuti",
+   "icon": "pencil",
+   "tone": "#ff6f9c",
+   "pos": [
+    1,
+    3
+   ],
+   "does": "Scrive post, schede prodotto ed email commerciali.",
+   "acts": "Solo bozze",
+   "ext": "Nessuno: usa solo il modello scelto",
+   "station": "scrittura",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "marketing",
+   "name": "Marketing",
+   "icon": "megaphone",
+   "tone": "#ffa53d",
+   "pos": [
+    2,
+    3
+   ],
+   "does": "Prepara piani di campagna e testi degli annunci.",
+   "acts": "Solo bozze: non spende e non pubblica",
+   "ext": "Il collegamento agli account pubblicitari non è ancora fatto",
+   "station": "lavagna",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "linkedin",
+   "name": "LinkedIn",
+   "icon": "briefcase",
+   "tone": "#5b9bff",
+   "pos": [
+    1,
+    4
+   ],
+   "does": "Prepara post per la pagina aziendale.",
+   "acts": "Solo bozze: la pubblicazione è manuale",
+   "ext": "La pubblicazione automatica non è ancora collegata",
+   "station": "canale",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "instagram",
+   "name": "Instagram",
+   "icon": "camera",
+   "tone": "#ff7ad1",
+   "pos": [
+    2,
+    4
+   ],
+   "does": "Prepara post e didascalie per il profilo aziendale.",
+   "acts": "Solo bozze: la pubblicazione è manuale",
+   "ext": "La pubblicazione automatica non è ancora collegata",
+   "station": "canale",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "chatgpt",
+   "name": "ChatGPT",
+   "icon": "spark",
+   "tone": "#3f9bff",
+   "pos": [
+    4,
+    1
+   ],
+   "does": "Terzo modello a scelta, accanto a Kimi e Claude.",
+   "acts": "Solo risposte",
+   "ext": "Chiave API OpenAI e nome del modello",
+   "station": "terminale",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "crm",
+   "name": "CRM Lead",
+   "icon": "users",
+   "tone": "#4aa8ff",
+   "pos": [
+    5,
+    1
+   ],
+   "does": "Tiene le schede dei lead e il loro stato.",
+   "acts": "Salva e aggiorna i lead nella piattaforma",
+   "ext": "Nessuno. HubSpot e altri CRM non sono ancora collegati",
+   "station": "lavagna",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "voce",
+   "name": "Voce",
+   "icon": "speaker",
+   "tone": "#4a8bff",
+   "pos": [
+    4,
+    2
+   ],
+   "does": "Prepara copioni per le telefonate.",
+   "acts": "Solo bozze",
+   "ext": "Le chiamate vere non sono ancora collegate",
+   "station": "audio",
+   "run": {
+    "cloud": true,
+    "local": {
+     "package": null,
+     "ready": false,
+     "engine": "kokoro-onnx",
+     "os": [
+      "linux",
+      "macos",
+      "windows"
+     ],
+     "ram_gb": 4,
+     "disk_gb": 1,
+     "cores": 2,
+     "needs": [
+      {
+       "module": "kokoro_onnx",
+       "label": "kokoro-onnx"
+      }
+     ],
+     "note": "Voce sintetica sul computer: il launcher verifica i requisiti, il collegamento non è ancora incluso."
+    }
+   }
+  },
+  {
+   "id": "ricerca",
+   "name": "Ricerca",
+   "icon": "search",
+   "tone": "#56d4f5",
+   "pos": [
+    5,
+    2
+   ],
+   "does": "Cerca sul web e riassume con le fonti.",
+   "acts": "Solo lettura",
+   "ext": "Chiave Brave Search API",
+   "station": "ricerca",
+   "run": {
+    "cloud": true,
+    "local": {
+     "package": null,
+     "ready": false,
+     "engine": "SearXNG",
+     "os": [
+      "linux",
+      "macos",
+      "windows"
+     ],
+     "ram_gb": 2,
+     "disk_gb": 1,
+     "cores": 2,
+     "needs": [
+      {
+       "service": "http://127.0.0.1:8080",
+       "label": "SearXNG"
+      }
+     ],
+     "note": "La ricerca privata con SearXNG è già disponibile lato server (SEARXNG_URL); sul computer non è ancora inclusa."
+    }
+   }
+  },
+  {
+   "id": "report",
+   "name": "Report",
+   "icon": "chart",
+   "tone": "#45d6a8",
+   "pos": [
+    4,
+    3
+   ],
+   "does": "Riassume numeri e attività dell'azienda e legge i Fogli Google.",
+   "acts": "Solo lettura",
+   "ext": "Facoltativo: account Google collegato per leggere i Fogli",
+   "station": "lavagna",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "team",
+   "name": "Team",
+   "icon": "shield",
+   "tone": "#2f8bff",
+   "pos": [
+    5,
+    3
+   ],
+   "does": "Più utenti per azienda, con due ruoli: operatore e amministratore.",
+   "acts": "Solo l'amministratore cambia utenti e ruoli",
+   "ext": "Nessuno",
+   "station": "squadra",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "whatsapp",
+   "name": "WhatsApp",
+   "icon": "bubble",
+   "tone": "#3fd67b",
+   "pos": [
+    4,
+    4
+   ],
+   "does": "Prepara e invia messaggi WhatsApp ai clienti.",
+   "acts": "Invio solo dopo approvazione",
+   "ext": "Account WhatsApp Business con Cloud API: ID del numero e token",
+   "station": "canale",
+   "run": {
+    "cloud": true,
+    "local": {
+     "package": null,
+     "ready": false,
+     "engine": "WAHA",
+     "os": [
+      "linux",
+      "macos",
+      "windows"
+     ],
+     "ram_gb": 2,
+     "disk_gb": 2,
+     "cores": 2,
+     "needs": [
+      {
+       "service": "http://127.0.0.1:3000",
+       "label": "WAHA"
+      }
+     ],
+     "note": "WhatsApp self-hosted con WAHA: il launcher verifica se è acceso, il collegamento non è ancora incluso."
+    }
+   }
+  },
+  {
+   "id": "telegram",
+   "name": "Telegram",
+   "icon": "plane",
+   "tone": "#45b4f0",
+   "pos": [
+    5,
+    4
+   ],
+   "does": "Legge i messaggi ricevuti dal bot e ne invia.",
+   "acts": "Invio solo dopo approvazione",
+   "ext": "Token del bot Telegram",
+   "station": "canale",
+   "run": {
+    "cloud": true,
+    "local": null
+   }
+  },
+  {
+   "id": "video",
+   "name": "Video Editor",
+   "icon": "film",
+   "tone": "#ff7ad9",
+   "pos": [
+    2,
+    5
+   ],
+   "station": "montaggio",
+   "does": "Monta clip, immagini e musica dell'Archivio Media in un video pronto da pubblicare.",
+   "acts": "Crea il video nell'Archivio Media, senza pubblicarlo",
+   "ext": "FFmpeg: sul computer dell'azienda oppure sui nostri server",
+   "run": {
+    "cloud": true,
+    "local": {
+     "package": "video",
+     "ready": true,
+     "engine": "FFmpeg",
+     "os": [
+      "linux",
+      "macos",
+      "windows"
+     ],
+     "ram_gb": 4,
+     "disk_gb": 2,
+     "cores": 2,
+     "needs": [
+      {
+       "bin": "ffmpeg",
+       "label": "FFmpeg"
+      },
+      {
+       "bin": "ffprobe",
+       "label": "FFprobe"
+      }
+     ],
+     "note": "Monta i video sul computer: i file non passano da altri servizi."
+    }
+   }
+  },
+  {
+   "id": "dev",
+   "name": "Dev",
+   "icon": "code",
+   "tone": "#7ee0a1",
+   "pos": [
+    4,
+    5
+   ],
+   "station": "terminale",
+   "does": "Legge e scrive codice in una cartella del tuo computer ed esegue i comandi che hai permesso.",
+   "acts": "Scrive file ed esegue comandi solo dopo approvazione",
+   "ext": "Launcher sul computer, con la cartella di lavoro scelta da te",
+   "run": {
+    "cloud": false,
+    "local": {
+     "package": "dev",
+     "ready": true,
+     "engine": "Cartella di lavoro",
+     "os": [
+      "linux",
+      "macos",
+      "windows"
+     ],
+     "ram_gb": 2,
+     "disk_gb": 1,
+     "cores": 1,
+     "needs": [],
+     "note": "Gira solo sul computer: lavora in una cartella scelta da te."
+    }
+   }
+  }
+ ],
+ "local_model": {
+  "engine": "Ollama",
+  "package": "modello",
+  "os": [
+   "linux",
+   "macos",
+   "windows"
+  ],
+  "ram_gb": 8,
+  "disk_gb": 6,
+  "cores": 4,
+  "needs": [],
+  "note": "Il modello linguistico gira sul computer: nessuna chiave API, nessun costo a consumo."
+ }
+}
