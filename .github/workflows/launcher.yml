@@ -4,6 +4,7 @@ name: Launcher
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths: ["launcher/**", "packages/**", "strumenti/prova_launcher.py", ".github/workflows/launcher.yml"]
 permissions:
   contents: write
@@ -59,6 +60,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          f=$(ls Alvea-Launcher.exe Alvea-Launcher.dmg 2>/dev/null | head -1)
-          gh release view launcher >/dev/null 2>&1 || gh release create launcher --title "Launcher di Alvea" --notes "Programmi del launcher costruiti e provati in automatico su macOS e Windows. Non sono firmati: vedi GUIDA.md." --latest=false
+          f="Alvea-Launcher.${{ matrix.nome == 'windows' && 'exe' || 'dmg' }}"
+          # i due lavori arrivano qui quasi insieme: se il rilascio l'ha già creato l'altro, si va avanti
+          gh release view launcher >/dev/null 2>&1 || gh release create launcher --title "Launcher di Alvea" --notes "Programmi del launcher costruiti e provati in automatico su macOS e Windows. Non sono firmati: vedi GUIDA.md." --latest=false || true
           gh release upload launcher "$f" --clobber
