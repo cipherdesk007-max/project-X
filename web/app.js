@@ -89,7 +89,7 @@
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (j) {
           if (r.status === 401 && path !== "/login") { setToken(null); S.me = null; render(); }
-          if (!r.ok) throw new Error(j.error || ("Errore " + r.status));
+          if (!r.ok) { var failure = new Error(j.error || ("Errore " + r.status)); failure.data = j; throw failure; }
           return j;
         });
       });
@@ -199,12 +199,34 @@
       api("POST", "/register/resend", { email: S.lastEmail }).then(function () { S.loginError = ""; S.notice = "Se l'indirizzo è in attesa di conferma, ti abbiamo mandato un nuovo collegamento."; S.noticeBad = false; render(); })
         .catch(function (err) { S.loginError = err.message; render(); });
     } }) : null;
+    if (S.pendingLogin) {  // password giusta, account con i due passaggi: manca il codice dell'app
+      return el("form", { class: "login", autocomplete: "off", onsubmit: function (e) {
+        e.preventDefault();
+        var p = S.pendingLogin;
+        S.loginError = "";
+        api("POST", "/login", { email: p.email, password: p.password, code: val("loginCode") })
+          .then(function (out) { S.pendingLogin = null; setToken(out.token); return loadMe(); })
+          .catch(function (err) { if (!(err.data && err.data.two_factor)) S.pendingLogin = null; S.loginError = err.message; render(); });
+      } },
+        el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
+        el("p", { text: "Apri la tua app di autenticazione e scrivi il codice a 6 cifre di Alvea." }),
+        el("div", { class: "panel form" },
+          field("Codice", "loginCode", { type: "text", inputmode: "numeric", autocomplete: "one-time-code", required: true, maxlength: "12", autofocus: true }),
+          el("p", { class: "empty", text: "Non hai il telefono? Scrivi uno dei codici di riserva." }),
+          S.loginError ? el("p", { class: "error", role: "alert", text: S.loginError }) : null,
+          el("button", { class: "btn primary", type: "submit", text: "Entra" })),
+        el("button", { class: "btn", type: "button", text: "Torna all'accesso", onclick: function () { S.pendingLogin = null; S.loginError = ""; render(); } }));
+    }
     return el("form", { class: "login", autocomplete: "on", onsubmit: function (e) {
       e.preventDefault();
       S.loginError = ""; S.notice = ""; S.lastEmail = val("loginEmail");
-      api("POST", "/login", { email: val("loginEmail"), password: val("loginPassword") })
+      var sent = { email: val("loginEmail"), password: val("loginPassword") };
+      api("POST", "/login", sent)
         .then(function (out) { setToken(out.token); return loadMe(); })
-        .catch(function (err) { S.loginError = err.message; render(); });
+        .catch(function (err) {
+          if (err.data && err.data.two_factor) { S.pendingLogin = sent; S.loginError = ""; } else S.loginError = err.message;
+          render();
+        });
     } },
       el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
       el("p", { text: "Entra con l'email e la password della tua azienda." }),
@@ -606,10 +628,10 @@
 
   // ---------- Centro di controllo ----------
   function tabsFor() {
-    var all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["dati", "Dati"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"], ["crediti", "Crediti"]];
+    var all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["dati", "Dati"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"], ["crediti", "Crediti"], ["sicurezza", "Sicurezza"]];
     if (S.me.user.role === "admin") all = [["approvazioni", "Approvazioni"], ["novita", "Novità"], ["agenti", "Agenti"], ["automazioni", "Automazioni"],
       ["archivio", "Archivio Media"], ["computer", "Computer"], ["memoria", "Memoria"], ["collegamenti", "Collegamenti"], ["registro", "Registro"], ["utenti", "Utenti"], ["dati", "Dati"],
-      ["consumi", "Consumi"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"], ["crediti", "Crediti"]];
+      ["consumi", "Consumi"], ["pacchetti", "Pacchetti"], ["abbonamento", "Abbonamento"], ["crediti", "Crediti"], ["sicurezza", "Sicurezza"]];
     return all;
   }
   function viewCentro() {
@@ -620,7 +642,7 @@
     if (!tabsFor().some(function (t) { return t[0] === S.tab; })) S.tab = "approvazioni";
     var loader = { approvazioni: tabApprovazioni, registro: tabRegistro, collegamenti: tabCollegamenti, utenti: tabUtenti,
                    dati: tabDati, consumi: tabConsumi, pacchetti: tabPacchetti, novita: tabNovita, automazioni: tabAutomazioni,
-                   memoria: tabMemoria, agenti: tabAgenti, archivio: tabArchivio, computer: tabComputer, abbonamento: tabAbbonamento, crediti: tabCrediti }[S.tab];
+                   memoria: tabMemoria, agenti: tabAgenti, archivio: tabArchivio, computer: tabComputer, abbonamento: tabAbbonamento, crediti: tabCrediti, sicurezza: panelSecurity }[S.tab];
     Promise.resolve().then(loader).then(function (nodes) { body.textContent = ""; append(body, nodes); })
       .catch(function (err) { body.textContent = ""; append(body, el("p", { class: "error", role: "alert", text: err.message })); });
     return el("section", {}, tabs,
@@ -703,7 +725,7 @@
       var err = el("p", { class: "error", role: "alert" });
       var rows = out.users.map(function (u) {
         var self = u.id === S.me.user.id;
-        return [u.name, u.email, ROLE[u.role], u.active ? "attivo" : "disattivato", el("div", { class: "acts" },
+        return [u.name, u.email, ROLE[u.role], (u.active ? "attivo" : "disattivato") + (u.two_factor ? " · due passaggi" : ""), el("div", { class: "acts" },
           el("button", { class: "btn small", type: "button", text: u.role === "admin" ? "Rendi operatore" : "Rendi amministratore",
             onclick: function () { act(api("POST", "/users/" + u.id, { role: u.role === "admin" ? "member" : "admin" }), err); } }),
           self ? null : el("button", { class: "btn small danger", type: "button", text: u.active ? "Disattiva" : "Riattiva",
@@ -1175,7 +1197,68 @@
         el("div", { class: "panel" }, el("h2", { text: "Nuova azienda" }),
           el("p", { text: "Crea l'azienda e il suo primo amministratore. Comunicagli email e password iniziale: potrà cambiarla un altro amministratore." }), form)]);
     }).catch(function (e) { body.textContent = ""; append(body, el("p", { class: "error", role: "alert", text: e.message })); });
-    return el("section", { class: "tabs-space" }, el("div", { class: "tabs" }), body, gestoreConsole(), gestoreSettings());
+    return el("section", { class: "tabs-space" }, el("div", { class: "tabs" }), body, panelSecurity(), gestoreConsole(), gestoreSettings());
+  }
+  /* Accesso in due passaggi: oltre alla password, il codice a 6 cifre di un'app come Google Authenticator. */
+  function panelSecurity() {
+    var box = el("div", { class: "panel", id: "security" }, el("h2", { text: "Sicurezza: accesso in due passaggi" }), el("p", { class: "empty", text: "Carico..." }));
+    function show(nodes) { while (box.childNodes.length > 1) box.removeChild(box.lastChild); append(box, nodes); }
+    function load() {
+      api("GET", "/2fa").then(function (st) {
+        var err = el("p", { class: "error", role: "alert" });
+        if (st.on) {
+          show([el("p", {}, el("span", { class: "pill ok", text: "attivo" }), " A ogni accesso, dopo la password, ti viene chiesto il codice della tua app di autenticazione."),
+            el("p", { class: st.recovery_left < 3 ? "error" : "empty", id: "recoveryLeft", text: "Codici di riserva non ancora usati: " + st.recovery_left + (st.recovery_left < 3 ? ". Ne restano pochi: disattiva e riattiva per averne di nuovi." : ".") }),
+            el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
+              e.preventDefault(); err.textContent = "";
+              api("POST", "/2fa/disable", { password: val("tfaOffPassword"), code: val("tfaOffCode") }).then(function () { S.me.user.two_factor = false; load(); })
+                .catch(function (x) { err.textContent = x.message; });
+            } },
+              el("p", { class: "empty", text: "Per disattivarlo, o per passare a un telefono nuovo, servono password e codice." }),
+              field("Password", "tfaOffPassword", { type: "password", required: true, autocomplete: "current-password" }),
+              field("Codice dell'app o di riserva", "tfaOffCode", { type: "text", inputmode: "numeric", required: true, maxlength: "12", autocomplete: "one-time-code" }),
+              err, el("div", { class: "acts" }, el("button", { class: "btn small danger", type: "submit", id: "tfaOffBtn", text: "Disattiva" })))]);
+          return;
+        }
+        show([el("p", { text: "Oggi entri con la sola password. Con i due passaggi, chi la scopre non entra lo stesso: serve anche il codice a 6 cifre che cambia ogni 30 secondi sulla tua app (Google Authenticator, Microsoft Authenticator, le Password dell'iPhone e simili)." }),
+          el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
+            e.preventDefault(); err.textContent = "";
+            api("POST", "/2fa/setup", { password: val("tfaPassword") }).then(confirmStep).catch(function (x) { err.textContent = x.message; });
+          } },
+            field("Per cominciare, la tua password", "tfaPassword", { type: "password", required: true, autocomplete: "current-password" }),
+            err, el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", id: "tfaStartBtn", text: "Attiva i due passaggi" })))]);
+      }).catch(function (x) { show(el("p", { class: "error", role: "alert", text: x.message })); });
+    }
+    function confirmStep(setup) {
+      var err = el("p", { class: "error", role: "alert" }), ok = el("span", { class: "okmsg", role: "status" });
+      var key = setup.secret.replace(/(.{4})/g, "$1 ").trim();
+      show([el("ol", { class: "steps2fa" },
+          el("li", {}, "Sul telefono apri la tua app di autenticazione e aggiungi un account. ",
+            el("a", { class: "btn small", id: "tfaOpen", href: setup.uri, text: "Apri nell'app di questo telefono" })),
+          el("li", {}, "Oppure scegli «Inserisci una chiave di configurazione» e scrivi: account ", el("strong", { text: S.me.user.email }), ", chiave ",
+            el("code", { class: "secret", id: "tfaSecret", text: key }), " ",
+            el("button", { class: "btn small", type: "button", text: "Copia la chiave", onclick: function () {
+              if (navigator.clipboard) navigator.clipboard.writeText(setup.secret).then(function () { ok.textContent = "Copiata."; }, function () { ok.textContent = "Selezionala e copiala a mano."; });
+              else ok.textContent = "Selezionala e copiala a mano.";
+            } }), " ", ok, el("small", { class: "plain", text: " Tipo di chiave: basata sull'ora." })),
+          el("li", { text: "Scrivi qui sotto il codice a 6 cifre che l'app mostra adesso." })),
+        el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
+          e.preventDefault(); err.textContent = "";
+          api("POST", "/2fa/enable", { code: val("tfaCode") }).then(function (out) {
+            S.me.user.two_factor = true;
+            show([el("p", {}, el("span", { class: "pill ok", text: "attivo" }), " Da adesso a ogni accesso serve anche il codice dell'app."),
+              el("div", { class: "banner", role: "alert", text: "Segna subito questi codici di riserva in un posto sicuro: si vedono solo adesso. Ognuno vale una volta, se il telefono non c'è." }),
+              el("ul", { class: "recovery", id: "tfaRecovery" }, out.recovery.map(function (c) { return el("li", {}, el("code", { text: c })); })),
+              el("div", { class: "acts" }, el("button", { class: "btn small", type: "button", text: "Copia i codici", onclick: function () { if (navigator.clipboard) navigator.clipboard.writeText(out.recovery.join("\n")); } }),
+                el("button", { class: "btn small primary", type: "button", id: "tfaDone", text: "Li ho segnati", onclick: load }))]);
+          }).catch(function (x) { err.textContent = x.message; });
+        } },
+          field("Codice a 6 cifre", "tfaCode", { type: "text", inputmode: "numeric", required: true, maxlength: "8", autocomplete: "one-time-code" }),
+          err, el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", id: "tfaConfirmBtn", text: "Conferma e attiva" }),
+            el("button", { class: "btn small", type: "button", text: "Annulla", onclick: load })))]);
+    }
+    load();
+    return box;
   }
   /* Console del gestore: stato del server e comandi di manutenzione scelti da un elenco chiuso. Non è un terminale libero. */
   function gestoreConsole() {

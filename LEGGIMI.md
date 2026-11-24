@@ -32,6 +32,14 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 23: accesso in due passaggi
+
+- Oltre alla password, il **codice a 6 cifre di un'app** (Google Authenticator, Microsoft Authenticator, Password dell'iPhone, 1Password…): è lo standard TOTP (RFC 6238), scritto in `server/twofactor.py` con la sola libreria standard e provato con i valori ufficiali dello standard. Niente SMS, niente servizi esterni.
+- Si attiva dal proprio account (gestore: sezione Sicurezza del pannello; utenti delle aziende: scheda Sicurezza): password, chiave da mettere nell'app (collegamento da toccare sul telefono oppure chiave da scrivere), primo codice di conferma. Nascono **8 codici di riserva** usa e getta.
+- Un codice vale una volta sola; i codici sbagliati contano come password sbagliate; per disattivare servono password e codice; la chiave è cifrata nel database e non esce in nessuna risposta né nell'esportazione; cambiare la password non scavalca il codice.
+- Emergenza dal server: `python3 manage.py togli-due-passaggi email`. `controlla-produzione` consiglia di attivarlo finché il gestore entra con la sola password.
+- Non c'è il codice QR da inquadrare: dal telefono si tocca il collegamento, dal computer si scrive la chiave.
+
 ## Novità della versione 22: il sistema attaccato come farebbe un intruso
 
 - **Giro d'attacco** in `tests/test_v16.py`: le 73 rotte chiamate senza accesso, da operatore e da amministratore; la tabella di chi può fare cosa fissata nelle prove; ogni rotta che prende un numero provata con i dati di un'altra azienda; salita di grado; sessioni; forza bruta; intestazioni; richieste scritte male; richieste verso la rete interna. Permessi e separazione tra aziende hanno retto; quello che non reggeva è corretto qui sotto.
@@ -343,7 +351,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 203 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 211 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

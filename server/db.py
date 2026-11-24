@@ -139,6 +139,10 @@ MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("tenants", "origin", "TEXT NOT NULL DEFAULT 'gestore'"),         # 'gestore' oppure 'registrazione'
               ("tenants", "platform_keys", "INTEGER NOT NULL DEFAULT 1"),       # può usare le chiavi dei modelli della piattaforma
               ("users", "email_verified", "INTEGER NOT NULL DEFAULT 1"),
+              ("users", "totp_secret", "TEXT NOT NULL DEFAULT ''"),             # accesso in due passaggi: chiave dell'app (cifrata quando si può)
+              ("users", "totp_on", "INTEGER NOT NULL DEFAULT 0"),               # 1 da quando il primo codice è stato confermato
+              ("users", "totp_last", "INTEGER NOT NULL DEFAULT 0"),             # ultimo intervallo usato: lo stesso codice non vale due volte
+              ("users", "totp_codes", "TEXT NOT NULL DEFAULT ''"),              # impronte dei codici di riserva non ancora usati
               ("drafts", "agent_id", "TEXT"),
               ("tenant_agents", "mode", "TEXT NOT NULL DEFAULT 'cloud'"),
               ("email_tokens", "kind", "TEXT NOT NULL DEFAULT 'verifica'"),     # 'verifica' dell'indirizzo oppure nuova 'password'

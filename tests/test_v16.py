@@ -80,7 +80,7 @@ class Sicurezza(Base):
                        'GET /api/register', 'GET /api/verify', 'POST /api/launcher/jobs/(d+)/progress', 'POST /api/launcher/jobs/(d+)/result', 'POST /api/launcher/jobs/claim',
                        'POST /api/launcher/pair', 'POST /api/launcher/report', 'POST /api/login', 'POST /api/password/forgot', 'POST /api/password/reset', 'POST /api/register',
                        'POST /api/register/resend'],
-            "any": ['GET /api/me', 'POST /api/logout'],
+            "any": ['GET /api/2fa', 'GET /api/me', 'POST /api/2fa/disable', 'POST /api/2fa/enable', 'POST /api/2fa/setup', 'POST /api/logout'],
             "user": ['DELETE /api/files/(d+)', 'GET /api/approvals', 'GET /api/billing', 'GET /api/conversations/(d+)', 'GET /api/credits', 'GET /api/data/(leads|events|drafts)',
                      'GET /api/devices', 'GET /api/files', 'GET /api/memory', 'GET /api/memory/search', 'GET /api/news', 'GET /api/office/agents/([a-z]+)', 'GET /api/summary',
                      'GET /api/tenant/agents', 'POST /api/chat', 'POST /api/news/read'],

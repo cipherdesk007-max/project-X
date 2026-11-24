@@ -18,7 +18,7 @@ from .errors import ApiError
 
 PLATFORM = 0
 # Quello che non esce mai in un'esportazione: segreti che servono solo al server.
-SECRET_COLUMNS = {"users": {"pw_hash"}, "devices": {"token_hash"}, "connectors": {"config"}}
+SECRET_COLUMNS = {"users": {"pw_hash", "totp_secret", "totp_codes", "totp_last"}, "devices": {"token_hash"}, "connectors": {"config"}}
 SKIP_TABLES = {"oauth_states", "device_codes"}  # codici a scadenza breve: non sono dati del cliente
 BY_USER = ("sessions", "email_tokens")          # tabelle legate all'utente, senza colonna dell'azienda
 

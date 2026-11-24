@@ -219,6 +219,9 @@ Quello che l'installazione fa da sola:
 
 Quello che devi fare tu, perché lo script non può deciderlo al posto tuo:
 
+- **Attiva subito l'accesso in due passaggi per il gestore.** Entra, vai alla sezione «Sicurezza: accesso in due passaggi», scrivi la password, aggiungi l'account alla tua app (Google Authenticator, Microsoft Authenticator, le Password dell'iPhone: dal telefono basta toccare «Apri nell'app di questo telefono», altrimenti si scrive la chiave a mano), conferma con il primo codice e **segna gli 8 codici di riserva**. Da quel momento chi scopre la password non entra senza il tuo telefono. `controlla-produzione` te lo ricorda finché non lo fai. Ogni utente delle aziende può attivarlo per sé dalla scheda Sicurezza.
+- Se perdi telefono e codici di riserva, dal server: `sudo -u alvea python3 manage.py togli-due-passaggi tua@email.it` (vale per qualunque utente; resta scritto nel registro).
+
 - **Entra sulla VPS con una chiave SSH e spegni l'accesso con password** (`PasswordAuthentication no` in `/etc/ssh/sshd_config`, poi `systemctl restart ssh`). Prima controlla di riuscire a entrare con la chiave, altrimenti resti chiuso fuori. È la porta da cui entrano più spesso.
 - Nel pannello del fornitore della VPS apri solo le porte 22, 80 e 443.
 - Usa per il gestore una password lunga che non usi altrove: chi entra come gestore vede le impostazioni di tutta la piattaforma.

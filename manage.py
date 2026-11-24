@@ -82,6 +82,19 @@ def cmd_aziende(args):
     return 0
 
 
+def cmd_togli_due_passaggi(args):
+    from server import twofactor
+    from server.errors import ApiError
+    try:
+        had = twofactor.reset(_con(), args.email)
+    except ApiError as e:
+        print(e.message)
+        return 1
+    print("Accesso in due passaggi tolto a %s: ora entra con la sola password e può riattivarlo dal suo account." % args.email if had
+          else "%s non aveva i due passaggi attivi." % args.email)
+    return 0
+
+
 def cmd_esporta(args):
     from server import tenantdata
     from server.errors import ApiError
@@ -188,6 +201,16 @@ def production_report():
         "Sul sito e nelle pagine legali mancano: %s. Si scrivono nel pannello del gestore, Impostazioni, gruppo «Azienda»." % ", ".join(gaps))
     add(not stripe and bool(prices), "Pagamenti con carta attivi per: %s." % ", ".join(p.capitalize() for p in prices),
         "Pagamenti con carta non attivi (mancano %s): la scadenza si sposta a mano dal pannello del gestore." % (", ".join(stripe) or "i prezzi dei pacchetti"), block=False)
+    if config.db_path().is_file():
+        from server import db as _db
+        con = _db.connect()
+        try:
+            bare = [r[0] for r in con.execute("SELECT email FROM users WHERE role='superadmin' AND active=1 AND totp_on=0")]
+        except Exception:
+            bare = []  # database di una versione precedente
+        con.close()
+        add(not bare, "Il gestore entra con password e codice dell'app (due passaggi).",
+            "Il gestore %s entra con la sola password: attiva l'accesso in due passaggi dal pannello, sezione Sicurezza." % ", ".join(bare), block=False)
     add(bool(shutil.which("openssl")), "openssl presente.", "openssl assente: non potrai firmare i pacchetti da questo computer.", block=False)
     return out
 
@@ -377,6 +400,9 @@ def main():
     s.add_argument("id", type=int)
     s.add_argument("pacchetto", choices=catalog.package_ids())
     s.set_defaults(fn=cmd_pacchetto)
+    s = sub.add_parser("togli-due-passaggi", help="toglie l'accesso in due passaggi a chi ha perso telefono e codici di riserva")
+    s.add_argument("email")
+    s.set_defaults(fn=cmd_togli_due_passaggi)
     s = sub.add_parser("esporta-azienda", help="scrive in un archivio .zip tutti i dati di un'azienda")
     s.add_argument("azienda", help="numero o nome esatto (vedi «aziende»)")
     s.add_argument("file", help="archivio .zip da creare")

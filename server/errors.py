@@ -6,3 +6,4 @@ class ApiError(Exception):
         Exception.__init__(self, message)
         self.status = status
         self.message = message
+        self.extra = {}  # altri campi da mandare insieme all'errore, quando la schermata deve reagire in modo preciso

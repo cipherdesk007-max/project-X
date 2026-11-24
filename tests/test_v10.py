@@ -71,7 +71,7 @@ class Aspetto(Base):
             self.assertNotIn("alvea.ai", self.fetch(path)[2].decode("utf-8").lower(), path)
         self.assertIn("<title>alvea</title>", self.fetch("/app")[2].decode("utf-8"))
         js = self.fetch("/app.js")[2].decode("utf-8")
-        self.assertEqual(js.count('src: "/logo-alvea.png", alt: "alvea"'), 4, "il logo completo in tutte le intestazioni")
+        self.assertEqual(js.count('src: "/logo-alvea.png", alt: "alvea"'), 5, "il logo completo in tutte le intestazioni")
         self.assertEqual(self.fetch("/logo-alvea.png")[2][:8], b"\x89PNG\r\n\x1a\n")
 
     def test_difetti_di_aspetto_che_non_devono_tornare(self):

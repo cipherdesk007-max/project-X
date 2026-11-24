@@ -11,7 +11,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import (agents, audit, auth, billing, catalog, config, connectors, console, credits, db, fake_llm, google, legal, llm, local, media, memory, news, office, ops,
-               pricing, registration, scheduler, settings, site, team)
+               pricing, registration, scheduler, settings, site, team, twofactor)
 from .errors import ApiError
 
 MAX_BODY = 1000000
@@ -69,7 +69,7 @@ def _int_arg(value, what="Il numero"):
 
 
 def _public_user(u):
-    return {"id": u["id"], "name": u["name"], "email": u["email"], "role": u["role"], "active": bool(u.get("active", 1))}
+    return {"id": u["id"], "name": u["name"], "email": u["email"], "role": u["role"], "active": bool(u.get("active", 1)), "two_factor": bool(u.get("totp_on"))}
 
 
 def _throttle_chat(user_id):
@@ -109,12 +109,35 @@ def r_login(q):
     if not ok:
         auth.note_failure(email, q.ip)
         raise ApiError(401, "Email o password non corretti.")
-    auth.note_success(email, q.ip)
     if not row["email_verified"]:
+        auth.note_success(email, q.ip)
         raise ApiError(403, "Conferma prima il tuo indirizzo email: apri il collegamento che ti abbiamo mandato.")
+    try:
+        twofactor.check_login(q.con, row, q.body.get("code"))  # secondo passaggio, per chi lo ha attivato
+    except twofactor.TwoFactorNeeded as e:
+        if not e.missing:
+            auth.note_failure(email, q.ip)  # un codice sbagliato conta come una password sbagliata
+        raise
+    auth.note_success(email, q.ip)
     token = auth.create_session(q.con, row["id"])
     audit.record(q.con, row["tenant_id"] if row["tenant_id"] is not None else ops.PLATFORM, row["id"], "accesso", {})
     return {"token": token}
+
+
+def r_twofactor(q):
+    return twofactor.status(q.con, q.user)
+
+
+def r_twofactor_setup(q):
+    return twofactor.setup(q.con, q.user, q.body.get("password"), q.ip)
+
+
+def r_twofactor_enable(q):
+    return twofactor.enable(q.con, q.user, q.body.get("code"), q.token, q.ip)
+
+
+def r_twofactor_disable(q):
+    return twofactor.disable(q.con, q.user, q.body.get("password"), q.body.get("code"), q.ip)
 
 
 def r_logout(q):
@@ -451,7 +474,7 @@ def r_audit_verify(q):
 
 
 def r_users(q):
-    rows = db.rows(q.con.execute("SELECT id, name, email, role, active FROM users WHERE tenant_id=? ORDER BY id", (q.tenant["id"],)))
+    rows = db.rows(q.con.execute("SELECT id, name, email, role, active, totp_on FROM users WHERE tenant_id=? ORDER BY id", (q.tenant["id"],)))
     return {"users": [_public_user(r) for r in rows],
             "can_add": "team" in team.active(q.con, q.tenant)}
 
@@ -612,6 +635,10 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("POST", "/api/login", "public", r_login),
     ("POST", "/api/logout", "any", r_logout),
     ("GET", "/api/me", "any", r_me),
+    ("GET", "/api/2fa", "any", r_twofactor),
+    ("POST", "/api/2fa/setup", "any", r_twofactor_setup),
+    ("POST", "/api/2fa/enable", "any", r_twofactor_enable),
+    ("POST", "/api/2fa/disable", "any", r_twofactor_disable),
     ("POST", "/api/chat", "user", r_chat),
     ("GET", r"/api/conversations/(\d+)", "user", r_conversation),
     ("GET", "/api/approvals", "user", r_approvals),
@@ -787,7 +814,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             self._json(200, billing.webhook(con, raw, self.headers.get("Stripe-Signature")))
         except ApiError as e:
-            self._json(e.status, {"error": e.message})
+            self._json(e.status, dict(getattr(e, "extra", None) or {}, error=e.message))
         finally:
             con.close()
 
@@ -958,7 +985,7 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self._json(200, result)
         except ApiError as e:
-            self._json(e.status, {"error": e.message})
+            self._json(e.status, dict(getattr(e, "extra", None) or {}, error=e.message))
         except (BrokenPipeError, ConnectionResetError):
             pass
         except OverflowError:  # un numero più grande di quelli che il database sa tenere
