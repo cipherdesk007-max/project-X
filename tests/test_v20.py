@@ -1,14 +1,22 @@
 """Prove della versione 27: un lavoro non va a un computer scollegato o spento mentre il launcher aspettava."""
+import importlib.util
 import json
+import shutil
 import socket
+import tempfile
 import threading
 import time
 import unittest
 import urllib.parse
+from pathlib import Path
 
-from base import Base
+from base import ROOT, Base
 
 from server import db, local
+
+_spec = importlib.util.spec_from_file_location("sfb_launcher_v20", str(ROOT / "launcher" / "alvea_launcher.py"))
+L = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(L)
 
 
 class LavoriSoloAChiCe(Base):
@@ -106,6 +114,25 @@ class LavoriSoloAChiCe(Base):
         waiting.join(timeout=20)
         self.assertEqual(got["job"]["id"], job_id)
         self.assertEqual(self.state(job_id), ("in_corso", device_id))
+
+    def test_nella_finestra_il_launcher_non_dice_di_premere_ctrl_c(self):
+        admin, tenant_id = self.new_tenant("Attesa Finestra", "completo")
+        token, device_id = self.device(admin, "PC con la finestra")
+        L.HOME = Path(tempfile.mkdtemp(prefix="sfb-home-"))
+        self.addCleanup(shutil.rmtree, str(L.HOME), True)
+        lines, stop = [], threading.Event()
+        t = threading.Thread(target=L.run, args=({"server": self.base, "public_key": local.public_key(), "token": token, "pacchetti": {}}, stop, lines.append, 1, 3600), daemon=True)
+        t.start()
+        for _ in range(200):
+            if any("In ascolto" in str(l) for l in lines):
+                break
+            time.sleep(0.05)
+        stop.set()
+        t.join(8)
+        heard = [str(l) for l in lines if "In ascolto" in str(l)]
+        self.assertEqual(len(heard), 1, lines)
+        self.assertIn("Lascia aperta questa finestra", heard[0])
+        self.assertNotIn("Ctrl", heard[0], "nella finestra non c'è nessun Ctrl+C da premere")
 
 
 if __name__ == "__main__":

@@ -391,7 +391,8 @@ def run(cfg, stop=None, log=print, wait=15, sync_every=120):
             if time.time() - last > sync_every:
                 wanted = synchronize(api, cfg, log)
                 if not last:
-                    log("In ascolto per «%s». Lascia aperta questa finestra. Per uscire: Ctrl+C." % wanted["tenant"])
+                    # «Ctrl+C» vale solo per chi l'ha avviato da riga di comando: nella finestra si esce chiudendola
+                    log("In ascolto per «%s». Lascia aperta questa finestra.%s" % (wanted["tenant"], "" if stop is not None else " Per uscire: Ctrl+C."))
                 last = time.time()
             job = api.call("POST", "/api/launcher/jobs/claim", {"wait": wait}, timeout=wait + 20)["job"]
             if job:
