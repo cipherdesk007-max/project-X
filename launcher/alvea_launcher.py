@@ -29,7 +29,8 @@ import urllib.request
 from pathlib import Path
 
 VERSION = "1.0.0"
-HERE = Path(__file__).resolve().parent
+# Nel programma già pronto (dmg per macOS, exe per Windows) i file accanto sono quelli accanto all'eseguibile, non al codice impacchettato.
+HERE = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 HOME = Path(os.environ.get("ALVEA_HOME") or str(Path.home() / ".alvea"))
 DIGEST_INFO = bytes.fromhex("3031300d060960864801650304020105000420")
 EXTRA_PATHS = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", r"C:\ffmpeg\bin", r"C:\Program Files\ffmpeg\bin"]
@@ -467,6 +468,11 @@ def cmd_guidato(cfg, args):
 
 
 def main(argv=None):
+    for stream in (sys.stdout, sys.stderr):  # su Windows la finestra dei comandi non è in UTF-8: senza questo le lettere accentate fermano il programma
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     p = argparse.ArgumentParser(description="Alvea Launcher")
     p.add_argument("--server", help="indirizzo del server Alvea, se diverso da quello nel file server.json")
     sub = p.add_subparsers(dest="cmd")
