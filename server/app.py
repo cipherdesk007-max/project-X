@@ -294,7 +294,8 @@ def r_google_disconnect(q):
 
 
 def r_tenant_agents(q):
-    return {"agents": team.listing(q.con, q.tenant), "package_name": catalog.package(q.tenant["package_id"])["name"]}
+    return {"agents": team.listing(q.con, q.tenant), "package_name": catalog.package(q.tenant["package_id"])["name"],
+            "per_agent": pricing.per_agent(), "subscribed": bool(q.tenant.get("stripe_subscription"))}
 
 
 def r_tenant_agents_set(q):

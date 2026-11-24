@@ -1004,7 +1004,7 @@
       });
       var on = out.agents.filter(function (a) { return a.is_active; }).length, can = out.agents.filter(function (a) { return a.in_ceiling; }).length;
       return el("div", { class: "panel" }, el("h2", { text: "Agenti del team" }),
-        el("p", { text: "Accendi solo gli agenti che ti servono: " + on + " attivi su " + can + " disponibili con il pacchetto " + out.package_name + ". Un agente spento non risponde, non riceve strumenti e non esegue azioni, nemmeno quelle già in attesa." }),
+        el("p", { text: (out.per_agent ? "Ogni agente acceso costa " + out.per_agent + " € al mese in più" + (out.subscribed ? ": accenderne o spegnerne uno cambia subito il prezzo dell'abbonamento. " : ". ") : "") + "Accendi solo gli agenti che ti servono: " + on + " attivi su " + can + " disponibili con il pacchetto " + out.package_name + ". Un agente spento non risponde, non riceve strumenti e non esegue azioni, nemmeno quelle già in attesa." }),
         err, items);
     });
   }

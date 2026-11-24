@@ -43,9 +43,13 @@ class Prezzi(V8):
                           form["line_items[0][price_data][recurring][interval]"], form["line_items[0][price_data][product_data][name]"]),
                          (str((49 + 5 * n) * 100), "eur", "month", "Alvea Start"))
         self.assertNotIn("line_items[0][price]", form)
+        self.assertEqual(self.call("GET", "/api/tenant/agents", token=a)[1]["per_agent"], 5, "la scheda Agenti sa quanto costa accenderne uno")
         # abbonata: spegnere un agente abbassa il prezzo su Stripe; l'altra azienda non c'entra
         self.assertEqual(self.hook({"id": "evt_p1", "type": "checkout.session.completed", "data": {"object": {"client_reference_id": str(tid), "customer": "cus_P", "subscription": "sub_P"}}})[0], 200)
         STRIPE["posts"].clear()
+        status, out = self.call("POST", "/api/billing/checkout", {}, a)
+        self.assertEqual(status, 409, "chi è già abbonato non può aprire un secondo abbonamento e pagare due volte")
+        self.assertEqual(STRIPE["posts"], [])
         status, out = self.toggle(a, "email", False)
         self.assertEqual((status, out["price"]), (200, 49 + 5 * (n - 1)))
         self.assertEqual([(p.get("method", "POST"), p["path"]) for p in STRIPE["posts"]], [("GET", "/v1/subscriptions/sub_P"), ("POST", "/v1/subscription_items/si_1")])
@@ -72,6 +76,10 @@ class Prezzi(V8):
         self.assertEqual(self.call("POST", "/api/admin/tenants/%d" % tid, {"package_id": "business"}, self.gestore)[0], 200)
         self.assertEqual(STRIPE["posts"][-1]["path"], "/v1/subscription_items/si_1")
         self.assertEqual(self.call("GET", "/api/billing", token=a)[1]["quote"]["base"], 99)
+
+    def test_un_prezzo_scritto_male_non_diventa_un_addebito_enorme(self):
+        self.prices(PRICE_START=99999999, PRICE_PER_AGENT=99999999)
+        self.assertEqual((pricing.package_price("start"), pricing.per_agent()), (pricing.MAX_EURO, pricing.MAX_EURO))
 
     def test_solo_il_pacchetto_oppure_solo_gli_agenti(self):
         self.keys()

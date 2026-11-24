@@ -141,6 +141,8 @@ def checkout(con, tenant, user):
     """Crea la pagina di pagamento su Stripe per il pacchetto dell'azienda. Ritorna {"url"} a cui mandare il cliente."""
     if not status(tenant)["enabled"]:
         raise ApiError(400, "Il pagamento con carta non è attivo: il gestore deve inserire le chiavi di Stripe e il prezzo del tuo pacchetto.")
+    if tenant.get("stripe_subscription"):  # un secondo pagamento aprirebbe un secondo abbonamento: il cliente pagherebbe due volte
+        raise ApiError(409, "Hai già un abbonamento con carta attivo: per cambiare carta o disdire usa «Carta, ricevute e disdetta».")
     base = google.public_url()
     q = pricing.quote(con, tenant)
     form = {"mode": "subscription", "line_items[0][quantity]": "1",

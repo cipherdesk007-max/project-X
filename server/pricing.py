@@ -9,12 +9,15 @@ from __future__ import annotations
 from . import catalog, config, team
 
 
+MAX_EURO = 20000  # tetto di sicurezza: un numero scritto male nel pannello non diventa un addebito enorme
+
+
 def package_price(package_id):
-    return max(0, config.get_int("PRICE_" + str(package_id).upper(), 0))
+    return min(MAX_EURO, max(0, config.get_int("PRICE_" + str(package_id).upper(), 0)))
 
 
 def per_agent():
-    return max(0, config.get_int("PRICE_PER_AGENT", 0))
+    return min(MAX_EURO, max(0, config.get_int("PRICE_PER_AGENT", 0)))
 
 
 def configured(package_id):

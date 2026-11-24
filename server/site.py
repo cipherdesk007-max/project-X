@@ -83,13 +83,15 @@ def page():
 </div></header>
 <main id="contenuto">
 <section class="hero"><div class="wrap">
-<p class="eyebrow">{n} agenti · un solo sistema</p>
+<p class="eyebrow"><span data-count>{n}</span> agenti · un solo sistema</p>
 <h1>Una squadra di agenti AI che lavora per la tua azienda.</h1>
 <p class="lead">Posta, calendario, contenuti, clienti, video: ogni agente ha un compito preciso. Loro preparano il lavoro, tu decidi cosa esce.</p>
 <div class="cta"><a class="btn primary big" href="/app#registrati" data-register>Prova Alvea</a><a class="btn big" href="#launcher">Verifica il tuo computer</a></div>
 <p class="note" id="trial" hidden></p>
 <div class="hive" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-</div></section>
+</div>
+<a class="scrollhint" href="#agenti" aria-label="Scorri per vedere gli agenti"><span></span></a>
+</section>
 <section id="agenti"><div class="wrap">
 <h2>Gli agenti</h2>
 <p class="sub">Ognuno dice chiaramente cosa fa oggi. Dove c'è scritto «solo bozze», l'agente prepara e tu pubblichi o invii.</p>

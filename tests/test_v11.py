@@ -26,7 +26,7 @@ class Sito(Base):
         for p in cat["packages"]:
             total += len(p["adds"])
             self.assertIn("<h3>%s</h3><p class=\"count\"><b>%d</b> agenti</p>" % (p["name"], total), page)
-        self.assertIn("%d agenti · un solo sistema" % len(cat["agents"]), page)
+        self.assertIn("<span data-count>%d</span> agenti · un solo sistema" % len(cat["agents"]), page)
         for m in cat["models"]:
             self.assertIn(m["name"], page)
 
@@ -61,6 +61,19 @@ class Sito(Base):
         for used in re.findall(r'"(#[a-z]+-?)', app_js):
             if used in ("#registrati", "#reimposta-", "#pagamento-", "#abbonamento", "#google-", "#verifica-"):
                 self.assertTrue(rx.match(used + ("x" if used.endswith("-") else "")), used)
+
+    def test_le_animazioni_non_nascondono_niente_a_chi_non_le_vede(self):
+        css, js = self.fetch("/sito.css")[2].decode("utf-8"), self.fetch("/sito.js")[2].decode("utf-8")
+        hidden = [line for line in css.splitlines() if re.search(r"opacity:\s*0(?![.\d])", line) and line.strip().startswith(".") and not line.strip().startswith((".js ", ".moved "))]
+        self.assertEqual(hidden, [], "una regola che nasconde senza «.js» lascerebbe la pagina vuota a chi ha gli script spenti")
+        self.assertIn('root.classList.add("js")', js)
+        self.assertIn('root.classList.remove("js")', js, "se l'animazione va in errore la pagina torna tutta visibile")
+        self.assertIn('"IntersectionObserver" in window', js)
+        reduced = css.split("@media (prefers-reduced-motion: reduce) {")[1]
+        for rule in (".js .reveal", "animation: none"):
+            self.assertIn(rule, reduced, "chi ha chiesto meno movimento vede la pagina ferma")
+        self.assertNotIn("eval(", js)
+        self.assertNotIn("innerHTML", js)
 
     def test_il_sito_si_puo_spegnere(self):
         os.environ["SFB_SITE"] = "0"

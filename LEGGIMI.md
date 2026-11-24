@@ -37,6 +37,8 @@ Prima di aggiornare un'installazione con dati veri, fai una copia di `data/sales
 - **Prezzi regolabili dal pannello** (`server/pricing.py`, gruppo «Prezzi»): prezzo mensile di ogni pacchetto e prezzo in più per ogni agente acceso, in euro. Il pagamento parte con l'importo calcolato, senza creare prezzi a mano su Stripe; quando un'azienda abbonata accende o spegne un agente, o il gestore le cambia pacchetto, il prezzo dell'abbonamento viene aggiornato su Stripe. Se Stripe non risponde l'agente si accende lo stesso, l'errore resta nel registro e il prezzo si riallinea alla modifica successiva. I prezzi compaiono nella scheda Abbonamento e sul sito; con tutto a 0 non compare niente e valgono gli ID dei prezzi Stripe.
 - **Otto agenti in più, 28 in tutto**: Personale e Traduzioni (da Start), Facebook, SEO e Blog, Recensioni (da Business), YouTube, TikTok, Contratti (da Completo). Preparano bozze: non pubblicano, non caricano video e non danno pareri legali, e lo dicono. Start ha 9 agenti, Business 19, Completo 28.
 - **Prova dei modelli** (`python3 manage.py prova-modelli`, anche dalla console del gestore): manda una domanda vera a ogni modello configurato e dice se risponde, in quanto tempo e con quanti token, oppure l'errore esatto del fornitore (chiave sbagliata, nome del modello sbagliato).
+- **Sito animato**: gli elementi compaiono mentre si scorre, l'alveare si muove con la pagina e con il mouse, barra di avanzamento in alto, numeri che salgono, intestazione che si restringe, voce del menu attiva. Senza script, o con «meno movimento» chiesto dal dispositivo, la pagina resta tutta visibile e ferma.
+- **Corretto nel ripasso della logica**: chi era già abbonato poteva aprire un secondo pagamento e ritrovarsi due abbonamenti (ora risponde 409); un prezzo scritto male nel pannello non può superare 20.000 € al mese; la scheda Agenti dice quanto costa accendere un agente.
 - Prove in `tests/test_v14.py`.
 
 ## Novità della versione 14: crediti e pagamento prima di usare il proprio computer
@@ -302,7 +304,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 166 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 168 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 
