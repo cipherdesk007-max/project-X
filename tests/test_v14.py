@@ -77,6 +77,50 @@ class Prezzi(V8):
         self.assertEqual(STRIPE["posts"][-1]["path"], "/v1/subscription_items/si_1")
         self.assertEqual(self.call("GET", "/api/billing", token=a)[1]["quote"]["base"], 99)
 
+    def test_l_azienda_cambia_pacchetto_da_sola_solo_quando_il_prezzo_la_segue(self):
+        a, tid = self.new_tenant("Cambio Uno", "start")
+        b, tid_b = self.new_tenant("Cambio Due", "start")
+        change = lambda token, pkg: self.call("POST", "/api/billing/package", {"package_id": pkg}, token)
+        self.assertEqual(change(a, "business")[0], 403, "senza prezzi e carta il pacchetto lo cambia il gestore")
+        self.assertTrue(self.call("GET", "/api/billing", token=a)[1]["change"]["block"])
+        self.keys()
+        self.prices(PRICE_START=49, PRICE_BUSINESS=99, PRICE_COMPLETO=199, PRICE_PER_AGENT=5)
+        opts = self.call("GET", "/api/billing", token=a)[1]["change"]
+        self.assertEqual((opts["block"], [(p["id"], p["price"], p["current"]) for p in opts["packages"]]),
+                         ("", [("start", 49, True), ("business", 99, False), ("completo", 199, False)]))
+        for bad, code in (("start", 400), ("inesistente", 400), ("", 400)):
+            self.assertEqual(change(a, bad)[0], code, bad)
+        con = db.connect()
+        self.addCleanup(con.close)
+        from base import PW
+        from server import ops
+        ops.create_user(con, tid, "operatore@cambio-uno.it", "Operatore", "member", PW)
+        self.assertEqual(change(self.login("operatore@cambio-uno.it"), "business")[0], 403)
+        # mai pagato: cambia liberamente, pagherà il pacchetto nuovo
+        STRIPE["posts"].clear()
+        self.assertEqual(change(a, "business")[0], 200)
+        me = self.call("GET", "/api/me", token=a)[1]
+        self.assertEqual((me["tenant"]["package_id"], len(me["ceiling"])), ("business", 19))
+        self.assertEqual(STRIPE["posts"], [], "non abbonata: Stripe non viene chiamato")
+        self.assertEqual(self.call("GET", "/api/me", token=b)[1]["tenant"]["package_id"], "start", "l'altra azienda non è toccata")
+        # abbonata: il prezzo su Stripe cambia insieme
+        con.execute("UPDATE tenants SET stripe_subscription='sub_K', stripe_customer='cus_K', stripe_amount=100 WHERE id=?", (tid,))
+        status, out = change(a, "completo")
+        n = len(self.call("GET", "/api/me", token=a)[1]["entitled"])
+        self.assertEqual((status, out["price"]), (200, 199 + 5 * n))
+        self.assertEqual(STRIPE["posts"][-1]["path"], "/v1/subscription_items/si_1")
+        # se Stripe non risponde il pacchetto torna quello di prima
+        STRIPE["status"] = 400
+        status, out = change(a, "start")
+        self.assertEqual(status, 502, out)
+        self.assertEqual(self.call("GET", "/api/me", token=a)[1]["tenant"]["package_id"], "completo")
+        STRIPE["status"] = 200
+        # chi ha pagato con bonifico (data messa dal gestore) non cambia da solo
+        con.execute("UPDATE tenants SET paid_until='2099-01-01', on_trial=0 WHERE id=?", (tid_b,))
+        self.assertEqual(change(b, "completo")[0], 403)
+        con.execute("UPDATE tenants SET on_trial=1 WHERE id=?", (tid_b,))
+        self.assertEqual(change(b, "completo")[0], 200, "in prova gratuita si può provare un pacchetto più grande")
+
     def test_un_prezzo_scritto_male_non_diventa_un_addebito_enorme(self):
         self.prices(PRICE_START=99999999, PRICE_PER_AGENT=99999999)
         self.assertEqual((pricing.package_price("start"), pricing.per_agent()), (pricing.MAX_EURO, pricing.MAX_EURO))

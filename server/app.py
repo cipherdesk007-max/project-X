@@ -526,7 +526,11 @@ def r_admin_console_run(q):
 
 
 def r_billing(q):
-    return dict(billing.status(q.tenant), quote=pricing.quote(q.con, q.tenant))
+    return dict(billing.status(q.tenant), quote=pricing.quote(q.con, q.tenant), change=billing.options(q.con, q.tenant))
+
+
+def r_billing_package(q):
+    return billing.change_package(q.con, q.tenant, q.user, q.body.get("package_id"))
 
 
 def r_billing_checkout(q):
@@ -629,6 +633,7 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("GET", "/api/billing", "user", r_billing),
     ("POST", "/api/billing/checkout", "admin", r_billing_checkout),
     ("POST", "/api/billing/portal", "admin", r_billing_portal),
+    ("POST", "/api/billing/package", "admin", r_billing_package),
     ("POST", "/api/password/forgot", "public", r_password_forgot),
     ("POST", "/api/password/reset", "public", r_password_reset),
     ("GET", "/api/launcher/catalog", "public", r_launcher_catalog),

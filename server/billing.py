@@ -13,7 +13,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import audit, catalog, config, connectors, credits, db, google, news, pricing, registration
+from . import audit, catalog, config, connectors, credits, db, google, news, ops, pricing, registration
 from .errors import ApiError
 
 TOLERANCE = 300
@@ -198,6 +198,42 @@ def sync_price(con, tenant_id):
     audit.record(con, tenant_id, None, "prezzo_aggiornato", {"da": tenant["stripe_amount"] // 100, "a": q["total"]})
     news.add(con, tenant_id, "pagamento", "Prezzo dell'abbonamento aggiornato", "Con gli agenti accesi adesso l'abbonamento costa %d € al mese. La differenza la conteggia Stripe nella prossima fattura." % q["total"])
     return q["total"]
+
+
+def change_block(tenant, target=None):
+    """Perché l'azienda non può cambiare pacchetto da sola, oppure "" se può. Da sola può farlo solo quando il prezzo
+    lo segue: è abbonata con carta (il prezzo si aggiorna su Stripe), oppure non ha ancora pagato niente (prova o mai pagato)."""
+    if not (config.get("STRIPE_SECRET_KEY") and config.get("STRIPE_WEBHOOK_SECRET") and pricing.configured(target or tenant["package_id"])):
+        return "Il cambio di pacchetto lo fa chi ti ha venduto il servizio."
+    if tenant.get("stripe_subscription") or tenant.get("on_trial") or not tenant.get("paid_until"):
+        return ""
+    return "Hai pagato fuori dalla piattaforma: per cambiare pacchetto contatta chi ti ha venduto il servizio."
+
+
+def options(con, tenant):
+    """I pacchetti tra cui l'azienda può scegliere, con il prezzo di partenza di ognuno."""
+    return {"block": change_block(tenant), "per_agent": pricing.per_agent(),
+            "packages": [{"id": p["id"], "name": p["name"], "price": pricing.package_price(p["id"]), "current": p["id"] == tenant["package_id"]} for p in catalog.load()["packages"]]}
+
+
+def change_package(con, tenant, user, package_id):
+    """Cambio di pacchetto chiesto dall'azienda. Se è abbonata, il prezzo su Stripe cambia insieme; se Stripe non risponde
+    il pacchetto torna quello di prima, così non resta mai un pacchetto più grande a un prezzo più piccolo."""
+    package_id = str(package_id or "")
+    if not catalog.package(package_id):
+        raise ApiError(400, "Pacchetto sconosciuto.")
+    if package_id == tenant["package_id"]:
+        raise ApiError(400, "Hai già questo pacchetto.")
+    reason = change_block(tenant, package_id)
+    if reason:
+        raise ApiError(403, reason)
+    before = tenant["package_id"]
+    ops.update_tenant(con, tenant["id"], package_id=package_id, actor_id=user["id"])
+    price = sync_price(con, tenant["id"])
+    if isinstance(price, str):
+        ops.update_tenant(con, tenant["id"], package_id=before, actor_id=user["id"])
+        raise ApiError(502, "Il pacchetto non è stato cambiato: %s Riprova tra poco." % price)
+    return {"ok": True, "package_id": package_id, "price": price}
 
 
 def verify_signature(raw, header, secret, now=None):

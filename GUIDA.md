@@ -201,5 +201,4 @@ python3 -m server             # poi apri http://127.0.0.1:8787
 - Installatore del launcher con doppio clic per macOS e Windows (oggi serve Python).
 - Collegamento locale per Ascolto, Voce, WhatsApp e Ricerca sul computer del cliente: il launcher li verifica soltanto.
 - Fatture: Stripe incassa e manda la ricevuta, ma la fattura elettronica italiana (SDI) la fai ancora tu o il commercialista.
-- Cambio di pacchetto dal pannello del cliente: oggi il pacchetto lo cambi tu, e il prezzo su Stripe va cambiato a mano.
 - Prove con servizi veri: fin qui modelli, Google, posta, Telegram, WhatsApp e Shopify sono stati provati solo con servizi finti.

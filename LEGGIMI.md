@@ -32,6 +32,12 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 19: il cliente cambia pacchetto da solo
+
+- Nella scheda Abbonamento l'amministratore dell'azienda sceglie un altro pacchetto e lo vede con il suo prezzo (`POST /api/billing/package`).
+- Può farlo da solo solo quando il prezzo lo segue: se è abbonato con carta il prezzo su Stripe cambia insieme; se è in prova o non ha mai pagato, pagherà il pacchetto nuovo. Chi ha pagato fuori dalla piattaforma (data messa dal gestore) o sta su un'installazione senza prezzi e carta passa dal gestore.
+- Se Stripe non risponde il pacchetto torna quello di prima: non resta mai un pacchetto più grande a un prezzo più piccolo.
+
 ## Novità della versione 17: launcher già pronto per Windows e macOS
 
 - **`Alvea-Launcher.exe` e `Alvea-Launcher.dmg`** vengono costruiti e provati in automatico su macchine vere di GitHub (`.github/workflows/launcher.yml`) ogni volta che cambia il launcher o un suo pacchetto, e pubblicati nel rilascio «launcher» del repository. Dentro c'è già Python: il cliente non deve installare niente.
@@ -312,7 +318,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 169 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 170 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

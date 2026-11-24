@@ -796,6 +796,16 @@
         b.quote && b.quote.configured ? el("p", { id: "priceLine", text: "Prezzo: " + (b.quote.per_agent
           ? b.quote.base + " € del pacchetto + " + b.quote.agents + (b.quote.agents === 1 ? " agente acceso" : " agenti accesi") + " × " + b.quote.per_agent + " € = "
           : "") + b.quote.total + " € al mese." + (b.quote.per_agent ? " Accendere o spegnere un agente cambia il prezzo dal mese in corso." : "") }) : null,
+        admin && b.change && !b.change.block ? el("form", { class: "form row changepack", onsubmit: function (e) {
+          e.preventDefault(); err.textContent = "";
+          api("POST", "/billing/package", { package_id: val("newPack") }).then(function () { return api("GET", "/me"); })
+            .then(function (me) { S.me = me; S.payMsg = "Pacchetto cambiato." + (b.subscribed ? " Il prezzo dell'abbonamento è stato aggiornato." : ""); render(); })
+            .catch(function (x) { err.textContent = x.message; });
+        } },
+          el("div", { class: "field" }, el("label", { for: "newPack", text: "Cambia pacchetto" }), el("select", { id: "newPack" }, b.change.packages.map(function (p) {
+            return el("option", { value: p.id, selected: p.current, text: p.name + (p.price ? " · " + p.price + " € al mese" : "") + (b.change.per_agent ? " + " + b.change.per_agent + " € per agente acceso" : "") + (p.current ? " (attuale)" : "") });
+          }))),
+          el("button", { class: "btn", type: "submit", id: "changePackBtn", text: "Cambia pacchetto" })) : null,
         b.payment_failed ? el("div", { class: "banner", role: "alert", id: "payFailed", text: "L'ultimo addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta." }) : null,
         b.subscribed ? el("p", { id: "renewLine", text: b.cancel_at ? "Disdetta registrata: la carta non verrà più addebitata e l'abbonamento finisce il " + it(b.cancel_at) + "."
                                                                     : "Pagamento con carta attivo: si rinnova da solo ogni mese." }) : null,
