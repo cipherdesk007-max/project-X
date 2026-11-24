@@ -27,7 +27,7 @@ class V3(Base):
     def register(self, **over):
         N[0] += 1
         body = {"company": "Azienda Registrata %d" % N[0], "name": "Titolare", "email": "titolare%d@registrata.it" % N[0],
-                "password": PW, "agents": ["email", "crm"]}
+                "password": PW, "agents": ["email", "crm"], "accept": True}
         body.update(over)
         status, out = self.call("POST", "/api/register", body)
         return status, out, body

@@ -134,7 +134,11 @@ def production_report():
     add(local.cloud_video_ready(), "FFmpeg presente: il montaggio video sui server è attivo.", "FFmpeg assente: il Video Editor funzionerà solo sui computer dei clienti.", block=False)
     add(bool(config.get("SFB_SMTP_HOST")), "Posta di servizio configurata: chi si registra conferma l'email.", "Senza SFB_SMTP_HOST chi si registra non conferma l'email.", block=False)
     stripe = [k for k in ("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET") if not config.get(k)]
-    prices = [p for p in ("START", "BUSINESS", "COMPLETO") if config.get("STRIPE_PRICE_" + p)]
+    from server import legal, pricing, site
+    prices = [p for p in ("START", "BUSINESS", "COMPLETO") if config.get("STRIPE_PRICE_" + p) or pricing.configured(p.lower())]  # prezzo fisso di Stripe oppure prezzo del pannello
+    gaps = legal.missing() if site.enabled() else []
+    add(not gaps, "Dati dell'azienda presenti sul sito e nelle pagine legali." if site.enabled() else "Sito pubblico spento: le pagine legali non sono servite da qui.",
+        "Sul sito e nelle pagine legali mancano: %s. Si scrivono nel pannello del gestore, Impostazioni, gruppo «Azienda»." % ", ".join(gaps))
     add(not stripe and bool(prices), "Pagamenti con carta attivi per: %s." % ", ".join(p.capitalize() for p in prices),
         "Pagamenti con carta non attivi (mancano %s): la scadenza si sposta a mano dal pannello del gestore." % (", ".join(stripe) or "i prezzi dei pacchetti"), block=False)
     add(bool(shutil.which("openssl")), "openssl presente.", "openssl assente: non potrai firmare i pacchetti da questo computer.", block=False)
@@ -188,6 +192,10 @@ def acceptance(url, email=None, password=None, agents=False):
     add(status == 200 and "default-src 'self'" in csp and "http" not in csp, "Pagina servita con regole di sicurezza che ammettono solo file di questo server")
     missing = [p for p in ("/app", "/sito.css", "/sito.js", "/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/logo-alvea.png", "/icon.png") if call("GET", p, raw=True)[0] != 200]
     add(not missing, "Sito, applicazione e marchio presenti" if not missing else "File della schermata mancanti: %s" % ", ".join(missing))
+    from server import legal
+    if b"data-register" in call("GET", "/", raw=True)[2]:  # c'è il sito pubblico: devono esserci anche le sue pagine legali (i dati che mancano li segnala controlla-produzione)
+        gone = [p for p in legal.PAGES if call("GET", "/" + p, raw=True)[0] != 200]
+        add(not gone, "Pagine legali presenti: privacy, condizioni, cookie" if not gone else "Pagine legali mancanti: %s" % ", ".join(gone))
     agents_all = catalog.load()["agents"]
     status, _, cat = call("GET", "/api/launcher/catalog")
     add(status == 200 and len(cat.get("agents", [])) == len(agents_all), "Catalogo pubblico con tutti i %d agenti" % len(agents_all))

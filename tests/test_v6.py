@@ -208,7 +208,7 @@ class Abbonamento(Base):
         self.assertEqual(self.sub(a)["paid_until"], "")
 
     def test_prova_gratuita_per_chi_si_registra_da_solo(self):
-        body = {"company": "Prova Gratuita Srl", "name": "Titolare", "email": "titolare@prova-gratuita.it", "password": PW, "agents": ["email", "crm"]}
+        body = {"company": "Prova Gratuita Srl", "name": "Titolare", "email": "titolare@prova-gratuita.it", "password": PW, "agents": ["email", "crm"], "accept": True}
         os.environ["SFB_TRIAL_DAYS"] = "14"
         self.addCleanup(lambda: os.environ.__setitem__("SFB_TRIAL_DAYS", "0"))
         self.assertEqual(self.call("GET", "/api/register")[1]["trial_days"], 14)

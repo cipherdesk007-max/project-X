@@ -253,7 +253,7 @@
       var agents = S.reg.agents.filter(function (a) { return document.getElementById("reg_a_" + a.id).checked; }).map(function (a) { return a.id; });
       S.lastEmail = val("reg_email");
       api("POST", "/register", { company: val("reg_company"), name: val("reg_name"), email: val("reg_email"), password: val("reg_password"),
-                                 website: val("reg_website"), agents: agents })
+                                 website: val("reg_website"), agents: agents, accept: !S.reg.terms || document.getElementById("reg_accept").checked })
         .then(function (out) {
           if (out.token) { setToken(out.token); S.auth = "login"; return loadMe(); }
           S.auth = "login";
@@ -274,6 +274,9 @@
         el("div", { class: "trap", "aria-hidden": "true" }, el("label", { for: "reg_website", text: "Sito web" }),
           el("input", { id: "reg_website", type: "text", tabindex: "-1", autocomplete: "off" })),
         el("div", { class: "field" }, el("label", { text: "Agenti del team" }), boxes),
+        S.reg.terms ? el("label", { class: "check accept" }, el("input", { type: "checkbox", id: "reg_accept", required: true }),
+          el("span", {}, "Accetto le ", el("a", { href: "/condizioni", target: "_blank", rel: "noopener", text: "Condizioni di servizio" }),
+            " e ho letto l'", el("a", { href: "/privacy", target: "_blank", rel: "noopener", text: "Informativa sulla privacy" }), ".")) : null,
         S.reg.verify_email ? el("p", { class: "empty", text: "Ti manderemo un'email per confermare l'indirizzo." }) : null,
         S.reg.trial_days ? el("p", { class: "empty", text: "Prova gratuita di " + S.reg.trial_days + " giorni, senza carta." }) : null,
         el("p", { class: "empty" }, "Vuoi far girare Video Editor, Email o Dev sul tuo computer? ",
@@ -1211,7 +1214,7 @@
       out.fields.forEach(function (f) { if (!by[f.group]) { by[f.group] = []; groups.push(f.group); } by[f.group].push(f); });
       box.textContent = "";
       append(box, el("div", { class: "panel" }, el("h2", { text: "Impostazioni della piattaforma" }),
-        el("p", { text: "Chiavi dei modelli, posta, ricerca, Google, registrazione e pagamenti: quello che salvi qui vale subito e ha la precedenza sul file .env. Un campo lasciato vuoto torna al valore del file. Chiavi e password non vengono mai mostrate: vedi solo se sono impostate." }),
+        el("p", { text: "Chiavi dei modelli, posta, ricerca, Google, registrazione, prezzi, dati dell'azienda e pagamenti: quello che salvi qui vale subito e ha la precedenza sul file .env. Un campo lasciato vuoto torna al valore del file. Chiavi e password non vengono mai mostrate: vedi solo se sono impostate." }),
         out.encrypted ? null : el("div", { class: "banner", role: "alert", text: "Cifratura non attiva (manca SFB_SECRET_KEY nel file .env): chiavi e password non si possono salvare dal pannello finché non la imposti." })));
       groups.forEach(function (g) {
         var err = el("p", { class: "error", role: "alert" }), ok = el("p", { class: "okmsg", role: "status" });
@@ -1228,6 +1231,12 @@
         } },
           by[g].map(function (f) {
             var note = f.secret ? (f.set ? " — impostata" + (f.source ? " (" + f.source + ")" : "") + ": scrivi solo per cambiarla" : " — non impostata") : (f.source ? " (" + f.source + ")" : "");
+            if (f.kind === "bool") {
+              return [el("div", { class: "field" }, el("label", { for: "set_" + f.key, text: f.label.replace(/ ?\(1 sì, 0 no\)\.?/, "") + note }),
+                el("select", { id: "set_" + f.key }, [["", "Come nel file .env"], ["1", "Sì"], ["0", "No"]].map(function (o) {
+                  return el("option", { value: o[0], selected: f.source === "pannello" && f.value === o[0], text: o[0] === "" && f.source !== "pannello" && f.value ? o[1] + " (ora: " + (f.value === "1" ? "sì" : "no") + ")" : o[1] });
+                })))];
+            }
             return [field(f.label + note, "set_" + f.key, { type: f.secret ? "password" : "text", value: f.secret ? "" : f.value, autocomplete: "off", maxlength: "500" }),
               f.secret && f.source === "pannello" ? el("button", { class: "btn small danger", type: "button", text: "Togli dal pannello",
                 onclick: function () { var v = {}; v[f.key] = ""; send(v, render); } }) : null];

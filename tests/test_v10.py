@@ -23,7 +23,7 @@ class Collaudo(Base):
     def test_collaudo_di_un_server_acceso(self):
         report = manage.acceptance(self.base)
         self.assertEqual([t for ok, t in report if not ok], [])
-        self.assertEqual(len(report), 10)
+        self.assertEqual(len(report), 11)
         self.assertTrue(any("28 agenti" in t for _, t in report))
         self.assertTrue(any("dev, email, modello, video" in t for _, t in report))
 
@@ -34,7 +34,7 @@ class Collaudo(Base):
         self.assertEqual([t for ok, t in report if not ok], [])
         self.assertIn("Tutti i 28 agenti accesi rispondono", report[-1][1])
         start = manage.acceptance(self.base, "admin@collaudo-uno.it", PW)
-        self.assertEqual(len(start), 11, "senza --agenti non scrive a nessuno")
+        self.assertEqual(len(start), 12, "senza --agenti non scrive a nessuno")
         gestore = manage.acceptance(self.base, "gestore@test.it", PW)
         self.assertIn("Impostazioni della piattaforma raggiungibili", gestore[-1][1])
 

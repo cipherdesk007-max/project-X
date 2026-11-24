@@ -228,10 +228,13 @@ def change_package(con, tenant, user, package_id):
     if reason:
         raise ApiError(403, reason)
     before = tenant["package_id"]
+    running = [r["id"] for r in con.execute("SELECT id FROM automations WHERE tenant_id=? AND active=1", (tenant["id"],))]
     ops.update_tenant(con, tenant["id"], package_id=package_id, actor_id=user["id"])
     price = sync_price(con, tenant["id"])
     if isinstance(price, str):
         ops.update_tenant(con, tenant["id"], package_id=before, actor_id=user["id"])
+        if running:  # tornano attivi anche i lavori automatici che la discesa aveva messo in pausa
+            con.execute("UPDATE automations SET active=1 WHERE tenant_id=? AND id IN (%s)" % ",".join("?" * len(running)), [tenant["id"]] + running)
         raise ApiError(502, "Il pacchetto non è stato cambiato: %s Riprova tra poco." % price)
     return {"ok": True, "package_id": package_id, "price": price}
 

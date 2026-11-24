@@ -4,7 +4,8 @@
   "use strict";
   var hash = window.location.hash || "", token = null;
   try { token = window.sessionStorage.getItem("sfb_token"); } catch (e) { token = null; }
-  if (token || /^#(registrati|reimposta-|pagamento-|crediti-|abbonamento$|google-|verifica-)/.test(hash)) {
+  var home = window.location.pathname === "/";  // le pagine legali si leggono anche dopo l'accesso
+  if (home && (token || /^#(registrati|reimposta-|pagamento-|crediti-|abbonamento$|google-|verifica-)/.test(hash))) {
     window.location.replace("/app" + hash);
     return;
   }

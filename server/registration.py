@@ -16,7 +16,7 @@ import threading
 from datetime import datetime, timedelta, timezone
 import time
 
-from . import audit, auth, catalog, config, connectors, db, google, ops, team
+from . import audit, auth, catalog, config, connectors, db, google, legal, ops, site, team
 from .errors import ApiError
 
 TOKEN_SECONDS = 24 * 3600
@@ -25,7 +25,7 @@ _lock = threading.Lock()
 
 
 def enabled():
-    return config.get("SFB_REGISTRATION", "aperta") == "aperta"
+    return config.get("SFB_REGISTRATION", "aperta").strip().lower() in ("aperta", "1")  # nel file «aperta», dal pannello «1»
 
 
 def package_id():
@@ -73,7 +73,7 @@ def public_info():
     """Quello che serve al modulo di registrazione, senza accesso."""
     top = catalog.entitled_agents(package_id())
     return {"open": enabled(), "verify_email": verification_on(), "password_recovery": verification_on(),
-            "trial_days": max(0, config.get_int("SFB_TRIAL_DAYS", 0)),
+            "trial_days": max(0, config.get_int("SFB_TRIAL_DAYS", 0)), "terms": site.enabled(),
             "agents": [{"id": a["id"], "name": a["name"], "does": a["does"]} for a in catalog.load()["agents"] if a["id"] in top]}
 
 
@@ -123,6 +123,8 @@ def register(con, body, ip):
     verify = verification_on()
     if str(body.get("website") or "").strip():  # campo trappola: un visitatore vero non lo vede e non lo compila
         return {"ok": True, "verify": True, "sent": True}
+    if site.enabled() and body.get("accept") is not True:  # le pagine legali stanno sul sito: senza sito non c'è niente da accettare
+        raise ApiError(400, "Per registrarti devi accettare le Condizioni di servizio e aver letto l'Informativa sulla privacy.")
     pid = package_id()
     company = str(body.get("company") or "").strip()
     email = str(body.get("email") or "").strip().lower()
@@ -154,6 +156,8 @@ def register(con, body, ip):
                     ((datetime.now(timezone.utc).date() + timedelta(days=min(trial, 3650))).isoformat(), tenant_id))
     user = con.execute("SELECT * FROM users WHERE tenant_id=? ORDER BY id LIMIT 1", (tenant_id,)).fetchone()
     audit.record(con, tenant_id, user["id"], "registrazione", {"agenti": sorted(agents), "verifica_email": verify})
+    if site.enabled():  # resta nel registro quale versione delle condizioni è stata accettata, e quando
+        audit.record(con, tenant_id, user["id"], "condizioni_accettate", {"versione": legal.VERSION})
     if verify:
         return {"ok": True, "verify": True, "sent": _send_verification(con, user["id"], email)}
     return {"ok": True, "verify": False, "token": auth.create_session(con, user["id"])}

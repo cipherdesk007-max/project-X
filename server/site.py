@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from html import escape as e
 
-from . import catalog, config, pricing
+from . import catalog, config, legal, pricing
 
 STEPS = [("Scegli il pacchetto", "Tre pacchetti, ognuno contiene il precedente. Dentro il tuo pacchetto accendi solo gli agenti che ti servono."),
          ("Collega i tuoi strumenti", "Posta, calendario, negozio, Telegram, WhatsApp: ogni collegamento si fa una volta, dal Centro di controllo."),
@@ -34,6 +34,58 @@ def _price(prices, package_id):
         return ""
     text = ("%d € al mese" % base if base else "") + ((" + " if base else "") + "%d € al mese per ogni agente acceso" % each if each else "")
     return '<p class="price">%s</p>' % e(text)
+
+
+def _footer(home=""):
+    """Fondo di ogni pagina del sito: collegamenti, pagine legali e i dati di chi vende il servizio (quelli impostati nel pannello)."""
+    company = legal.footer_line()
+    return ('<footer><div class="wrap"><img src="/logo-alvea.png" alt="alvea" width="626" height="186"><nav aria-label="Collegamenti">'
+            '<a href="%s#agenti">Agenti</a><a href="%s#pacchetti">Pacchetti</a><a href="/app">Accedi</a><a href="/api/launcher/download">Launcher</a>'
+            '<a href="/privacy">Privacy</a><a href="/condizioni">Condizioni</a><a href="/cookie">Cookie</a></nav>%s</div></footer>'
+            % (home, home, '<p class="company">%s</p>' % e(company) if company else ""))
+
+
+def legal_page(name):
+    """Una pagina legale (privacy, condizioni, cookie) con i dati dell'azienda presi dalle impostazioni. None se non esiste."""
+    if name not in legal.PAGES:
+        return None
+    body = []
+    for title, rows in legal.sections(name):
+        body.append("<h2>%s</h2>" % e(title))
+        for row in rows:
+            body.append("<ul>%s</ul>" % "".join("<li>%s</li>" % e(i) for i in row) if isinstance(row, list) else "<p>%s</p>" % e(row))
+    others = "".join('<a class="link" href="/%s">%s</a>' % (k, e(v)) for k, v in legal.PAGES.items() if k != name)
+    day = "%s/%s/%s" % tuple(reversed(legal.VERSION.split("-")))
+    html = """<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title} — Alvea</title>
+<meta name="description" content="{title} di Alvea.">
+<meta name="theme-color" content="#0b0f14">
+<link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/sito.css">
+<script src="/sito.js"></script>
+</head>
+<body>
+<a class="skip" href="#contenuto">Vai al contenuto</a>
+<header class="top"><div class="wrap">
+<a class="brand" href="/" aria-label="Alvea, pagina iniziale"><img src="/logo-alvea.png" alt="alvea" width="626" height="186"></a>
+<nav aria-label="Sezioni"><a href="/#agenti">Agenti</a><a href="/#pacchetti">Pacchetti</a><a href="/#come-funziona">Come funziona</a><a href="/#sicurezza">Sicurezza</a></nav>
+<div class="cta"><a class="btn" href="/app">Accedi</a><a class="btn primary" href="/app#registrati" data-register>Prova Alvea</a></div>
+</div></header>
+<main id="contenuto" class="legal"><div class="wrap">
+<p class="eyebrow">Ultimo aggiornamento: {day}</p>
+<h1>{title}</h1>
+{body}
+<p class="others">{others}</p>
+</div></main>
+{footer}
+</body>
+</html>
+""".format(title=e(legal.PAGES[name]), day=day, body="\n".join(body), others=others, footer=_footer("/"))
+    return html.encode("utf-8")
 
 
 def page():
@@ -124,8 +176,8 @@ def page():
 <div class="cta"><a class="btn primary big" href="/app#registrati" data-register>Prova Alvea</a><a class="btn big" href="/app">Accedi</a></div>
 </div></section>
 </main>
-<footer><div class="wrap"><img src="/logo-alvea.png" alt="alvea" width="626" height="186"><nav aria-label="Collegamenti"><a href="#agenti">Agenti</a><a href="#pacchetti">Pacchetti</a><a href="/app">Accedi</a><a href="/api/launcher/download">Launcher</a></nav></div></footer>
+{footer}
 </body>
 </html>
-""".format(n=len(agents), cards=cards, plans="".join(plans), steps=steps, safety=safety, models=models, local=e(", ".join(local)))
+""".format(footer=_footer(), n=len(agents), cards=cards, plans="".join(plans), steps=steps, safety=safety, models=models, local=e(", ".join(local)))
     return html.encode("utf-8")

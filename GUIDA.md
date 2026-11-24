@@ -83,7 +83,9 @@ Il sito pubblico è già dentro: sta sullo stesso server, all'indirizzo principa
 
 Agenti e pacchetti del sito vengono dal catalogo (`catalog.json`): se cambi il catalogo, il sito cambia da solo. Se la registrazione è chiusa, i pulsanti «Prova Alvea» diventano «Accedi». Se c'è la prova gratuita, il sito dice quanti giorni dura. Chi apre un collegamento ricevuto per email (conferma, nuova password, ritorno dal pagamento) viene portato da solo all'applicazione.
 
-Il sito **non mostra prezzi**, perché nel catalogo non ci sono: li decidi tu su Stripe. Testi e sezioni stanno in `server/site.py`, l'aspetto in `web/sito.css`.
+Il sito mostra i prezzi solo se li hai scritti nel pannello (Impostazioni, gruppo «Prezzi»). Testi e sezioni stanno in `server/site.py`, l'aspetto in `web/sito.css`.
+
+**Pagine legali e dati dell'azienda.** Il sito ha tre pagine: `/privacy`, `/condizioni` e `/cookie`, collegate in fondo a ogni pagina. I tuoi dati (ragione sociale, partita IVA, sede, email, PEC, REA, fornitore del server) li scrivi nel pannello del gestore, Impostazioni, gruppo «Azienda»: compaiono subito nelle pagine e in fondo al sito. Quello che manca si legge come «[da compilare: …]» e `controlla-produzione` lo segnala come «DA FARE». Chi si registra deve spuntare l'accettazione: nel registro dell'azienda resta scritto quale versione ha accettato. I testi stanno in `server/legal.py`, una sezione per riga: sono una base scritta su come funziona la piattaforma, **da far rivedere a un legale prima di vendere**; quando li cambi, cambia anche la data `VERSION` in cima al file.
 
 Se hai già un sito altrove e qui vuoi solo l'applicazione, scrivi `SFB_SITE=0` nel file `.env`: la pagina principale torna a essere l'accesso. Sul tuo sito metti tre collegamenti: Accedi → `/app`, Registrati → `/app#registrati`, Launcher → `/api/launcher/download`.
 
@@ -198,7 +200,8 @@ python3 -m server             # poi apri http://127.0.0.1:8787
 
 ## Cosa non è ancora fatto
 
-- Installatore del launcher con doppio clic per macOS e Windows (oggi serve Python).
+- Launcher senza firma a pagamento: alla prima apertura Windows e macOS chiedono una conferma (vedi «Launcher già pronto»).
+- Pagine legali: i testi ci sono, ma vanno riveduti da un legale e completati con i tuoi dati.
 - Collegamento locale per Ascolto, Voce, WhatsApp e Ricerca sul computer del cliente: il launcher li verifica soltanto.
 - Fatture: Stripe incassa e manda la ricevuta, ma la fattura elettronica italiana (SDI) la fai ancora tu o il commercialista.
 - Prove con servizi veri: fin qui modelli, Google, posta, Telegram, WhatsApp e Shopify sono stati provati solo con servizi finti.

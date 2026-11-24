@@ -110,6 +110,8 @@ def update_tenant(con, tenant_id, package_id=None, active=None, actor_id=None, p
             raise ApiError(400, "Pacchetto sconosciuto.")
         con.execute("UPDATE tenants SET package_id=? WHERE id=?", (package_id, tenant_id))
         team.on_package_change(con, tenant_id, package_id)
+        from . import scheduler  # qui dentro: scheduler usa il motore, che usa questo modulo
+        scheduler.enforce_limit(con, tenant_id, package_id)
         detail = {"da": row["package_id"], "a": package_id}
         audit.record(con, tenant_id, actor_id, "pacchetto_cambiato", detail)
         audit.record(con, PLATFORM, actor_id, "pacchetto_cambiato", dict(detail, azienda=row["name"]))

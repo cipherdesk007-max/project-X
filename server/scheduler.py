@@ -117,6 +117,24 @@ def create(con, tenant, user, body):
     return cur.lastrowid
 
 
+def _active(con, tenant_id, but=None):
+    return con.execute("SELECT COUNT(*) FROM automations WHERE tenant_id=? AND active=1 AND id!=?", (tenant_id, but or 0)).fetchone()[0]
+
+
+def enforce_limit(con, tenant_id, package_id):
+    """Dopo un cambio di pacchetto: restano attivi i lavori più vecchi fino al limite del pacchetto, gli altri vanno in pausa
+    (non vengono cancellati). Ritorna gli id messi in pausa."""
+    limit = catalog.limit(package_id, "automazioni")
+    extra = [r["id"] for r in con.execute("SELECT id FROM automations WHERE tenant_id=? AND active=1 ORDER BY id", (tenant_id,))][limit:]
+    if extra:
+        con.execute("UPDATE automations SET active=0 WHERE tenant_id=? AND id IN (%s)" % ",".join("?" * len(extra)), [tenant_id] + extra)
+        news.add(con, tenant_id, "avviso", "%d lavori automatici messi in pausa" % len(extra),
+                 "Il pacchetto %s permette %d lavori automatici attivi. Quelli in più sono in pausa, non cancellati: "
+                 "puoi scegliere quali tenere attivi dalla scheda Automazioni." % (catalog.package(package_id)["name"], limit))
+        audit.record(con, tenant_id, None, "automazioni_in_pausa", {"quante": len(extra), "limite": limit})
+    return extra
+
+
 def _get(con, tenant, automation_id):
     row = con.execute("SELECT * FROM automations WHERE id=? AND tenant_id=?", (automation_id, tenant["id"])).fetchone()
     if not row:
@@ -128,6 +146,10 @@ def update(con, tenant, user, automation_id, body):
     row = _get(con, tenant, automation_id)
     c = _clean(con, tenant, body, row)
     active = int(bool(body["active"])) if "active" in body else row["active"]
+    limit = catalog.limit(tenant["package_id"], "automazioni")
+    if active and not row["active"] and _active(con, tenant["id"], automation_id) >= limit:
+        raise ApiError(403, "Il pacchetto %s permette al massimo %d lavori automatici attivi: mettine in pausa un altro prima." % (
+            catalog.package(tenant["package_id"])["name"], limit))
     fail_count = 0 if (active and not row["active"]) else row["fail_count"]
     con.execute(
         "UPDATE automations SET name=?, agent_id=?, model=?, prompt=?, kind=?, hour=?, minute=?, weekdays=?, every_minutes=?, "

@@ -240,6 +240,12 @@ button.ticker:hover { border-color: var(--glow); }
 .checks.row { flex-direction: row; flex-wrap: wrap; gap: 6px 14px; margin: 0; }
 .check { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; cursor: pointer; }
 .check input { margin-top: 3px; accent-color: var(--accent); }
+/* dentro un campo del modulo le caselle non devono prendere l'aspetto delle etichette e delle caselle di testo */
+.field .check { font-family: var(--font-display); font-size: 13.5px; letter-spacing: 0; text-transform: none; color: var(--text); line-height: 1.4; }
+.check input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; padding: 0; margin: 1px 0 0; flex: none; border-radius: 4px; }
+.check > span { min-width: 0; }
+.checks.row .check { align-items: center; min-height: 36px; padding-right: 4px; }
+.checks.row .check input[type="checkbox"] { margin: 0; }
 .check small { display: block; color: var(--warn); font-size: 12px; margin-top: 2px; max-width: 60ch; }
 .pre { white-space: pre-wrap; margin-top: 4px; overflow-wrap: anywhere; }
 .pre.dim { color: var(--muted); font-size: 12.5px; max-height: 120px; overflow-y: auto; }
@@ -258,6 +264,8 @@ button.ticker:hover { border-color: var(--glow); }
 .login > .btn { align-self: center; }
 .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .check small.plain { color: var(--muted); }
+.check.accept { margin: 4px 0 10px; align-items: center; min-height: 44px; font-size: 14px; }
+.check.accept a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .agent.off .bubble { filter: saturate(0.25); opacity: 0.55; }
 .agent.off .name { color: var(--muted); }
 .card .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }

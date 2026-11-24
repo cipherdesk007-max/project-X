@@ -426,13 +426,24 @@ def dev_salva_codice(ctx, a):
     return _draft(ctx, "dev", "codice", _s(a, "titolo", 200, required=True), _s(a, "testo", 20000, required=True))
 
 
-def _tool(name, agent, desc, fn, effect="read", props=None, required=None, summary=None, job=None):
-    """`job`: lo strumento può girare fuori dal server. {"package", "kind": "sync" | "async", "always": sempre come lavoro,
+def _email_ok(a):
+    if not re.fullmatch(r"[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+", str(a.get("a") or "").strip()):
+        raise ToolError("«%s» non è un indirizzo email. Serve un solo indirizzo, scritto per intero." % str(a.get("a"))[:80])
+
+
+def _phone_ok(a):
+    digits = re.sub(r"[\s().-]", "", str(a.get("numero") or ""))
+    if not re.fullmatch(r"\+?\d{8,15}", digits):
+        raise ToolError("«%s» non è un numero di telefono. Scrivilo in formato internazionale, per esempio +39 333 1234567." % str(a.get("numero"))[:40])
+
+
+def _tool(name, agent, desc, fn, effect="read", props=None, required=None, summary=None, job=None, check=None):
+    """`check`: controllo degli argomenti che si può fare subito, prima di chiedere un'approvazione. `job`: lo strumento può girare fuori dal server. {"package", "kind": "sync" | "async", "always": sempre come lavoro,
     "prepare": funzione che controlla gli argomenti e prepara il lavoro, "untrusted": la risposta è testo esterno}."""
     schema = {"type": "object", "properties": {k: {"type": t, "description": d} for k, (t, d) in (props or {}).items()},
               "required": required or []}
     return {"name": name, "agent": agent, "description": desc, "fn": fn, "effect": effect, "schema": schema,
-            "summary": summary or (lambda a: name), "job": job}
+            "summary": summary or (lambda a: name), "job": job, "check": check}
 
 
 S, I, B = "string", "integer", "boolean"
@@ -445,7 +456,7 @@ TOOLS = [
           effect="external", props={"a": (S, "Indirizzo del destinatario"), "oggetto": (S, "Oggetto"), "testo": (S, "Testo")},
           required=["a", "oggetto", "testo"],
           summary=lambda a: "Inviare una email a %s, oggetto «%s»: %s" % (a.get("a"), a.get("oggetto"), str(a.get("testo"))[:300]),
-          job={"package": "email", "kind": "sync"}),
+          job={"package": "email", "kind": "sync"}, check=_email_ok),
     _tool("video_elenca_materiale", "video", "Elenca clip, immagini e audio dell'Archivio Media con il loro numero.", video_elenca_materiale),
     _tool("video_monta", "video", "Monta un video con clip e immagini dell'Archivio Media, nell'ordine dato, con musica facoltativa. "
           "Il montaggio parte come lavoro: il video finito arriva nell'Archivio Media.", None, effect="internal",
@@ -528,7 +539,7 @@ TOOLS = [
     _tool("whatsapp_invia_messaggio", "whatsapp", "Invia un messaggio WhatsApp. Richiede approvazione.",
           whatsapp_invia_messaggio, effect="external",
           props={"numero": (S, "Numero in formato internazionale"), "testo": (S, "Testo")}, required=["numero", "testo"],
-          summary=lambda a: "Inviare su WhatsApp al numero %s: %s" % (a.get("numero"), str(a.get("testo"))[:300])),
+          summary=lambda a: "Inviare su WhatsApp al numero %s: %s" % (a.get("numero"), str(a.get("testo"))[:300]), check=_phone_ok),
     _tool("instagram_salva_post", "instagram", "Salva un post Instagram come bozza. La pubblicazione è manuale.",
           instagram_salva_post, effect="internal", props={"titolo": (S, "Titolo interno"), "testo": (S, "Testo del post")}, required=["testo"]),
     _tool("linkedin_salva_post", "linkedin", "Salva un post LinkedIn come bozza. La pubblicazione è manuale.",
@@ -554,6 +565,16 @@ def for_agents(agent_ids):
 
 def effect_of(spec, ctx):
     return spec["effect"](ctx) if callable(spec["effect"]) else spec["effect"]
+
+
+def check_args(spec, args):
+    """Campi obbligatori presenti e, dove lo strumento lo prevede, scritti in modo sensato."""
+    for key in spec["schema"]["required"]:
+        value = args.get(key)
+        if value is None or isinstance(value, (list, dict)) or str(value).strip() == "":
+            raise ToolError("Manca il campo «%s»." % key)
+    if spec.get("check"):
+        spec["check"](args)
 
 
 def clean_args(args):

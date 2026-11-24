@@ -86,6 +86,16 @@ footer img { height: 24px; width: auto; }
 footer nav { display: flex; gap: 6px 22px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
 footer nav a { padding: 9px 0; }
 footer nav a:hover { color: var(--text); }
+footer .company { flex: 1 1 100%; font-size: 13px; color: var(--muted); }
+.legal { padding: 64px 0 84px; }
+.legal .wrap { max-width: 780px; }
+.legal h1 { font-size: clamp(30px, 4.4vw, 44px); max-width: none; margin-bottom: 8px; }
+.legal h2 { font-size: 21px; margin: 38px 0 10px; }
+.legal p, .legal li { color: #c9d0d8; max-width: 70ch; }
+.legal p + p, .legal ul + p, .legal p + ul { margin-top: 12px; }
+.legal ul { list-style: disc; padding-left: 22px; }
+.legal li + li { margin-top: 8px; }
+.legal .others { margin-top: 44px; display: flex; gap: 6px 26px; flex-wrap: wrap; }
 
 /* ---- animazioni: tutto parte solo se lo script ha messo «js» sulla pagina, quindi senza script non resta nascosto niente ---- */
 .progress { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 30; transform-origin: 0 50%; transform: scaleX(var(--p, 0)); background: linear-gradient(90deg, var(--accent), var(--glow)); pointer-events: none; }

@@ -32,6 +32,15 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 20: pagine legali e giro completo di agenti e pacchetti
+
+- **Pagine legali** `/privacy`, `/condizioni`, `/cookie` sullo stesso sito, con i dati dell'azienda presi dal pannello (Impostazioni, gruppo «Azienda») e mostrati anche in fondo al sito. Testi in `server/legal.py`. Chi si registra accetta le condizioni e la versione accettata resta nel registro. `controlla-produzione` segnala i dati che mancano, `collaudo` controlla che le pagine ci siano.
+- **Registrazione dal pannello**: prima il pannello poteva solo chiuderla (nel file si scrive «aperta», nel pannello 1) e salvare il gruppo dava errore. Ora i sì/no del pannello sono una scelta Sì / No.
+- **Discesa di pacchetto**: i lavori automatici oltre il limite del nuovo pacchetto vanno in pausa (restano i più vecchi, nessuno viene cancellato) e non si riattivano oltre il limite. Prima continuavano tutti a girare.
+- **Approvazioni**: una richiesta senza i campi obbligatori, un'email a qualcosa che non è un indirizzo o un WhatsApp a qualcosa che non è un numero non arrivano più davanti all'amministratore: l'agente riceve subito l'errore.
+- **Giro completo** nelle prove: ogni agente in ogni pacchetto, ogni modello, ogni strumento con più di 1.500 chiamate fatte di argomenti mancanti o sbagliati, coerenza tra catalogo, motore e pannello.
+- Aspetto: nel modulo di registrazione le caselle degli agenti erano larghe come caselle di testo e con le scritte da etichetta; ora sono caselle normali.
+
 ## Novità della versione 19: il cliente cambia pacchetto da solo
 
 - Nella scheda Abbonamento l'amministratore dell'azienda sceglie un altro pacchetto e lo vede con il suo prezzo (`POST /api/billing/package`).
@@ -318,7 +327,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 170 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 189 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

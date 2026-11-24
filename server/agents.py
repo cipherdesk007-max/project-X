@@ -128,6 +128,7 @@ def _run_tool(ctx, allowed_agents, call, events):
         return "Strumento non disponibile nel pacchetto di questa azienda."
     try:
         args = tools.clean_args(call["input"])
+        tools.check_args(spec, args)  # prima dell'approvazione: un amministratore non deve trovarsi ad approvare una richiesta vuota
         if tools.effect_of(spec, ctx) == "external":
             summary = spec["summary"](args)[:1000]
             cur = ctx.con.execute(
@@ -168,6 +169,8 @@ def run_chat(con, tenant, user, agent_id, model_id, conversation_id, text, sourc
             raise ApiError(403, "L'Agente %s non è nel pacchetto dell'azienda. Entra con il pacchetto %s." % (
                 catalog.agent(agent_id)["name"], catalog.first_package_with(agent_id)["name"]))
         allowed = {agent_id}
+    if model_id not in [m["id"] for m in catalog.load()["models"]]:
+        raise ApiError(400, "Modello sconosciuto. Scegli tra: %s." % ", ".join(m["name"] for m in catalog.load()["models"]))
     if model_id not in [m["id"] for m in team.models_for(con, tenant)]:
         audit.record(con, tenant["id"], user["id"], "modello_bloccato", {"modello": str(model_id)[:40]})
         raise ApiError(403, "Questo modello non è disponibile: il suo agente non è attivo nel team dell'azienda.")

@@ -10,7 +10,7 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import (agents, audit, auth, billing, catalog, config, connectors, console, credits, db, fake_llm, google, llm, local, media, memory, news, office, ops,
+from . import (agents, audit, auth, billing, catalog, config, connectors, console, credits, db, fake_llm, google, legal, llm, local, media, memory, news, office, ops,
                pricing, registration, scheduler, settings, site, team)
 from .errors import ApiError
 
@@ -888,6 +888,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._file_content(int(content.group(1)), urllib.parse.parse_qs(parts.query))
             if not parts.path.startswith("/api/"):
                 entry = STATIC.get(parts.path) if method == "GET" else None
+                if method == "GET" and site.enabled() and parts.path.strip("/") in legal.PAGES and parts.path == "/" + parts.path.strip("/"):
+                    return self._send(200, site.legal_page(parts.path[1:]), "text/html; charset=utf-8")
                 if not entry:
                     return self._json(404, {"error": "Pagina non trovata."})
                 if parts.path == "/" and site.enabled():  # il sito pubblico; l'applicazione sta su /app

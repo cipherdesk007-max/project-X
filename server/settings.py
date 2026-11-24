@@ -48,6 +48,13 @@ FIELDS = [
     ("Crediti", "CREDITS_COMPLETO", "Crediti inclusi ogni mese nel pacchetto Completo", False, "int"),
     ("Crediti", "CREDIT_PACK_SIZE", "Crediti in una ricarica comprata a parte (0 = non si vendono)", False, "int"),
     ("Crediti", "STRIPE_PRICE_CREDITS", "ID del prezzo Stripe di una ricarica, pagamento singolo (price_…)", False, "text"),
+    ("Azienda", "COMPANY_NAME", "Ragione sociale di chi vende il servizio (compare sul sito e nelle pagine legali)", False, "text"),
+    ("Azienda", "COMPANY_VAT", "Partita IVA", False, "text"),
+    ("Azienda", "COMPANY_ADDRESS", "Sede legale (via, CAP, città)", False, "text"),
+    ("Azienda", "COMPANY_EMAIL", "Email di contatto, anche per le richieste sulla privacy", False, "email"),
+    ("Azienda", "COMPANY_PEC", "PEC (facoltativa)", False, "email"),
+    ("Azienda", "COMPANY_REA", "Numero REA (facoltativo)", False, "text"),
+    ("Azienda", "COMPANY_HOSTING", "Fornitore e paese del server (es. Hetzner, Germania): va nell'informativa", False, "text"),
     ("Pagamenti", "SFB_GRACE_DAYS", "Giorni di tolleranza dopo la scadenza, da 0 a 30 (0 = pausa dal giorno dopo)", False, "int"),
     ("Pagamenti", "STRIPE_SECRET_KEY", "Chiave segreta di Stripe (sk_…)", True, "text"),
     ("Pagamenti", "STRIPE_WEBHOOK_SECRET", "Segreto del webhook di Stripe (whsec_…)", True, "text"),
@@ -90,8 +97,11 @@ def view(con):
     out = []
     for group, key, label, secret, kind in FIELDS:
         panel, env = config.OVERRIDES.get(key, ""), os.environ.get(key, "")
+        value = "" if secret else (panel or env)
+        if kind == "bool" and value:  # nel file .env la registrazione si scrive «aperta» o «chiusa»: il pannello mostra sempre 1 o 0
+            value = "1" if value.strip().lower() in ("1", "aperta") else "0"
         out.append({"group": group, "key": key, "label": label, "secret": secret, "kind": kind, "set": bool(panel or env),
-                    "value": "" if secret else (panel or env), "source": "pannello" if panel else (".env" if env else "")})
+                    "value": value, "source": "pannello" if panel else (".env" if env else "")})
     return {"fields": out, "encrypted": bool(connectors._fernet()), "webhook_url": config.get("SFB_PUBLIC_URL", "").rstrip("/") + "/api/billing/webhook"}
 
 
@@ -106,6 +116,8 @@ def _clean(key, value):
         raise ApiError(400, "«%s» deve essere un numero intero." % label)
     if kind == "bool" and v not in ("0", "1"):
         raise ApiError(400, "«%s» deve essere 1 oppure 0." % label)
+    if kind == "email" and not (v.count("@") == 1 and "." in v.split("@")[1] and " " not in v and v[0] != "@"):
+        raise ApiError(400, "«%s» deve essere un indirizzo email." % label)
     if kind == "url" and not v.startswith(("http://", "https://")):
         raise ApiError(400, "«%s» deve iniziare con http:// oppure https://." % label)
     return v
