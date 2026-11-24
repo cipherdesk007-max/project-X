@@ -77,4 +77,6 @@ jobs:
           f="Alvea-Launcher${{ matrix.nome == 'macos-intel' && '-Intel' || '' }}.${{ matrix.nome == 'windows' && 'exe' || 'dmg' }}"
           # i due lavori arrivano qui quasi insieme: se il rilascio l'ha già creato l'altro, si va avanti
           gh release view launcher >/dev/null 2>&1 || gh release create launcher --title "Launcher di Alvea" --notes "Programmi del launcher costruiti e provati in automatico su macOS e Windows. Non sono firmati: vedi GUIDA.md." --latest=false || true
-          gh release upload launcher "$f" --clobber
+          # impronta del file: chi scarica può controllare che sia proprio quello costruito qui
+          python -c "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest() + '  ' + sys.argv[1])" "$f" > "$f.sha256"
+          gh release upload launcher "$f" "$f.sha256" --clobber

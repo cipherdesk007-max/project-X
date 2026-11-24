@@ -149,7 +149,13 @@ Oltre alla versione che chiede Python, c'è il launcher già pronto: `Alvea-Laun
 
 Per usarli, accanto al programma va messo il file `server.json` che sta nel pacchetto scaricato dal tuo server (pulsante «Scarica il launcher»): contiene l'indirizzo del server e la chiave che controlla i pacchetti.
 
-Non sono firmati: alla prima apertura Windows mostra «PC protetto» (Ulteriori informazioni → Esegui comunque) e macOS dice che lo sviluppatore non è verificato (clic destro → Apri). Per togliere gli avvisi servono un account sviluppatore Apple e un certificato di firma del codice per Windows. Sui Mac Intel il dmg non parte: lì si usa la versione Python.
+Non sono firmati, per scelta: funzionano lo stesso, ma alla prima apertura il cliente deve dare una conferma. Il sito lo spiega sotto i pulsanti di download.
+
+- **Windows**: compare «PC protetto». Si preme «Ulteriori informazioni» e poi «Esegui comunque».
+- **Mac**: il sistema dice che non può verificare il programma. Si apre Impostazioni di Sistema → Privacy e sicurezza e si preme «Apri comunque» (sui Mac meno recenti basta clic destro → Apri).
+- **Per controllare che il file sia quello vero**: accanto a ogni programma, nel rilascio, c'è un file `.sha256` con la sua impronta. Su Windows `certutil -hashfile Alvea-Launcher.exe SHA256`, su Mac `shasum -a 256 Alvea-Launcher.dmg`: il risultato deve essere uguale.
+
+Due cose che senza firma possono succedere e che non dipendono da noi: qualche antivirus segnala per errore i programmi fatti così, e i computer aziendali con regole strette possono bloccarli del tutto. In quei casi resta la versione con Python, oppure l'agente lavora sui nostri server. Se un giorno vorrai togliere gli avvisi, servono l'iscrizione al programma sviluppatori Apple e un certificato di firma del codice per Windows.
 
 ### Agenti sul computer del cliente: prima si paga
 
