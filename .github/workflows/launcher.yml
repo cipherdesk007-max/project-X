@@ -43,7 +43,9 @@ jobs:
         run: |
           mkdir dmgroot && cp dist/alvea-launcher dmgroot/ && cp launcher/LEGGIMI.txt dmgroot/
           DMG="Alvea-Launcher${{ matrix.nome == 'macos-intel' && '-Intel' || '' }}.dmg"
-          hdiutil create -volname "Alvea Launcher" -srcfolder dmgroot -ov -format UDZO "$DMG"
+          # sulle macchine di GitHub «hdiutil create» ogni tanto risponde «Resource busy»: si riprova
+          for giro in 1 2 3 4 5; do hdiutil create -volname "Alvea Launcher" -srcfolder dmgroot -ov -format UDZO "$DMG" && break; sleep 6; done
+          [ -f "$DMG" ]
           hdiutil attach "$DMG" -mountpoint /tmp/alvea-dmg -nobrowse -readonly
           cp /tmp/alvea-dmg/alvea-launcher pronto/   # si prova proprio il programma tirato fuori dal dmg
           hdiutil detach /tmp/alvea-dmg
