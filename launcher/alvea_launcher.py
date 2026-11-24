@@ -480,6 +480,14 @@ def cmd_finestra(cfg, args):
         root = tk.Tk()
     except Exception:
         return cmd_guidato(cfg, args)
+    if os.name == "nt" and getattr(sys, "frozen", False):
+        try:  # aperto con doppio clic, Windows crea anche una finestra nera dei comandi: se è solo nostra la si nasconde
+            import ctypes
+            ids = (ctypes.c_uint * 4)()
+            if ctypes.windll.kernel32.GetConsoleProcessList(ids, 4) == 1:
+                ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        except Exception:
+            pass
     trial = float(os.environ.get("ALVEA_FINESTRA_PROVA") or 0)  # solo per le prove: la finestra si chiude da sola dopo tanti secondi
     root.title("Alvea Launcher")
     root.configure(bg=BG)
@@ -509,7 +517,7 @@ def cmd_finestra(cfg, args):
     buttons.pack(fill="x", padx=24, pady=(10, 6))
     status = tk.Label(root, text="Scrivi l'indirizzo del tuo Alvea e premi «Verifica questo computer».", fg=TEXT, bg=BG, anchor="w", justify="left", wraplength=720, font=("Helvetica", 13, "bold"))
     status.pack(fill="x", padx=24, pady=(6, 8))
-    out = tk.Text(root, bg="#06090c", fg="#d8dee6", relief="flat", height=14, wrap="none", font=("Courier", 11), padx=12, pady=10, state="disabled")
+    out = tk.Text(root, bg="#06090c", fg="#d8dee6", relief="flat", height=14, wrap="word", font=("Courier", 11), padx=12, pady=10, state="disabled", highlightthickness=0)
     out.pack(fill="both", expand=True, padx=24, pady=(0, 22))
 
     def say(line=""):
@@ -545,7 +553,16 @@ def cmd_finestra(cfg, args):
         say("Computer: %s, %d core, %.0f GB di memoria, %.0f GB liberi" % (sp["os_version"], sp["cores"], sp["ram_gb"], sp["disk_free_gb"]))
         say("Server:   %s" % api.base)
         say()
-        verdicts(api, cfg, sp, log=say)
+        hidden = [0]
+
+        def line(text=""):  # nella finestra si elencano solo gli agenti che possono, o potrebbero, lavorare su questo computer
+            if "SOLO SUI NOSTRI SERVER" in str(text):
+                hidden[0] += 1
+            else:
+                say(text)
+        verdicts(api, cfg, sp, log=line)
+        say()
+        say("Altri %d agenti usano servizi in rete: lavorano sempre sui nostri server, qui non serve niente." % hidden[0])
         say()
         if cfg.get("token"):
             listen()
@@ -579,8 +596,12 @@ def cmd_finestra(cfg, args):
         threading.Thread(target=body, daemon=True).start()
 
     for text, fn, main_button in (("Verifica questo computer", verify, False), ("Collega", pair, True)):
-        tk.Button(buttons, text=text, command=lambda f=fn: work(f), bg=ACCENT if main_button else PANEL, fg="#0b0f14" if main_button else TEXT, activebackground=ACCENT,
-                  relief="flat", padx=16, pady=7, font=("Helvetica", 12, "bold"), cursor="hand2").pack(side="left", padx=(0, 10))
+        if sys.platform == "darwin":  # su macOS i pulsanti restano quelli del sistema: colorarli li renderebbe illeggibili
+            b = tk.Button(buttons, text=text, command=lambda f=fn: work(f), highlightbackground=BG, padx=10, pady=4, font=("Helvetica", 13))
+        else:
+            b = tk.Button(buttons, text=text, command=lambda f=fn: work(f), bg=ACCENT if main_button else PANEL, fg="#0b0f14" if main_button else TEXT, activebackground=ACCENT,
+                          relief="flat", padx=16, pady=7, font=("Helvetica", 12, "bold"), cursor="hand2")
+        b.pack(side="left", padx=(0, 10))
 
     def pump():
         try:
