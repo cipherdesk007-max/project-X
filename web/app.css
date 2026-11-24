@@ -282,13 +282,17 @@ button.ticker:hover { border-color: var(--glow); }
 .firststeps li.done { color: var(--muted); }
 .firststeps .steplink { background: none; border: 0; padding: 6px 0; color: var(--text); font: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent); text-underline-offset: 3px; min-height: 36px; }
 .firststeps .steplink:hover { color: var(--glow); }
-.firststeps .tries { display: flex; flex-wrap: wrap; gap: 6px; }
-.firststeps .tries .btn { white-space: normal; text-align: left; height: auto; line-height: 1.3; padding: 7px 12px; }
+.firststeps ul { margin-bottom: 0; }
+/* consigli a richiesta, sotto la chat */
+.tipsrow { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+.tips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 620px; }
+.tips[hidden] { display: none; }
+.tips .btn { white-space: normal; text-align: left; height: auto; line-height: 1.3; padding: 7px 12px; }
+.opanel .tipsrow { align-items: flex-start; } .opanel .tips { justify-content: flex-start; }
+#tipsBtn[aria-expanded="true"] { border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--glow); }
 @media (max-width: 900px) {  /* su telefono: righe più strette e gli esempi su una riga sola che scorre di lato */
   .firststeps li { min-height: 36px; font-size: 13.5px; }
   .firststeps .steplink { min-height: 36px; padding: 4px 0; }
-  .firststeps .tries { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
-  .firststeps .tries .btn { flex: none; max-width: 230px; }
 }
 .opanel .firststeps { max-width: none; }
 /* accesso in due passaggi */

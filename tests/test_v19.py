@@ -114,6 +114,50 @@ class TipiDiAttivita(Base):
         actions = [r[0] for r in con.execute("SELECT action FROM audit WHERE tenant_id=? AND action='attivita_impostata'", (tid,))]
         self.assertEqual(len(actions), 3, "ogni cambio resta nel registro")
 
+    def test_ogni_agente_ha_tre_consigli_e_ognuno_funziona_davvero(self):
+        """Un consiglio è una promessa: toccarlo e mandarlo deve dare una risposta, non un errore."""
+        import copy
+        every = catalog.load()["agents"]
+        seen = set()
+        for a in every:
+            self.assertEqual(len(a["tries"]), 3, a["id"])
+            for t in a["tries"]:
+                self.assertTrue(8 <= len(t) <= 90, "%s: «%s» deve stare su un pulsante" % (a["id"], t))
+                self.assertNotIn(t, seen, "consiglio ripetuto: %s" % t)
+                seen.add(t)
+        for round_ in range(3):  # tre aziende, per non superare il limite di messaggi al minuto di un utente
+            token, _ = self.new_tenant("Consigli %d" % round_, "completo")
+            for a in every:
+                status, out = self.chat(token, a["tries"][round_], a["id"])
+                self.assertEqual(status, 200, (a["id"], a["tries"][round_], out))
+                self.assertTrue(out["reply"], a["id"])
+        token, tid = self.new_tenant("Consigli Strumenti", "completo")
+        tools_used = lambda agent, n: [e["tool"] for e in self.chat(token, catalog.agent(agent)["tries"][n], agent)[1]["events"]]
+        self.assertEqual(tools_used("calendario", 0), ["calendario_elenca_eventi"])
+        self.assertEqual(tools_used("crm", 1), ["crm_elenca_lead"])
+        self.assertEqual(tools_used("report", 0), ["report_riepilogo"])
+        self.assertEqual(tools_used("team", 0), ["team_elenca_utenti"])
+        self.assertEqual(tools_used("email", 0), ["email_leggi_recenti"])
+        bad = copy.deepcopy(catalog.load())
+        bad["agents"][0]["tries"] = bad["agents"][0]["tries"][:2]
+        with self.assertRaises(AssertionError):
+            catalog.validate(bad)
+        con = db.connect()
+        self.addCleanup(con.close)
+        ops.create_user(con, tid, "operatore@consigli-strumenti.it", "Operatore", "member", PW)
+        member = self.call("GET", "/api/summary", token=self.login("operatore@consigli-strumenti.it"))[1]
+        self.assertEqual((len(member["tries"]), "first_steps" in member), (3, False), "anche un operatore ha i consigli per il Centrale, senza i primi passi")
+
+    def test_i_consigli_compaiono_solo_a_richiesta(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        css = (ROOT / "web" / "app.css").read_text(encoding="utf-8")
+        self.assertIn('id: "tipsList", hidden: !tipsOpen()', js, "l'elenco nasce nascosto")
+        self.assertIn('window.localStorage.getItem("alvea_consigli") === "1"', js, "aperto solo se l'utente l'ha lasciato aperto")
+        self.assertIn('text: "Consigli"', js)
+        self.assertEqual(js.count("tipsBox("), 3, "il tasto c'è nella chat della vista compatta e in quella dell'Ufficio")
+        self.assertNotIn("Prova a chiedere", js, "niente esempi sempre in vista nei Primi passi")
+        self.assertIn(".tips[hidden] { display: none; }", css, "nascosto vuol dire nascosto, anche con la disposizione a righe")
+
     def test_il_sito_e_le_schermate_mostrano_le_attivita(self):
         html = self.fetch("/")[2].decode("utf-8")
         self.assertIn('<section id="per-chi">', html)

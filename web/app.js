@@ -171,7 +171,7 @@
   function paintFirstSteps() {
     var slot = document.getElementById("firstStepsSlot");
     if (!slot) return;
-    var key = S.sum && S.sum.first_steps ? S.sum.first_steps.map(function (s) { return s.id + (s.done ? "1" : "0") + s.text; }).join("|") + (S.sum.tries || []).join("|") : "";
+    var key = S.sum && S.sum.first_steps ? S.sum.first_steps.map(function (s) { return s.id + (s.done ? "1" : "0") + s.text; }).join("|") : "";
     if (slot.getAttribute("data-key") === key) return;
     slot.setAttribute("data-key", key);
     slot.textContent = "";
@@ -187,7 +187,6 @@
     try { closed = window.localStorage.getItem(stepsKey()) === "chiusi"; } catch (e) { closed = false; }
     if (!steps || closed || steps.every(function (s) { return s.done; })) return null;
     var done = steps.filter(function (s) { return s.done; }).length;
-    var tries = S.sum.tries && S.sum.tries.length ? S.sum.tries : ["Scrivimi un post per presentare la mia attività", "Prepara una risposta gentile a un cliente che chiede uno sconto", "Fammi un piano di lavoro per questa settimana"];
     return el("section", { class: "firststeps", id: "firstSteps", "aria-label": "Primi passi" },
       el("header", {}, el("h2", { text: "Primi passi" }), el("span", { class: "meta", text: done + " di " + steps.length + " fatti" }),
         el("button", { class: "btn small", type: "button", text: "Chiudi", "aria-label": "Chiudi i primi passi", onclick: function () {
@@ -196,14 +195,34 @@
         } })),
       el("ul", {}, steps.map(function (s) {
         var go = s.done ? null : function () {
-          if (s.tab) { keepDraft(); S.view = "centro"; S.tab = s.tab; render(); } else toChat("");
+          if (s.tab) { keepDraft(); S.view = "centro"; S.tab = s.tab; render(); } else { showTips(true); toChat(""); }  // il primo messaggio: apre i consigli, così c'è da dove partire
         };
         return el("li", { class: s.done ? "done" : "" }, el("span", { class: "mark", "aria-hidden": "true", text: s.done ? "✓" : "" }),
           go ? el("button", { type: "button", class: "steplink", text: s.text, onclick: go }) : el("span", { text: s.text }),
           s.hint ? el("small", { text: s.hint }) : null);
-      })),
-      el("p", { class: "meta", text: "Prova a chiedere:" }),
-      el("div", { class: "tries" }, tries.map(function (t) {
+      })));
+  }
+  /* Consigli: tre richieste d'esempio per l'agente con cui si sta parlando. Restano nascosti finché non si tocca «Consigli»,
+     e la scelta (aperti o chiusi) viene ricordata su questo dispositivo. */
+  function tipsOpen() {
+    if (S.tipsOpen === undefined) { try { S.tipsOpen = window.localStorage.getItem("alvea_consigli") === "1"; } catch (e) { S.tipsOpen = false; } }
+    return S.tipsOpen;
+  }
+  function showTips(open) {
+    S.tipsOpen = open;
+    try { window.localStorage.setItem("alvea_consigli", open ? "1" : "0"); } catch (e) { /* vale finché la pagina resta aperta */ }
+    var list = document.getElementById("tipsList"), btn = document.getElementById("tipsBtn");
+    if (list) list.hidden = !open;
+    if (btn) btn.setAttribute("aria-expanded", String(open));
+  }
+  function tipsBox(id) {
+    var agent = id && id !== "centrale" ? agentById(id) : null;
+    var list = (agent && agent.tries) || (S.sum && S.sum.tries) || [];
+    if (!list.length) return null;
+    return el("div", { class: "tipsrow" },
+      el("button", { class: "btn small", type: "button", id: "tipsBtn", "aria-expanded": String(tipsOpen()), "aria-controls": "tipsList", text: "Consigli",
+        title: "Mostra o nascondi tre richieste d'esempio", onclick: function () { showTips(!tipsOpen()); } }),
+      el("div", { class: "tips", id: "tipsList", hidden: !tipsOpen() }, list.map(function (t) {
         return el("button", { class: "btn small", type: "button", text: t, onclick: function () { toChat(t); } });
       })));
   }
@@ -517,6 +536,7 @@
         el("div", { class: "model" }, el("span", { text: "Modello" }),
           seg(models, S.model, function (id) { keepDraft(); S.model = id; render(); }, "Scegli il modello")),
         el("div", { class: "target" }, "Stai parlando con ", el("strong", { text: talking })),
+        tipsBox(target()),
         S.me.models.some(function (m) { return m.configured; }) ? null : el("p", { class: "error", text: "Nessun modello è pronto: un amministratore inserisce una chiave API nel Centro di controllo, scheda Collegamenti." }),
         el("div", { class: "adminrow" }, stopControl())),
       cardNode());
@@ -655,6 +675,7 @@
           el("button", { class: "send", type: "submit", "aria-label": "Invia", disabled: S.busy || stopped }, icon("up"))),
         el("div", { class: "model" }, el("span", { text: "Modello" }),
           seg(models, S.model, function (m) { keepDraft(); S.model = m; render(); }, "Scegli il modello")),
+        tipsBox(id),
         S.me.models.some(function (m) { return m.configured; }) ? null : el("p", { class: "error", text: "Nessun modello è pronto: un amministratore inserisce una chiave API nel Centro di controllo, scheda Collegamenti." })),
       el("h3", { text: "Attività in tempo reale" }),
       live("oLog", "ologbox", logData(item, d), bLog),

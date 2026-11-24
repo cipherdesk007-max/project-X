@@ -23,6 +23,9 @@ def validate(data):
     placed = [i for p in data["packages"] for i in p["adds"]]
     assert sorted(placed) == sorted(agent_ids), "ogni agente deve entrare in un solo pacchetto"
     assert len({p["id"] for p in data["packages"]}) == len(data["packages"]), "pacchetti duplicati"
+    for a in data["agents"]:  # ogni agente ha tre richieste d'esempio, mostrate nella chat solo a chi tocca «Consigli»
+        tries = a.get("tries") or []
+        assert len(tries) == 3 and len(set(tries)) == 3 and all(isinstance(t, str) and t.strip() for t in tries), "agente %s: servono tre richieste d'esempio diverse" % a["id"]
     seen = set()
     for a in data.get("activities") or []:  # tipi di attività: agenti consigliati, contesto per gli agenti, richieste d'esempio
         assert a["id"] not in seen and a["id"] and a["name"], "attività duplicata o senza nome"

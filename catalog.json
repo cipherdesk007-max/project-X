@@ -402,7 +402,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Quali sono gli ordini di oggi?",
+    "Quali prodotti sono quasi esauriti?",
+    "Riassumi le vendite di questa settimana"
+   ]
   },
   {
    "id": "email",
@@ -434,7 +439,12 @@
      "needs": [],
      "note": "La password della casella resta sul computer e non arriva al server."
     }
-   }
+   },
+   "tries": [
+    "Leggi la posta e dimmi le tre cose più urgenti",
+    "Prepara la risposta all'ultima email ricevuta",
+    "Manda una email a cliente@esempio.it: "
+   ]
   },
   {
    "id": "calendario",
@@ -452,7 +462,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Che appuntamenti ho questa settimana?",
+    "Fissa un appuntamento domani alle 10: ",
+    "Trovami un'ora libera giovedì pomeriggio"
+   ]
   },
   {
    "id": "ascolto",
@@ -493,7 +508,12 @@
      ],
      "note": "Trascrizione sul computer: il launcher verifica i requisiti, il collegamento non è ancora incluso."
     }
-   }
+   },
+   "tries": [
+    "Ricava decisioni e cose da fare da questa trascrizione: ",
+    "Scrivi il verbale di questa riunione: ",
+    "Chi deve fare cosa, secondo questi appunti? "
+   ]
   },
   {
    "id": "contenuti",
@@ -511,7 +531,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Scrivi un post per presentare questa novità: ",
+    "Scrivi la scheda di questo prodotto: ",
+    "Prepara una email per i clienti su: "
+   ]
   },
   {
    "id": "marketing",
@@ -529,7 +554,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Prepara il piano di una campagna per: ",
+    "Scrivi tre varianti di un annuncio per: ",
+    "Proponi una promozione per il prossimo mese"
+   ]
   },
   {
    "id": "linkedin",
@@ -547,7 +577,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Scrivi un post LinkedIn su questo risultato: ",
+    "Prepara un post per annunciare una nuova assunzione",
+    "Dammi cinque idee di post per la pagina aziendale"
+   ]
   },
   {
    "id": "instagram",
@@ -565,7 +600,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Scrivi la didascalia per questa foto: ",
+    "Dammi dieci idee di post per questo mese",
+    "Proponi gli hashtag per un post su: "
+   ]
   },
   {
    "id": "chatgpt",
@@ -583,7 +623,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Spiegami in parole semplici: ",
+    "Dammi un secondo parere su questo testo: ",
+    "Fammi un elenco di idee su: "
+   ]
   },
   {
    "id": "crm",
@@ -601,7 +646,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Aggiungi lead: nome, email, telefono",
+    "Elenca i lead da richiamare",
+    "Segna come cliente il lead numero "
+   ]
   },
   {
    "id": "voce",
@@ -638,7 +688,12 @@
      ],
      "note": "Voce sintetica sul computer: il launcher verifica i requisiti, il collegamento non è ancora incluso."
     }
-   }
+   },
+   "tries": [
+    "Scrivi il copione di una telefonata per fissare un appuntamento",
+    "Prepara cosa dire a un cliente in ritardo con il pagamento",
+    "Scrivi il messaggio da lasciare in segreteria"
+   ]
   },
   {
    "id": "ricerca",
@@ -675,7 +730,12 @@
      ],
      "note": "La ricerca privata con SearXNG è già disponibile lato server (SEARXNG_URL); sul computer non è ancora inclusa."
     }
-   }
+   },
+   "tries": [
+    "Cerca sul web e riassumi con le fonti: ",
+    "Leggi questa pagina e dimmi i punti principali: ",
+    "Cosa fanno i concorrenti su: "
+   ]
   },
   {
    "id": "report",
@@ -693,7 +753,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Fammi il riepilogo di questa settimana",
+    "Quanti lead nuovi ci sono questo mese?",
+    "Leggi questo Foglio Google e riassumilo: "
+   ]
   },
   {
    "id": "team",
@@ -711,7 +776,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Chi sono gli utenti dell'azienda e che ruolo hanno?",
+    "Chi è amministratore?",
+    "Quanti operatori ci sono?"
+   ]
   },
   {
    "id": "whatsapp",
@@ -748,7 +818,12 @@
      ],
      "note": "WhatsApp self-hosted con WAHA: il launcher verifica se è acceso, il collegamento non è ancora incluso."
     }
-   }
+   },
+   "tries": [
+    "Manda un WhatsApp al +39 … per confermare l'appuntamento",
+    "Prepara il messaggio per avvisare che l'ordine è pronto",
+    "Scrivi un promemoria gentile per un pagamento"
+   ]
   },
   {
    "id": "telegram",
@@ -766,7 +841,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Leggi gli ultimi messaggi ricevuti dal bot",
+    "Manda su Telegram: ",
+    "Avvisa il gruppo che domani siamo chiusi"
+   ]
   },
   {
    "id": "video",
@@ -807,7 +887,12 @@
      ],
      "note": "Monta i video sul computer: i file non passano da altri servizi."
     }
-   }
+   },
+   "tries": [
+    "Che materiale c'è nell'Archivio Media?",
+    "Monta un video verticale con tutte le clip",
+    "Crea un video in bozza con queste clip: "
+   ]
   },
   {
    "id": "dev",
@@ -839,7 +924,12 @@
      "needs": [],
      "note": "Gira solo sul computer: lavora in una cartella scelta da te."
     }
-   }
+   },
+   "tries": [
+    "Elenca i file della cartella di lavoro",
+    "Leggi il file README.md e spiegami cosa fa il progetto",
+    "Esegui il comando prove"
+   ]
   },
   {
    "id": "assistenza",
@@ -857,7 +947,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Prepara la risposta a questa domanda di un cliente: ",
+    "Un cliente chiede come funziona il reso: cosa rispondo?",
+    "Scrivi una risposta di scuse per un ritardo"
+   ]
   },
   {
    "id": "amministrazione",
@@ -875,7 +970,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Prepara un preventivo per: ",
+    "Scrivi un sollecito gentile per una fattura scaduta",
+    "Prepara il riepilogo del mese per il commercialista"
+   ]
   },
   {
    "id": "personale",
@@ -893,7 +993,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Organizza la mia settimana con questi impegni: ",
+    "Scrivi una lettera formale per: ",
+    "Fammi la lista delle cose da fare per: "
+   ]
   },
   {
    "id": "traduzioni",
@@ -911,7 +1016,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Traduci in inglese: ",
+    "Traduci in tedesco e adatta il tono a un cliente: ",
+    "Controlla questa traduzione e correggila: "
+   ]
   },
   {
    "id": "facebook",
@@ -929,7 +1039,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Scrivi un post per la pagina su: ",
+    "Prepara il testo di un evento per sabato",
+    "Rispondi a questo commento: "
+   ]
   },
   {
    "id": "seo",
@@ -947,7 +1062,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Scrivi un articolo per il sito su: ",
+    "Proponi titolo e descrizione per questa pagina: ",
+    "Quali parole chiave userebbe chi cerca: "
+   ]
   },
   {
    "id": "recensioni",
@@ -965,7 +1085,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Rispondi a questa recensione negativa: ",
+    "Ringrazia per questa recensione a cinque stelle: ",
+    "Scrivi il messaggio per chiedere una recensione a un cliente soddisfatto"
+   ]
   },
   {
    "id": "youtube",
@@ -983,7 +1108,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Proponi titolo e descrizione per un video su: ",
+    "Scrivi il copione di un video di tre minuti su: ",
+    "Dammi dieci idee di video per il canale"
+   ]
   },
   {
    "id": "tiktok",
@@ -1001,7 +1131,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Scrivi il copione di un video di 30 secondi su: ",
+    "Dammi cinque frasi d'apertura che fermano chi scorre",
+    "Scrivi la didascalia per questo video: "
+   ]
   },
   {
    "id": "contratti",
@@ -1019,7 +1154,12 @@
    "run": {
     "cloud": true,
     "local": null
-   }
+   },
+   "tries": [
+    "Prepara la bozza di un contratto di fornitura per: ",
+    "Scrivi una lettera di diffida per un mancato pagamento",
+    "Prepara un'informativa da far controllare a un legale su: "
+   ]
   }
  ],
  "local_model": {

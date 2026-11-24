@@ -32,6 +32,12 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 26: consigli a richiesta
+
+- Ogni agente ha nel catalogo **tre richieste d'esempio** (`tries`), provate una per una nelle prove: mandarle dà sempre una risposta.
+- Nella chat, sia nella vista compatta sia nell'Ufficio, c'è il tasto **«Consigli»**: mostra le tre richieste dell'agente con cui stai parlando (per il Centrale, quelle del tuo mestiere). Toccarne una la scrive nel campo, pronta da completare.
+- **Restano nascosti finché non li chiedi**, e il dispositivo ricorda se li hai lasciati aperti o chiusi. Dai Primi passi sono spariti gli esempi sempre in vista: la voce «Scrivi il primo messaggio» apre i consigli.
+
 ## Novità della versione 25: profili per tipo di attività
 
 - Nel catalogo (`catalog.json`, schema 8) ci sono **14 tipi di attività**: negozio, ristorante, studio professionale, artigiano, auto e moto, immobiliare, salute e benessere, turismo, agenzia, software, libero professionista, creator, uso personale, altro. Ognuno ha gli **agenti consigliati**, un **contesto** per gli agenti e **tre richieste d'esempio**.
@@ -366,7 +372,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 220 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 222 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

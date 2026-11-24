@@ -251,9 +251,9 @@ def r_summary(q):
         "pending": q.con.execute(sql, params).fetchone()[0], "stopped": bool(q.tenant.get("stopped")),
         "automations": q.con.execute("SELECT COUNT(*) FROM automations WHERE tenant_id=? AND active=1", (tid,)).fetchone()[0],
         "connections": q.con.execute("SELECT COUNT(*) FROM connectors WHERE tenant_id=? AND name<>'modelli'", (tid,)).fetchone()[0]})
+    out["tries"] = (catalog.activity(q.tenant.get("activity") or "") or catalog.activity("altro") or {}).get("tries") or []  # richieste d'esempio adatte all'attività, per il Centrale
     if q.user["role"] == "admin":
         out["first_steps"] = _first_steps(q)
-        out["tries"] = (catalog.activity(q.tenant.get("activity") or "") or catalog.activity("altro") or {}).get("tries") or []  # richieste d'esempio adatte all'attività
     if (q.query.get("office") or [""])[0] == "1":  # la vista Ufficio 3D chiede anche lo stato di ogni agente acceso
         out["office"] = office.snapshot(q.con, q.tenant, _agent_status(q.con, q.tenant))
     return out
