@@ -37,7 +37,12 @@ class Sito(Base):
         self.assertEqual(re.findall(r"<script[^>]*>", page), ['<script src="/sito.js">'], "un solo script, e da file")
         self.assertEqual(re.findall(r"https?://", page), [], "nessuna risorsa da altri siti")
         for src in re.findall(r'(?:src|href)="(/[^"#]*)', page):
-            self.assertEqual(self.fetch(src)[0], 200, "collegamento rotto: %s" % src)
+            status, headers, _ = self.fetch(src)
+            if "download?os=" in src:  # il launcher già pronto si scarica dal rilascio su GitHub
+                self.assertEqual(status, 302, src)
+                self.assertTrue(headers["Location"].startswith("https://github.com/cipherdesk007-max/project-X/releases/download/launcher/Alvea-Launcher"), headers["Location"])
+            else:
+                self.assertEqual(status, 200, "collegamento rotto: %s" % src)
         for anchor in re.findall(r'href="#([^"]+)"', page):
             self.assertIn('id="%s"' % anchor, page, "ancora senza destinazione: #%s" % anchor)
         low = page.lower()
@@ -74,6 +79,18 @@ class Sito(Base):
             self.assertIn(rule, reduced, "chi ha chiesto meno movimento vede la pagina ferma")
         self.assertNotIn("eval(", js)
         self.assertNotIn("innerHTML", js)
+
+    def test_launcher_gia_pronto_per_sistema(self):
+        from server import local
+        self.assertTrue(self.call("GET", "/api/launcher/catalog")[1]["public_key"], "il programma scaricato da solo prende la chiave dal server")
+        self.assertEqual(self.fetch("/api/launcher/download?os=mac-intel")[1]["Location"], local.RELEASE + "Alvea-Launcher-Intel.dmg")
+        status, headers, data = self.fetch("/api/launcher/download?os=altro")
+        self.assertEqual((status, data[:2]), (200, b"PK"), "per gli altri sistemi resta la versione con Python")
+        os.environ["LAUNCHER_URL_WINDOWS"] = "https://scarica.esempio.it/Alvea.exe"
+        self.addCleanup(lambda: os.environ.pop("LAUNCHER_URL_WINDOWS", None))
+        self.assertEqual(self.fetch("/api/launcher/download?os=windows")[1]["Location"], "https://scarica.esempio.it/Alvea.exe")
+        os.environ["LAUNCHER_URL_WINDOWS"] = "javascript:alert(1)"
+        self.assertEqual(self.fetch("/api/launcher/download?os=windows")[1]["Location"], local.RELEASE + "Alvea-Launcher.exe", "un indirizzo non https viene ignorato")
 
     def test_il_sito_si_puo_spegnere(self):
         os.environ["SFB_SITE"] = "0"

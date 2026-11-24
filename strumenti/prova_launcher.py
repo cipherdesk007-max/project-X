@@ -34,6 +34,7 @@ def call(method, path, body=None, token=None):
 
 def main():
     folder = Path(sys.argv[1]).resolve()
+    shots = Path(sys.argv[sys.argv.index("--foto") + 1]).resolve() if "--foto" in sys.argv else None
     binary = next((p for p in (folder / "alvea-launcher.exe", folder / "alvea-launcher") if p.is_file()), None)
     if not binary:
         print("ERRORE: in %s non c'è il programma del launcher" % folder)
@@ -52,6 +53,29 @@ def main():
         print("%-7s %s%s" % ("OK" if ok else "ERRORE", name, (" — " + detail) if detail else ""), flush=True)
         if not ok:
             failed.append(name)
+
+    def photo(name):
+        """Apre la finestra del launcher, la fotografa e la lascia chiudere da sola. Solo su Windows e macOS, dove c'è uno schermo."""
+        if not shots:
+            return
+        shots.mkdir(parents=True, exist_ok=True)
+        target = shots / name
+        win = subprocess.Popen([str(binary), "finestra"], env=dict(lenv, ALVEA_FINESTRA_PROVA="16"))
+        time.sleep(10)
+        try:
+            if sys.platform == "darwin":
+                subprocess.run(["screencapture", "-x", str(target)], timeout=30)
+            else:
+                from PIL import ImageGrab
+                ImageGrab.grab().save(str(target))
+        except Exception as e:
+            print("foto non riuscita: %s" % e, flush=True)
+        alive = win.poll() is None
+        try:
+            win.wait(timeout=40)
+        except Exception:
+            win.kill()
+        step("la finestra del launcher si apre (%s)" % name, alive and target.is_file() and target.stat().st_size > 5000)
 
     def launcher(*args):
         r = subprocess.run([str(binary)] + list(args), env=lenv, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
@@ -82,12 +106,14 @@ def main():
         lines = [l for l in out.splitlines() if re.search(r"GIRA|SOLO SUI NOSTRI SERVER", l)]
         step("verifica del computer senza account", code == 0 and len(lines) >= agents, "%d righe per %d agenti" % (len(lines), agents))
         step("le lettere accentate si leggono", "è" in out or "à" in out or "ò" in out)
+        photo("1-prima-del-collegamento.png")
         code, out = launcher("cartella-dev", work)
         step("scelta della cartella di lavoro", code == 0, out.strip()[-160:])
         token = call("POST", "/api/login", {"email": "completo@demo.local", "password": password})["token"]
         pair = call("POST", "/api/devices/code", {}, token)["code"]
         code, out = launcher("collega", pair, "--nome", "Prova automatica")
         step("collegamento con il codice usa e getta", code == 0, out.strip()[-200:])
+        photo("2-collegato.png")
         running = subprocess.Popen([str(binary), "avvia"], env=lenv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         device = {}
         for _ in range(40):

@@ -28,7 +28,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 # Nel programma già pronto (dmg per macOS, exe per Windows) i file accanto sono quelli accanto all'eseguibile, non al codice impacchettato.
 HERE = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 HOME = Path(os.environ.get("ALVEA_HOME") or str(Path.home() / ".alvea"))
@@ -454,6 +454,165 @@ def cmd_modello(cfg, args):
     return 0
 
 
+def normal_server(text):
+    t = str(text or "").strip().rstrip("/")
+    return t if not t or t.startswith(("http://", "https://")) else "https://" + t
+
+
+def ensure_key(cfg):
+    """Il programma scaricato da solo (exe, dmg) non ha la chiave che controlla i pacchetti: la prende dal server a cui viene collegato."""
+    if cfg.get("server") and not cfg.get("public_key"):
+        cfg["public_key"] = Api(dict(cfg, token="")).call("GET", "/api/launcher/catalog").get("public_key")
+        if cfg["public_key"]:
+            save_cfg(cfg)
+    return cfg
+
+
+def cmd_finestra(cfg, args):
+    """La finestra del launcher: indirizzo, codice di collegamento, verifica del computer e stato. Senza grafica ripiega sul testo."""
+    try:
+        import queue
+        import tkinter as tk
+    except Exception:
+        return cmd_guidato(cfg, args)
+    BG, PANEL, TEXT, MUTED, ACCENT, WARN = "#0b0f14", "#141b23", "#f3f5f7", "#98a2ae", "#ff6a00", "#ffd166"
+    try:
+        root = tk.Tk()
+    except Exception:
+        return cmd_guidato(cfg, args)
+    trial = float(os.environ.get("ALVEA_FINESTRA_PROVA") or 0)  # solo per le prove: la finestra si chiude da sola dopo tanti secondi
+    root.title("Alvea Launcher")
+    root.configure(bg=BG)
+    root.geometry("780x640+60+60" if trial else "780x640")
+    root.minsize(640, 520)
+    q, stop, state = queue.Queue(), threading.Event(), {"busy": False, "listening": False}
+    try:
+        logo = tk.PhotoImage(file=str(Path(getattr(sys, "_MEIPASS", str(HERE))) / "logo-alvea.png")).subsample(3, 3)
+        tk.Label(root, image=logo, bg=BG).pack(anchor="w", padx=24, pady=(20, 2))
+        root._logo = logo  # tenuto vivo: senza questo riferimento l'immagine sparisce
+    except Exception:
+        tk.Label(root, text="alvea", fg=TEXT, bg=BG, font=("Helvetica", 28, "bold")).pack(anchor="w", padx=24, pady=(20, 2))
+    tk.Label(root, text="Launcher %s  ·  gli agenti di Alvea sul tuo computer" % VERSION, fg=MUTED, bg=BG, font=("Helvetica", 12)).pack(anchor="w", padx=24)
+    form = tk.Frame(root, bg=BG)
+    form.pack(fill="x", padx=24, pady=(18, 4))
+    form.columnconfigure(1, weight=1)
+
+    def field(label, r):
+        tk.Label(form, text=label, fg=MUTED, bg=BG, anchor="w", font=("Helvetica", 12)).grid(row=r, column=0, sticky="w", pady=5)
+        e = tk.Entry(form, bg=PANEL, fg=TEXT, insertbackground=TEXT, relief="flat", highlightthickness=1, highlightbackground="#2a3440", highlightcolor=ACCENT, font=("Helvetica", 13))
+        e.grid(row=r, column=1, sticky="we", padx=(14, 0), ipady=6)
+        return e
+
+    server, code = field("Indirizzo del tuo Alvea", 0), field("Codice di collegamento", 1)
+    server.insert(0, cfg.get("server") or "")
+    buttons = tk.Frame(root, bg=BG)
+    buttons.pack(fill="x", padx=24, pady=(10, 6))
+    status = tk.Label(root, text="Scrivi l'indirizzo del tuo Alvea e premi «Verifica questo computer».", fg=TEXT, bg=BG, anchor="w", justify="left", wraplength=720, font=("Helvetica", 13, "bold"))
+    status.pack(fill="x", padx=24, pady=(6, 8))
+    out = tk.Text(root, bg="#06090c", fg="#d8dee6", relief="flat", height=14, wrap="none", font=("Courier", 11), padx=12, pady=10, state="disabled")
+    out.pack(fill="both", expand=True, padx=24, pady=(0, 22))
+
+    def say(line=""):
+        q.put(("riga", str(line)))
+
+    def tell(text, ok=True):
+        q.put(("stato", text, ok))
+
+    def prepare():
+        cfg["server"] = normal_server(server.get())
+        if not cfg["server"]:
+            raise LauncherError("scrivi l'indirizzo del tuo Alvea, per esempio app.tuodominio.it")
+        ensure_key(cfg)
+
+    def listen():
+        if state["listening"]:
+            return
+        state["listening"] = True
+
+        def body():
+            try:
+                tell("Collegato: in attesa di lavori. Lascia aperta questa finestra.")
+                run(cfg, stop=stop, log=say)
+            except Exception as e:
+                tell("Errore: %s" % (str(e) or type(e).__name__), False)
+            finally:
+                state["listening"] = False
+        threading.Thread(target=body, daemon=True).start()
+
+    def verify():
+        prepare()
+        api, sp = Api(dict(cfg, token="")), specs()
+        say("Computer: %s, %d core, %.0f GB di memoria, %.0f GB liberi" % (sp["os_version"], sp["cores"], sp["ram_gb"], sp["disk_free_gb"]))
+        say("Server:   %s" % api.base)
+        say()
+        verdicts(api, cfg, sp, log=say)
+        say()
+        if cfg.get("token"):
+            listen()
+        else:
+            tell("Verifica fatta. Per far lavorare gli agenti qui, scrivi il codice di collegamento e premi «Collega».")
+
+    def pair():
+        prepare()
+        if not code.get().strip():
+            raise LauncherError("scrivi il codice che trovi nel Centro di controllo, scheda Computer")
+        api, sp = Api(dict(cfg, token="")), specs()
+        checks, _ = verdicts(api, cfg, sp)
+        got = api.call("POST", "/api/launcher/pair", {"code": code.get().strip(), "name": platform.node() or "Computer", "specs": sp, "checks": checks, "launcher_version": VERSION})
+        cfg["token"] = got["token"]
+        save_cfg(cfg)
+        say("Collegato a «%s» come «%s»." % (got["tenant"], got["name"]))
+        listen()
+
+    def work(fn):
+        if state["busy"]:
+            return
+        state["busy"] = True
+
+        def body():
+            try:
+                fn()
+            except Exception as e:
+                tell("Errore: %s" % (str(e) or type(e).__name__), False)
+            finally:
+                state["busy"] = False
+        threading.Thread(target=body, daemon=True).start()
+
+    for text, fn, main_button in (("Verifica questo computer", verify, False), ("Collega", pair, True)):
+        tk.Button(buttons, text=text, command=lambda f=fn: work(f), bg=ACCENT if main_button else PANEL, fg="#0b0f14" if main_button else TEXT, activebackground=ACCENT,
+                  relief="flat", padx=16, pady=7, font=("Helvetica", 12, "bold"), cursor="hand2").pack(side="left", padx=(0, 10))
+
+    def pump():
+        try:
+            while True:
+                item = q.get_nowait()
+                if item[0] == "riga":
+                    out.configure(state="normal")
+                    out.insert("end", item[1] + "\n")
+                    out.see("end")
+                    out.configure(state="disabled")
+                else:
+                    status.configure(text=item[1], fg=TEXT if item[2] else WARN)
+        except queue.Empty:
+            pass
+        root.after(150, pump)
+
+    def close():
+        stop.set()
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", close)
+    if trial:
+        root.lift()
+        root.attributes("-topmost", True)
+        root.after(int(trial * 1000), close)
+    if cfg.get("server"):
+        work(verify)
+    pump()
+    root.mainloop()
+    return 0
+
+
 def cmd_guidato(cfg, args):
     print("Alvea Launcher %s\n" % VERSION)
     cmd_verifica(cfg, args)
@@ -477,6 +636,7 @@ def main(argv=None):
     p.add_argument("--server", help="indirizzo del server Alvea, se diverso da quello nel file server.json")
     sub = p.add_subparsers(dest="cmd")
     sub.add_parser("verifica").set_defaults(fn=cmd_verifica)
+    sub.add_parser("finestra").set_defaults(fn=cmd_finestra)
     s = sub.add_parser("collega")
     s.add_argument("codice")
     s.add_argument("--nome")
@@ -502,7 +662,11 @@ def main(argv=None):
     if args.server:
         cfg["server"] = args.server
     try:
-        return (args.fn if args.cmd else cmd_guidato)(cfg, args)
+        if cfg.get("server") and not cfg.get("public_key") and args.cmd != "finestra":
+            cfg["server"] = normal_server(cfg["server"])
+            ensure_key(cfg)
+        window = getattr(sys, "frozen", False) and not os.environ.get("ALVEA_TESTO")  # il programma già pronto, aperto senza comandi, mostra la finestra
+        return (args.fn if args.cmd else (cmd_finestra if window else cmd_guidato))(cfg, args)
     except LauncherError as e:
         print("Errore: %s" % e, file=sys.stderr)
         return 1

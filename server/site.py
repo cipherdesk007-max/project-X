@@ -110,7 +110,8 @@ def page():
 <div><h2>Sui nostri server o sul tuo computer</h2>
 <p class="sub">Tutto gira sui nostri server senza installare niente. Se preferisci, alcuni agenti possono lavorare sul tuo computer: {local}.</p>
 <p class="sub">Il launcher controlla il tuo computer e ti dice, agente per agente, se può farlo girare. Lo scopri prima di scegliere, senza account. Per farli lavorare sul tuo computer serve poi l'abbonamento attivo.</p>
-<div class="cta"><a class="btn primary" href="/api/launcher/download">Scarica il launcher</a></div></div>
+<div class="cta"><a class="btn primary" href="/api/launcher/download?os=windows" data-os="windows">Scarica per Windows</a><a class="btn primary" href="/api/launcher/download?os=mac" data-os="mac">Scarica per Mac</a></div>
+<p class="note">Mac con processore Intel: <a class="link" href="/api/launcher/download?os=mac-intel">versione Intel</a>. Altri sistemi, o se preferisci vedere il codice: <a class="link" href="/api/launcher/download">versione con Python</a>.</p></div>
 <div class="panel"><h3>Modelli</h3><p>{models}. Li scegli tu, conversazione per conversazione. Con un modello locale i testi non lasciano il tuo computer.</p></div>
 </div></section>
 <section id="sicurezza"><div class="wrap">

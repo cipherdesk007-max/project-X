@@ -869,6 +869,13 @@ class Handler(BaseHTTPRequestHandler):
             if job_file and method == "POST":
                 return self._job_file(int(job_file.group(1)))
             if parts.path == "/api/launcher/download" and method == "GET":
+                which = (urllib.parse.parse_qs(parts.query).get("os") or [""])[0]
+                if which in local.READY:  # programma già pronto: lo consegna il rilascio su GitHub, o l'indirizzo scelto dal gestore
+                    self.send_response(302)
+                    self.send_header("Location", local.ready_url(which))
+                    self.send_header("Content-Length", "0")
+                    self.end_headers()
+                    return None
                 return self._send(200, local.launcher_zip(), "application/zip",
                                   [("Content-Disposition", 'attachment; filename="alvea-launcher.zip"')])
             content = re.fullmatch(r"/api/files/(\d+)/content", parts.path)

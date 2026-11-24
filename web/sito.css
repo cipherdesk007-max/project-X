@@ -36,6 +36,8 @@ section.alt { background: var(--deep); border-top: 1px solid var(--line); border
 .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--glow); margin-bottom: 18px; }
 .lead { font-size: clamp(17px, 1.7vw, 20px); color: var(--muted); max-width: 52ch; margin: 22px 0 30px; }
 .note { margin-top: 16px; font-size: 14px; color: var(--muted); }
+.link { color: var(--glow); text-decoration: underline; text-underline-offset: 3px; padding: 6px 0; display: inline-block; }
+.cta .btn.dim { background: transparent; color: var(--text); border-color: var(--line); font-weight: 500; }
 /* i tre esagoni del marchio, ripresi come alveare */
 .hive { position: absolute; right: 0; top: 50%; width: 330px; height: 300px; transform: translateY(-50%); }
 .hive i { position: absolute; width: 104px; height: 118px; background: var(--accent); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }

@@ -145,6 +145,18 @@ def ensure_signed():
         return False
 
 
+READY = {"windows": ("LAUNCHER_URL_WINDOWS", "Alvea-Launcher.exe"), "mac": ("LAUNCHER_URL_MAC", "Alvea-Launcher.dmg"),
+         "mac-intel": ("LAUNCHER_URL_MAC_INTEL", "Alvea-Launcher-Intel.dmg")}
+RELEASE = "https://github.com/cipherdesk007-max/project-X/releases/download/launcher/"
+
+
+def ready_url(which):
+    """Dove si scarica il launcher già pronto per quel sistema. Il gestore può indicare un altro indirizzo nel file .env."""
+    name, default = READY[which]
+    url = config.get(name) or RELEASE + default
+    return url if url.startswith("https://") else RELEASE + default
+
+
 def launcher_zip():
     """Il launcher da scaricare: i suoi file, l'indirizzo di questo server e la chiave pubblica per controllare i pacchetti."""
     out = io.BytesIO()
@@ -163,7 +175,7 @@ def launcher_zip():
 
 def public_catalog():
     """Requisiti di ogni agente: pubblici, perché il launcher li controlla PRIMA che il cliente scelga o paghi."""
-    return {"launcher_version": launcher_version(), "server": config.get("SFB_PUBLIC_URL", "").rstrip("/"),
+    return {"launcher_version": launcher_version(), "server": config.get("SFB_PUBLIC_URL", "").rstrip("/"), "public_key": public_key(),
             "agents": [{"id": a["id"], "name": a["name"], "run": a["run"]} for a in catalog.load()["agents"]],
             "model": catalog.load().get("local_model")}
 

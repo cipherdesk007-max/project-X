@@ -78,7 +78,9 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    try { animate(); } catch (e) { root.classList.remove("js"); }  // se qualcosa va storto la pagina resta tutta visibile
+    try { animate(); } catch (e) { root.classList.remove("js"); }
+    var mine = /Win/i.test(navigator.platform || navigator.userAgent) ? "windows" : (/Mac/i.test(navigator.platform || navigator.userAgent) ? "mac" : ""), osb = document.querySelectorAll("[data-os]"), n;
+    for (n = 0; n < osb.length; n++) if (mine && osb[n].getAttribute("data-os") !== mine) osb[n].classList.add("dim");  // in evidenza il pulsante del sistema di chi guarda  // se qualcosa va storto la pagina resta tutta visibile
     var request = new XMLHttpRequest();
     request.open("GET", "/api/register");
     request.onload = function () {

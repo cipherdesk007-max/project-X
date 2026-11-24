@@ -18,6 +18,8 @@ jobs:
             nome: windows
           - os: macos-latest
             nome: macos
+          - os: macos-15-intel
+            nome: macos-intel
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -28,39 +30,49 @@ jobs:
       - name: Costruisce il programma
         shell: bash
         run: |
-          python -m pip install --quiet pyinstaller
-          python -m PyInstaller --onefile --console --name alvea-launcher --hidden-import imaplib --hidden-import smtplib --hidden-import email.header --hidden-import email.message --hidden-import ssl --hidden-import tempfile --hidden-import getpass launcher/alvea_launcher.py
+          python -m pip install --quiet pyinstaller pillow
+          python -m PyInstaller --onefile --console --name alvea-launcher --add-data "web/logo-alvea.png:." --hidden-import tkinter --hidden-import queue --hidden-import imaplib --hidden-import smtplib --hidden-import email.header --hidden-import email.message --hidden-import ssl --hidden-import tempfile --hidden-import getpass launcher/alvea_launcher.py
           mkdir -p pronto && cp launcher/LEGGIMI.txt pronto/
       - name: Prepara l'exe (Windows)
         if: matrix.nome == 'windows'
         shell: bash
         run: cp dist/alvea-launcher.exe pronto/ && cp dist/alvea-launcher.exe Alvea-Launcher.exe
       - name: Prepara il dmg (macOS)
-        if: matrix.nome == 'macos'
+        if: startsWith(matrix.nome, 'macos')
         shell: bash
         run: |
           mkdir dmgroot && cp dist/alvea-launcher dmgroot/ && cp launcher/LEGGIMI.txt dmgroot/
-          hdiutil create -volname "Alvea Launcher" -srcfolder dmgroot -ov -format UDZO Alvea-Launcher.dmg
-          hdiutil attach Alvea-Launcher.dmg -mountpoint /tmp/alvea-dmg -nobrowse -readonly
+          DMG="Alvea-Launcher${{ matrix.nome == 'macos-intel' && '-Intel' || '' }}.dmg"
+          hdiutil create -volname "Alvea Launcher" -srcfolder dmgroot -ov -format UDZO "$DMG"
+          hdiutil attach "$DMG" -mountpoint /tmp/alvea-dmg -nobrowse -readonly
           cp /tmp/alvea-dmg/alvea-launcher pronto/   # si prova proprio il programma tirato fuori dal dmg
           hdiutil detach /tmp/alvea-dmg
           file pronto/alvea-launcher
       - name: Prova come un cliente
         shell: bash
-        run: python strumenti/prova_launcher.py pronto
+        run: python strumenti/prova_launcher.py pronto --foto foto
+      - name: Salva le fotografie della finestra
+        if: always()
+        shell: bash
+        run: |
+          [ -d foto ] || exit 0
+          mkdir -p /tmp/foto-ramo && cp foto/*.png /tmp/foto-ramo/ && cd /tmp/foto-ramo
+          git init -q && git checkout -q -b foto && git add . 
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Fotografie della finestra del launcher (${{ matrix.nome }})"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" foto:refs/heads/foto-launcher-${{ matrix.nome }}
       - uses: actions/upload-artifact@v4
         with:
           name: alvea-launcher-${{ matrix.nome }}
           path: |
             Alvea-Launcher.exe
-            Alvea-Launcher.dmg
+            Alvea-Launcher*.dmg
       - name: Pubblica tra i rilasci
         if: github.ref == 'refs/heads/main'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          f="Alvea-Launcher.${{ matrix.nome == 'windows' && 'exe' || 'dmg' }}"
+          f="Alvea-Launcher${{ matrix.nome == 'macos-intel' && '-Intel' || '' }}.${{ matrix.nome == 'windows' && 'exe' || 'dmg' }}"
           # i due lavori arrivano qui quasi insieme: se il rilascio l'ha già creato l'altro, si va avanti
           gh release view launcher >/dev/null 2>&1 || gh release create launcher --title "Launcher di Alvea" --notes "Programmi del launcher costruiti e provati in automatico su macOS e Windows. Non sono firmati: vedi GUIDA.md." --latest=false || true
           gh release upload launcher "$f" --clobber
