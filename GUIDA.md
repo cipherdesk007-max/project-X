@@ -143,6 +143,14 @@ Nel pannello, gruppo **Crediti**, decidi tutto tu:
 
 Il cliente vede tutto nella scheda **Crediti**: quanti ne ha, quando si ricaricano, quanto costa ogni modello, e compra le ricariche con la carta. Tu, nella scheda di ogni azienda, vedi i suoi crediti e puoi aggiungerne o toglierne. Chi usa una propria chiave del modello non consuma crediti.
 
+### Launcher già pronto (exe e dmg)
+
+Oltre alla versione che chiede Python, c'è il launcher già pronto: `Alvea-Launcher.exe` per Windows e `Alvea-Launcher.dmg` per i Mac con processore Apple. Si scaricano da `https://github.com/cipherdesk007-max/project-X/releases/tag/launcher` e vengono ricostruiti e riprovati da soli a ogni modifica del launcher.
+
+Per usarli, accanto al programma va messo il file `server.json` che sta nel pacchetto scaricato dal tuo server (pulsante «Scarica il launcher»): contiene l'indirizzo del server e la chiave che controlla i pacchetti.
+
+Non sono firmati: alla prima apertura Windows mostra «PC protetto» (Ulteriori informazioni → Esegui comunque) e macOS dice che lo sviluppatore non è verificato (clic destro → Apri). Per togliere gli avvisi servono un account sviluppatore Apple e un certificato di firma del codice per Windows. Sui Mac Intel il dmg non parte: lì si usa la versione Python.
+
 ### Agenti sul computer del cliente: prima si paga
 
 Il launcher verifica il computer gratis e senza account. Per collegarlo e far lavorare gli agenti lì serve l'abbonamento pagato: chi è in prova gratuita o è scaduto vede il motivo nella scheda Computer e intanto usa gli agenti sui tuoi server.

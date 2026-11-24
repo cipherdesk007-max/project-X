@@ -32,6 +32,12 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 17: launcher già pronto per Windows e macOS
+
+- **`Alvea-Launcher.exe` e `Alvea-Launcher.dmg`** vengono costruiti e provati in automatico su macchine vere di GitHub (`.github/workflows/launcher.yml`) ogni volta che cambia il launcher o un suo pacchetto, e pubblicati nel rilascio «launcher» del repository. Dentro c'è già Python: il cliente non deve installare niente.
+- **La prova** (`strumenti/prova_launcher.py`) fa quello che fa un cliente, con il programma costruito: prende dal server indirizzo e chiave, verifica il computer, lo collega con un codice usa e getta, scarica i pacchetti controllandone la firma, resta acceso, e controlla che lo stesso codice non valga due volte.
+- **Limiti di oggi**: i programmi non sono firmati (macOS e Windows mostrano un avviso alla prima apertura; per toglierlo servono un account sviluppatore Apple e un certificato di firma per Windows); il dmg è solo per Mac con processore Apple, non Intel; è un programma a riga di comando, non un'app con icona e finestre; il pulsante «Scarica il launcher» del sito consegna ancora la versione Python.
+
 ## Novità della versione 15: prezzi dal pannello e otto agenti in più
 
 - **Prezzi regolabili dal pannello** (`server/pricing.py`, gruppo «Prezzi»): prezzo mensile di ogni pacchetto e prezzo in più per ogni agente acceso, in euro. Il pagamento parte con l'importo calcolato, senza creare prezzi a mano su Stripe; quando un'azienda abbonata accende o spegne un agente, o il gestore le cambia pacchetto, il prezzo dell'abbonamento viene aggiornato su Stripe. Se Stripe non risponde l'agente si accende lo stesso, l'errore resta nel registro e il prezzo si riallinea alla modifica successiva. I prezzi compaiono nella scheda Abbonamento e sul sito; con tutto a 0 non compare niente e valgono gli ID dei prezzi Stripe.
