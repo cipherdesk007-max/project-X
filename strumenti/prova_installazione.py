@@ -216,7 +216,9 @@ def installa():
     atteso(bool(login(AZIENDA["admin_email"])) and bool(login(EMAIL)), "Dopo il ripristino gestore e prima azienda entrano")
     atteso(login("admin@dopo-la-copia.it") is None, "La seconda azienda, nata dopo la copia, non c'è più: i dati sono quelli della copia")
     status, _, files = http("GET", LOCALE + "/api/files", token=login(AZIENDA["admin_email"]))
-    atteso(status == 200 and "punto.png" in json.dumps(files), "Il file caricato è tornato", files)
+    mine = [f for f in (files.get("assets", []) if isinstance(files, dict) else []) if f.get("name") == "punto.png"]
+    back = http("GET", LOCALE + mine[0]["url"]) if mine else (0, {}, b"")
+    atteso(back[0] == 200 and back[2] == png, "Il file caricato è tornato e si scarica identico", (files, back[0]))
     code, out = sh("bash deploy/ripristina.sh /var/backups/alvea/non-esiste.db")
     atteso(code == 2 and attivo("alvea"), "Con una copia che non esiste non tocca niente")
     sh("head -c 2000 /dev/urandom > /tmp/rotta.db")
