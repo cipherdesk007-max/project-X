@@ -14,6 +14,7 @@ import getpass
 import secrets
 import shutil
 import sys
+import urllib.parse
 
 from server import audit, catalog, config, db, ops
 from server.errors import ApiError
@@ -184,7 +185,7 @@ def production_report():
     add(config.get("SFB_HOST", "127.0.0.1") == "127.0.0.1" and config.get("SFB_TRUST_PROXY", "0") == "1",
         "Il server ascolta solo in locale, dietro il proxy.", "Con il proxy davanti servono SFB_HOST=127.0.0.1 e SFB_TRUST_PROXY=1, altrimenti i limiti per indirizzo non funzionano.")
     add(any(config.get(k) for k in ("ANTHROPIC_API_KEY", "MOONSHOT_API_KEY", "OPENAI_API_KEY", "OLLAMA_BASE_URL")),
-        "Almeno un modello è configurato.", "Nessun modello: serve una chiave (ANTHROPIC_API_KEY, MOONSHOT_API_KEY, OPENAI_API_KEY) oppure OLLAMA_BASE_URL.")
+        "Almeno un modello è configurato.", "Nessun modello: scrivi almeno una chiave nel pannello del gestore, Impostazioni, gruppo «Modelli» (oppure l'indirizzo di Ollama).")
     add(bool(config.get("SFB_SECRET_KEY")), "Le credenziali dei collegamenti sono cifrate.", "Manca SFB_SECRET_KEY: le credenziali dei clienti resterebbero in chiaro nel database.")
     add(bool(local.public_key()) and all(local.signed(n) for n in local.package_names()), "Pacchetti locali firmati.",
         "Pacchetti locali non firmati: esegui «python3 manage.py firma-pacchetti» (serve openssl).")
@@ -192,7 +193,7 @@ def production_report():
         "La chiave privata di firma è su questo server (%s): spostala su un altro computer e firma da lì con --chiave." % local.key_path())
     add(config.db_path().is_file(), "Database presente.", "Database assente: esegui «python3 manage.py init».")
     add(local.cloud_video_ready(), "FFmpeg presente: il montaggio video sui server è attivo.", "FFmpeg assente: il Video Editor funzionerà solo sui computer dei clienti.", block=False)
-    add(bool(config.get("SFB_SMTP_HOST")), "Posta di servizio configurata: chi si registra conferma l'email.", "Senza SFB_SMTP_HOST chi si registra non conferma l'email.", block=False)
+    add(bool(config.get("SFB_SMTP_HOST")), "Posta di servizio configurata: chi si registra conferma l'email.", "Senza la posta di servizio (pannello del gestore, Impostazioni, gruppo «Posta») chi si registra non conferma l'email e non c'è il recupero della password.", block=False)
     stripe = [k for k in ("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET") if not config.get(k)]
     from server import legal, pricing, site
     prices = [p for p in ("START", "BUSINESS", "COMPLETO") if config.get("STRIPE_PRICE_" + p) or pricing.configured(p.lower())]  # prezzo fisso di Stripe oppure prezzo del pannello
@@ -357,13 +358,119 @@ def model_check():
                                                                             ", %d token" % tokens if tokens else "")))
         except llm.LLMError as e:
             out.append(("ERRORE", "%s (%s): %s" % (m["name"], s["model"] or "nessun nome di modello", str(e)[:300])))
+            continue
+        out.append(_tool_round(llm, m, s))
     return out
+
+
+def _tool_round(llm, m, s):
+    """Il giro che fanno gli agenti: il modello chiede uno strumento, riceve il risultato, risponde, e la conversazione prosegue.
+    È qui che un servizio vero può rifiutare la richiesta (formato degli strumenti, ragionamento da rimandare indietro) anche se a una domanda semplice risponde."""
+    import time
+    tool = {"name": "ora_del_server", "description": "Restituisce la data e l'ora del server. Va usato quando l'utente chiede che ore sono.",
+            "schema": {"type": "object", "properties": {}}}
+    system = "Sei un controllo tecnico. Quando ti chiedono l'ora usa sempre lo strumento ora_del_server, poi rispondi in una riga."
+    messages, started, used = [{"role": "user", "content": "Che ore sono sul server? Usa lo strumento."}], time.time(), False
+    try:
+        res = llm.chat(m["id"], system, messages, [tool], None, True)
+        if res["tool_calls"]:
+            used = True
+            messages.append({"role": "assistant", "content": res["text"], "tool_calls": res["tool_calls"], "raw": res["raw"]})
+            for call in res["tool_calls"]:
+                messages.append({"role": "tool", "tool_call_id": call["id"], "name": call["name"], "content": time.strftime("%Y-%m-%d %H:%M")})
+            res = llm.chat(m["id"], system, messages, [tool], None, True)
+        # la conversazione prosegue come dalla cronologia salvata: solo il testo delle risposte precedenti
+        messages = [messages[0], {"role": "assistant", "content": res["text"] or "Fatto."}, {"role": "user", "content": "Grazie. Rispondi soltanto: fatto"}]
+        res = llm.chat(m["id"], system, messages, [tool], None, True)
+    except llm.LLMError as e:
+        return "ERRORE", "%s (%s): alla domanda semplice risponde, ma il giro con uno strumento non riesce: %s" % (m["name"], s["model"], str(e)[:300])
+    if not used:
+        return "ATTENZIONE", "%s (%s): risponde, ma non ha usato lo strumento che gli era stato chiesto: gli agenti che agiscono (email, calendario, CRM) con questo modello potrebbero non lavorare." % (m["name"], s["model"])
+    return "OK", "%s (%s): usa uno strumento, ne riceve il risultato e prosegue la conversazione (%.1f secondi)." % (m["name"], s["model"], time.time() - started)
+
+
+def service_check():
+    """Prova i servizi configurati con una chiamata vera che non costa e non spedisce niente. Ritorna [(stato, testo)]."""
+    from server import connectors, google, pricing, registration, settings
+    config.load_env()
+    if config.db_path().is_file():
+        con = db.connect()
+        try:
+            settings.load(con)
+        except Exception:
+            pass
+        con.close()
+    out = []
+
+    def attempt(name, fn, missing):
+        if missing:
+            return out.append(("-", "%s: non configurato (%s)." % (name, missing)))
+        try:
+            out.append(("OK", "%s: %s." % (name, fn())))
+        except connectors.ConnectorError as e:
+            out.append(("ERRORE", "%s: %s" % (name, str(e)[:300])))
+
+    cfg = registration.smtp_cfg()
+    attempt("Posta di servizio", lambda: connectors.smtp_check(cfg), "" if cfg and cfg.get("username") and cfg.get("password") else "server, utente e password nel gruppo «Posta»")
+    attempt("Ricerca con Brave", lambda: "ha risposto con %d risultati" % len(connectors.brave_search(config.get("BRAVE_API_KEY"), "Alvea prova", 2)),
+            "" if config.get("BRAVE_API_KEY") else "chiave nel gruppo «Ricerca»")
+    attempt("Ricerca con SearXNG", lambda: "ha risposto in formato JSON con %d risultati" % len(connectors.searxng_search(config.get("SEARXNG_URL"), "Alvea prova", 2)),
+            "" if config.get("SEARXNG_URL") else "facoltativo: indirizzo nel gruppo «Ricerca»")
+    key = config.get("STRIPE_SECRET_KEY")
+    api, auth = config.get("STRIPE_API_BASE", "https://api.stripe.com").rstrip("/"), {"Authorization": "Bearer " + key}
+
+    def account():
+        a = connectors.http_json("GET", api + "/v1/account", headers=auth)
+        name = (a.get("settings") or {}).get("dashboard", {}).get("display_name") or (a.get("business_profile") or {}).get("name") or a.get("id") or "?"
+        return "la chiave è accettata (conto «%s»%s)" % (name, ", MODALITÀ DI PROVA: nessun pagamento vero" if key.startswith(("sk_test_", "rk_test_")) else "")
+    attempt("Stripe", account, "" if key else "chiave segreta nel gruppo «Pagamenti»")
+    if key:
+        def price(pid, recurring):
+            p = connectors.http_json("GET", api + "/v1/prices/" + urllib.parse.quote(pid, safe=""), headers=auth)
+            if not p.get("active", True):
+                raise connectors.ConnectorError("il prezzo %s su Stripe è archiviato." % pid)
+            interval = (p.get("recurring") or {}).get("interval")
+            if recurring and interval != "month":
+                raise connectors.ConnectorError("il prezzo %s non è un abbonamento mensile (su Stripe risulta: %s)." % (pid, interval or "pagamento singolo"))
+            if not recurring and interval:
+                raise connectors.ConnectorError("il prezzo %s è un abbonamento: per le ricariche serve un pagamento singolo." % pid)
+            return "prezzo %s trovato: %.2f %s %s" % (pid, (p.get("unit_amount") or 0) / 100.0, str(p.get("currency") or "").upper(), "al mese" if recurring else "una volta")
+        for pkg in ("START", "BUSINESS", "COMPLETO"):
+            pid = config.get("STRIPE_PRICE_" + pkg)
+            if pid:
+                attempt("Stripe, pacchetto %s" % pkg.capitalize(), lambda pid=pid: price(pid, True), "")
+            elif pricing.configured(pkg.lower()):
+                out.append(("OK", "Stripe, pacchetto %s: usa il prezzo scritto nel pannello (%d euro al mese)." % (pkg.capitalize(), pricing.package_price(pkg.lower()))))
+            else:
+                out.append(("-", "Stripe, pacchetto %s: nessun prezzo (gruppo «Prezzi»): questo pacchetto non si paga con carta." % pkg.capitalize()))
+        if config.get("STRIPE_PRICE_CREDITS"):
+            attempt("Stripe, ricarica di crediti", lambda: price(config.get("STRIPE_PRICE_CREDITS"), False), "")
+        hook = config.get("SFB_PUBLIC_URL", "").rstrip("/") + "/api/billing/webhook"
+        out.append(("OK" if config.get("STRIPE_WEBHOOK_SECRET") else "ERRORE",
+                    "Stripe, avvisi: %s. Su Stripe l'indirizzo da registrare è %s con gli eventi checkout.session.completed, invoice.paid, invoice.payment_failed, "
+                    "customer.subscription.updated, customer.subscription.deleted. Da qui non si può provare: lo prova il primo pagamento." % (
+                        "il segreto c'è" if config.get("STRIPE_WEBHOOK_SECRET") else "MANCA il segreto del webhook: i pagamenti non sposterebbero la scadenza", hook)))
+    if google.configured():
+        cid = config.get("GOOGLE_CLIENT_ID")
+        out.append(("OK" if cid.endswith(".apps.googleusercontent.com") else "ATTENZIONE",
+                    "Google: ID client %s. Indirizzo di ritorno da registrare nella console Google: %s. Si prova collegando un'azienda dalla scheda Collegamenti." % (
+                        "nel formato giusto" if cid.endswith(".apps.googleusercontent.com") else "in un formato insolito (di solito finisce con .apps.googleusercontent.com)", google.redirect_uri())))
+    else:
+        out.append(("-", "Google: non configurato (ID client e segreto nel gruppo «Google»)."))
+    return out
+
+
+def cmd_servizi(args):
+    report = service_check()
+    for state, text in report:
+        print("%-10s %s" % (state, text))
+    return 1 if any(s == "ERRORE" for s, _ in report) else 0
 
 
 def cmd_modelli(args):
     report = model_check()
     for state, text in report:
-        print("%-7s %s" % (state, text))
+        print("%-10s %s" % (state, text))
     if config.demo_mode():
         print("\nATTENZIONE: SFB_DEMO=1, ha risposto il modello finto. Per provare i modelli veri metti SFB_DEMO=0 nel file .env.")
     return 1 if any(s == "ERRORE" for s, _ in report) else 0
@@ -416,6 +523,7 @@ def main():
     sub.add_parser("verifica-registro").set_defaults(fn=cmd_verifica)
     sub.add_parser("controlla-produzione", help="dice cosa manca prima di aprire il server ai clienti").set_defaults(fn=cmd_produzione)
     sub.add_parser("prova-modelli", help="manda una domanda vera a ogni modello configurato e dice se risponde").set_defaults(fn=cmd_modelli)
+    sub.add_parser("prova-servizi", help="prova posta, ricerca, Stripe e Google con chiamate vere che non costano").set_defaults(fn=cmd_servizi)
     sub.add_parser("capacita", help="memoria, processore, disco e quante persone regge questo server").set_defaults(fn=cmd_capacita)
     s = sub.add_parser("collaudo", help="prova un server acceso: pagina, agenti, pacchetti, launcher")
     s.add_argument("--url", help="indirizzo del server (se manca: quello locale)")

@@ -983,7 +983,7 @@
       text: g.connected ? (g.broken ? "da ricollegare" : "collegato") : "da collegare" }));
     if (!g.configured) {
       return el("div", { class: "panel" }, head, flash,
-        el("p", { text: "L'accesso Google non è ancora configurato sulla piattaforma. Il gestore crea un client OAuth di tipo «Applicazione web» nella console Google Cloud, mette GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET nel file .env e registra questo indirizzo di ritorno:" }),
+        el("p", { text: "L'accesso Google non è ancora configurato sulla piattaforma. Il gestore crea un client OAuth di tipo «Applicazione web» nella console Google Cloud, scrive ID client e segreto nel pannello (Impostazioni della piattaforma, gruppo «Google») e registra questo indirizzo di ritorno:" }),
         el("p", { class: "mono", text: g.redirect_uri }));
     }
     var boxes = el("div", { class: "checks" }, g.services.map(function (sv) {
@@ -1444,6 +1444,8 @@
               f.secret && f.source === "pannello" ? el("button", { class: "btn small danger", type: "button", text: "Togli dal pannello",
                 onclick: function () { var v = {}; v[f.key] = ""; send(v, render); } }) : null];
           }),
+          g === "Modelli" ? el("p", { class: "empty", text: "Dopo aver salvato una chiave, nella Console del gestore premi «Prova dei modelli»: manda una domanda vera a ogni modello e gli fa usare uno strumento, come fanno gli agenti. Costa pochi token e dice subito se la chiave o il nome del modello sono sbagliati." }) : null,
+          g === "Ricerca" || g === "Google" || g === "Pagamenti" ? el("p", { class: "empty", text: "Dopo aver salvato, nella Console del gestore premi «Prova dei servizi»: controlla con una chiamata vera, che non costa e non spedisce niente, che la chiave sia accettata." }) : null,
           g === "Pagamenti" ? el("p", { class: "empty", text: "In Stripe crea un webhook verso " + out.webhook_url + " con gli eventi checkout.session.completed, invoice.paid, invoice.payment_failed, customer.subscription.updated e customer.subscription.deleted, e copia qui il suo segreto. Per la disdetta e il cambio carta attiva in Stripe il portale clienti. I prezzi sono abbonamenti mensili creati in Stripe, uno per pacchetto." }) : null,
           err, ok,
           el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", text: "Salva " + g.toLowerCase() }),

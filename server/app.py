@@ -1109,7 +1109,7 @@ def main():
     if not has_owner:
         print("ATTENZIONE: nessun gestore creato. Esegui prima: python3 manage.py init")
     if config.demo_mode():
-        print("MODALITÀ DEMO: risponde un modello finto a regole fisse. Per i modelli veri: SFB_DEMO=0 e le chiavi nel file .env")
+        print("MODALITÀ DEMO: risponde un modello finto a regole fisse. Per i modelli veri: SFB_DEMO=0 nel file .env e le chiavi nel pannello del gestore")
     if not connectors.encryption_active():
         print("ATTENZIONE: le credenziali dei collegamenti sono salvate in chiaro (manca SFB_SECRET_KEY o il pacchetto cryptography).")
     if host not in ("127.0.0.1", "localhost", "::1"):
@@ -1122,7 +1122,7 @@ def main():
         print("Lavori automatici attivi (controllo ogni %d secondi, fuso orario %s)." % (
             max(2, config.get_int("SFB_SCHEDULER_POLL", 20)), config.get("SFB_TZ", "Europe/Rome")))
     if not google.configured():
-        print("Accesso Google non configurato: mancano GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET nel file .env.")
+        print("Accesso Google non configurato: ID client e segreto si scrivono nel pannello del gestore (gruppo «Google»).")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -47,7 +47,7 @@ class Console(Base):
         self.assertEqual(self.call("GET", "/api/admin/console")[0], 401)
         status, out = self.call("GET", "/api/admin/console", token=self.gestore)
         self.assertEqual(status, 200)
-        self.assertEqual([c["id"] for c in out["commands"]], ["capacita", "modelli", "collaudo", "produzione", "registro", "aziende", "firma"])
+        self.assertEqual([c["id"] for c in out["commands"]], ["capacita", "modelli", "servizi", "collaudo", "produzione", "registro", "aziende", "firma"])
         self.assertGreater(out["capacity"]["people"], 0)
         for bad in ("ls", "capacita; ls", "capacita --help", "../manage.py", "rm -rf /", "", "CAPACITA", ["capacita"]):
             self.assertEqual(self.call("POST", "/api/admin/console", {"command": bad}, self.gestore)[0], 400, bad)
@@ -67,9 +67,10 @@ class Console(Base):
         import manage
         report = manage.model_check()
         names = [t.split(" ")[0].rstrip(":") for _, t in report]
-        self.assertEqual(names, ["Kimi", "Claude", "ChatGPT", "Locale"])
-        self.assertEqual([s for s, _ in report], ["OK"] * 4, report)  # nelle prove risponde il modello finto
-        self.assertTrue(all("ha risposto" in t and "secondi" in t for _, t in report))
+        self.assertEqual(names, ["Kimi", "Kimi", "Claude", "Claude", "ChatGPT", "ChatGPT", "Locale", "Locale"])  # per ognuno: la domanda semplice, poi il giro con uno strumento
+        self.assertEqual([s for s, _ in report], ["OK"] * 8, report)  # nelle prove risponde il modello finto
+        self.assertTrue(all("ha risposto" in t and "secondi" in t for _, t in report[0::2]))
+        self.assertTrue(all("usa uno strumento" in t and "prosegue la conversazione" in t for _, t in report[1::2]), report)
         status, out = self.call("POST", "/api/admin/console", {"command": "modelli"}, self.gestore)
         self.assertEqual((status, out["code"]), (200, 0), out)
         self.assertIn("Kimi", out["output"])
@@ -85,6 +86,25 @@ class Console(Base):
             llm.chat = real
         self.assertEqual([s for s, _ in bad], ["ERRORE"] * 4)
         self.assertIn("401 chiave non valida", bad[0][1])
+        # un modello che a una domanda semplice risponde ma rifiuta il giro con lo strumento (è il caso che dal vivo si vedrebbe solo usando un agente)
+        def picky(model_id, system, messages, tools, *a, **k):
+            if tools and any(m["role"] == "tool" for m in messages):
+                raise llm.LLMError("400 reasoning_content mancante")
+            return real(model_id, system, messages, tools, *a, **k)
+        llm.chat = picky
+        try:
+            half = manage.model_check()
+        finally:
+            llm.chat = real
+        self.assertEqual([s for s, _ in half], ["OK", "ERRORE"] * 4, half)
+        self.assertIn("giro con uno strumento non riesce: 400 reasoning_content mancante", half[1][1])
+        # e uno che lo strumento non lo usa proprio: non è un errore, ma il gestore deve saperlo
+        llm.chat = lambda model_id, system, messages, tools, *a, **k: {"text": "non lo so", "tool_calls": [], "raw": None, "usage": (1, 1)}
+        try:
+            lazy = manage.model_check()
+        finally:
+            llm.chat = real
+        self.assertEqual([s for s, _ in lazy], ["OK", "ATTENZIONE"] * 4, lazy)
 
     def test_un_comando_alla_volta(self):
         self.assertTrue(console._busy.acquire(blocking=False))

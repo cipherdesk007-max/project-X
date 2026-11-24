@@ -437,6 +437,28 @@ def check_recipient(to, subject):
         raise ConnectorError("Oggetto non valido.")
 
 
+def smtp_check(cfg):
+    """Si collega al server di posta e fa l'accesso, senza spedire niente. Ritorna una frase; alza ConnectorError se non riesce."""
+    port = int(cfg.get("smtp_port") or 465)
+    ctx = ssl.create_default_context()
+    try:
+        if port == 465:
+            server = smtplib.SMTP_SSL(cfg["smtp_host"], port, context=ctx, timeout=30)
+        else:
+            server = smtplib.SMTP(cfg["smtp_host"], port, timeout=30)
+            server.starttls(context=ctx)
+        try:
+            server.login(cfg["username"], cfg["password"])
+        finally:
+            try:
+                server.quit()
+            except Exception:
+                pass
+    except (smtplib.SMTPException, OSError, ValueError) as e:
+        raise ConnectorError("Accesso al server di posta non riuscito: %s" % e)
+    return "accesso riuscito a %s, porta %d, connessione cifrata" % (cfg["smtp_host"], port)
+
+
 def smtp_send(cfg, to, subject, text):
     check_recipient(to, subject)
     msg = EmailMessage()

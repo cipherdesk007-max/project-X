@@ -34,7 +34,9 @@ def settings(model_id, tenant_keys=None, allow_platform=True):
     elif model_id == "kimi":
         s = {"kind": "openai", "base": config.get("KIMI_BASE_URL", "https://api.moonshot.ai/v1"),
              "key": keys.get("moonshot_api_key") or platform("MOONSHOT_API_KEY"),
-             "model": config.get("KIMI_MODEL", "kimi-k3"), "key_name": "MOONSHOT_API_KEY"}
+             "model": config.get("KIMI_MODEL", "kimi-k3"), "key_name": "MOONSHOT_API_KEY",
+             # Kimi K3 ragiona sempre, e di suo al massimo: per i lavori d'ufficio il gestore può chiedergli di ragionare meno (più svelto, meno token)
+             "effort": config.get("KIMI_REASONING_EFFORT", "").strip().lower()}
     elif model_id == "chatgpt":
         s = {"kind": "openai", "base": config.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
              "key": keys.get("openai_api_key") or platform("OPENAI_API_KEY"),
@@ -55,16 +57,24 @@ def configured(model_id, tenant_keys=None, allow_platform=True):
     return bool(s["key"] and s["model"] and s["base"])
 
 
+def timeout():
+    """Secondi di attesa per una risposta: dal pannello o dal file, sempre tra 2 e 900."""
+    return max(2, min(900, config.get_int("SFB_LLM_TIMEOUT", 120)))
+
+
 def _post(url, headers, body):
     req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), method="POST",
                                  headers=dict({"Content-Type": "application/json"}, **headers))
     try:
-        with urllib.request.urlopen(req, timeout=config.get_int("SFB_LLM_TIMEOUT", 120)) as r:
+        with urllib.request.urlopen(req, timeout=timeout()) as r:
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         detail = e.read(800).decode("utf-8", "replace")
         raise LLMError("Il modello ha risposto con errore %d: %s" % (e.code, detail[:400]))
     except (urllib.error.URLError, socket.timeout, OSError) as e:
+        if isinstance(e, socket.timeout) or isinstance(getattr(e, "reason", None), socket.timeout) or "timed out" in str(e):
+            raise LLMError("Il modello non ha risposto entro %d secondi. Riprova; se succede spesso con un modello che ragiona a lungo, il gestore può "
+                           "alzare l'attesa o abbassare il ragionamento nel pannello, Impostazioni della piattaforma, gruppo «Modelli»." % timeout())
         raise LLMError("Modello non raggiungibile: %s" % getattr(e, "reason", e))
     except ValueError:
         raise LLMError("Risposta del modello non leggibile.")
@@ -134,6 +144,8 @@ def _openai_messages(system, messages):
 
 def _call_openai(s, system, messages, tools, post=None):
     body = {"model": s["model"], "messages": _openai_messages(system, messages)}
+    if s.get("effort") in ("low", "high", "max"):
+        body["reasoning_effort"] = s["effort"]
     if tools:
         body["tools"] = [{"type": "function", "function": {"name": t["name"], "description": t["description"],
                                                          "parameters": t["schema"]}} for t in tools]
@@ -159,16 +171,17 @@ def chat(model_id, system, messages, tools, tenant_keys=None, allow_platform=Tru
     """`post`: funzione che recapita la richiesta al posto della chiamata diretta (modello sul computer del cliente)."""
     s = settings(model_id, tenant_keys, allow_platform)
     if model_id == "locale" and not s["base"] and not post:
-        raise LLMError("Nessun modello locale disponibile: serve Ollama accanto al server (OLLAMA_BASE_URL nel file .env) "
-                       "oppure sul computer dell'azienda, con il launcher aperto.")
+        raise LLMError("Nessun modello locale disponibile: serve Ollama accanto al server (il gestore ne scrive l'indirizzo nel pannello, "
+                       "Impostazioni della piattaforma, gruppo «Modelli») oppure sul computer dell'azienda, con il launcher aperto.")
     if not s["key"]:
         if not allow_platform:
             raise LLMError("Manca la chiave API di questo modello: un amministratore la inserisce nel Centro di controllo, "
                            "scheda Collegamenti, alla voce «Chiavi API dei modelli».")
-        raise LLMError("Manca la chiave API per questo modello (%s nel file .env, oppure la chiave "
-                       "dell'azienda nei Collegamenti)." % s["key_name"])
+        raise LLMError("Manca la chiave API per questo modello (%s): il gestore la inserisce nel pannello, Impostazioni della piattaforma, "
+                       "gruppo «Modelli»; oppure un amministratore mette la chiave dell'azienda nei Collegamenti." % s["key_name"])
     if not s["model"]:
-        raise LLMError("Manca il nome del modello: imposta OPENAI_MODEL nel file .env.")
+        raise LLMError("Manca il nome del modello ChatGPT: il gestore lo scrive nel pannello, Impostazioni della piattaforma, "
+                       "gruppo «Modelli» (i nomi cambiano spesso: va copiato dal sito di OpenAI).")
     if s["kind"] == "anthropic":
         return _call_anthropic(s, system, messages, tools)
     return _call_openai(s, system, messages, tools, post)

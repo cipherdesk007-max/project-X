@@ -21,6 +21,8 @@ FIELDS = [
     ("Modelli", "CLAUDE_MODEL", "Nome del modello Claude", False, "text"),
     ("Modelli", "KIMI_MODEL", "Nome del modello Kimi", False, "text"),
     ("Modelli", "OPENAI_MODEL", "Nome del modello ChatGPT", False, "text"),
+    ("Modelli", "KIMI_REASONING_EFFORT", "Kimi: quanto ragiona prima di rispondere: low, high oppure max (vuoto = decide Kimi, cioè il massimo: più lento e più caro)", False, "effort"),
+    ("Modelli", "SFB_LLM_TIMEOUT", "Secondi di attesa massima per una risposta di un modello, da 10 a 900 (vuoto = 120)", False, "int"),
     ("Modelli", "OLLAMA_BASE_URL", "Indirizzo di Ollama accanto al server (es. http://127.0.0.1:11434/v1)", False, "url"),
     ("Modelli", "OLLAMA_MODEL", "Nome del modello locale", False, "text"),
     ("Posta", "SFB_SMTP_HOST", "Server SMTP", False, "text"),
@@ -63,6 +65,7 @@ FIELDS = [
     ("Pagamenti", "STRIPE_PRICE_COMPLETO", "ID del prezzo mensile del pacchetto Completo (price_…)", False, "text"),
 ]
 BY_KEY = {f[1]: f for f in FIELDS}
+EFFORTS = ("low", "high", "max")
 
 
 def _stored(con):
@@ -114,6 +117,10 @@ def _clean(key, value):
         raise ApiError(400, "Valore non valido per «%s»." % label)
     if kind == "int" and not (v.isdigit() and int(v) <= 100000000):
         raise ApiError(400, "«%s» deve essere un numero intero." % label)
+    if kind == "effort" and v not in EFFORTS:
+        raise ApiError(400, "«%s»: scrivi low, high oppure max, o lascia vuoto." % label.split(":")[0])
+    if key == "SFB_LLM_TIMEOUT" and not 10 <= int(v) <= 900:
+        raise ApiError(400, "L'attesa massima per un modello va da 10 a 900 secondi.")
     if kind == "bool" and v not in ("0", "1"):
         raise ApiError(400, "«%s» deve essere 1 oppure 0." % label)
     if kind == "email" and not (v.count("@") == 1 and "." in v.split("@")[1] and " " not in v and v[0] != "@"):

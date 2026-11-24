@@ -87,8 +87,8 @@ def _sha(value):
 def start(con, tenant_id, user_id, services):
     """Prepara il collegamento. Ritorna (indirizzo di Google, segno per il cookie del browser)."""
     if not configured():
-        raise ConnectorError("L'accesso Google non è configurato sulla piattaforma: mancano GOOGLE_CLIENT_ID e "
-                             "GOOGLE_CLIENT_SECRET nel file .env (vedi LEGGIMI).")
+        raise ConnectorError("L'accesso Google non è configurato sulla piattaforma: il gestore inserisce ID client e segreto nel pannello, "
+                             "Impostazioni della piattaforma, gruppo «Google» (vedi LEGGIMI).")
     if not storage_ok():
         raise ConnectorError("Per collegare Google le credenziali devono essere cifrate: installa il pacchetto "
                              "'cryptography' e imposta SFB_SECRET_KEY (vedi LEGGIMI).")

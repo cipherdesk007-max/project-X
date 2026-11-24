@@ -16,14 +16,15 @@ from .errors import ApiError
 
 COMMANDS = [
     ("capacita", "Quanto regge il server", "Memoria, processore, disco e stima delle persone che possono lavorare insieme.", ["capacita"]),
-    ("modelli", "Prova dei modelli", "Manda una domanda vera a ogni modello configurato: dice se risponde, in quanto tempo e con quanti token.", ["prova-modelli"]),
+    ("modelli", "Prova dei modelli", "Manda una domanda vera a ogni modello configurato e gli fa usare uno strumento, come fanno gli agenti: dice se risponde, in quanto tempo e con quanti token.", ["prova-modelli"]),
+    ("servizi", "Prova dei servizi", "Prova posta, ricerca, Stripe e Google con chiamate vere che non costano e non spediscono niente: dice quale chiave è sbagliata.", ["prova-servizi"]),
     ("collaudo", "Collaudo", "Controlla sito, applicazione, agenti, pacchetti e launcher di questo server.", ["collaudo"]),
     ("produzione", "Controllo di produzione", "Dice cosa manca prima di aprire ai clienti.", ["controlla-produzione"]),
     ("registro", "Verifica del registro", "Controlla che nessuna riga del registro sia stata cambiata.", ["verifica-registro"]),
     ("aziende", "Elenco delle aziende", "Aziende, pacchetto e stato.", ["aziende"]),
     ("firma", "Firma dei pacchetti", "Rifirma i pacchetti per i computer dei clienti dopo un aggiornamento.", ["firma-pacchetti"]),
 ]
-TIMEOUT = 180
+TIMEOUT = 420  # la prova dei modelli fa quattro richieste a modello, e un modello che ragiona a lungo può metterci un minuto l'una
 _busy = threading.Lock()
 
 

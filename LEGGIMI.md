@@ -32,6 +32,14 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 28: quello che si configura dopo, provato
+
+- **Prova nuova** `strumenti/prova_configurazione.py` (gira anche nelle prove di ogni modifica): installa un server da zero in una cartella a parte, lo avvia **senza nessuna chiave** e scrive ogni impostazione **dal pannello, a server acceso**. Per ogni gruppo controlla com'è prima (un messaggio chiaro) e dopo (la funzione lavora con il valore del pannello), poi riavvia e ricontrolla. 93 controlli; tutti i campi del pannello sono scritti almeno una volta, e se ne aggiungi uno senza provarlo la prova fallisce. I servizi esterni sono finti e locali: la posta però passa dalla cifratura vera (STARTTLS, e porta 465 dove si può aprire).
+- **Console del gestore**: «Prova dei modelli» ora fa fare a ogni modello anche il giro con uno strumento e una seconda battuta; «Prova dei servizi» (nuova) controlla posta, ricerca, Stripe con i suoi prezzi, e Google.
+- **Kimi**: dal pannello si sceglie quanto ragiona (`low`, `high`, `max`) e l'attesa massima per una risposta di qualunque modello (da 10 a 900 secondi). Un modello che non risponde in tempo ora lo dice con parole chiare.
+- I messaggi che dicevano «nel file .env» a chi usa gli agenti ora dicono in quale gruppo del pannello si scrive.
+- In demo il modello finto sa anche usare la ricerca sul web («cerca sul web: …»).
+
 ## Novità della versione 27: la finestra del launcher provata davvero
 
 - Launcher 1.2: la prova automatica su Windows e Mac non si limita più a fotografare la finestra. Un copione di prova (`ALVEA_FINESTRA_COPIONE`) le fa **premere i suoi pulsanti** uno dopo l'altro e scrivere in un file quello che si legge: verifica del computer, «Collega» senza codice, con un codice sbagliato e con quello giusto.
@@ -381,7 +389,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 227 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 232 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

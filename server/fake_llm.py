@@ -76,6 +76,10 @@ def decide(text, tool_names):
         return "dev_leggi_file", {"percorso": re.search(r"(?i)leggi (?:il )?file (\S+)", text).group(1)}
     if has("dev_elenca_file") and re.search(r"(elenca|lista|mostra).*(file|cartella)", low):
         return "dev_elenca_file", {}
+    if has("ora_del_server"):  # lo strumento della «Prova dei modelli»: serve a vedere il giro completo richiesta → strumento → risposta
+        return "ora_del_server", {}
+    if has("ricerca_web") and re.search(r"cerca (sul web|su internet|online|in rete)", low):
+        return "ricerca_web", {"domanda": _after_colon(text)[:300]}
     if has("team_elenca_utenti") and re.search(r"(utenti|team|ruoli)", low):
         return "team_elenca_utenti", {}
     url = re.search(r"https?://\S+", text)
@@ -86,7 +90,7 @@ def decide(text, tool_names):
 
 def _plain(text):
     return ("[DEMO] Ho ricevuto: «%s». In modalità demo non c'è un modello vero: rispondo con regole fisse. "
-            "Per risposte reali metti SFB_DEMO=0 e una chiave API nel file .env." % text[:200])
+            "Per risposte reali il gestore mette SFB_DEMO=0 nel file .env e una chiave API nel pannello." % text[:200])
 
 
 class _Handler(BaseHTTPRequestHandler):

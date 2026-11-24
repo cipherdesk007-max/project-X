@@ -110,6 +110,13 @@ Entra come gestore: sotto l'elenco delle aziende c'è **Impostazioni della piatt
 - **Ricerca**, **Google**, **Registrazione** (aperta o chiusa, giorni di prova gratuita).
 - **Pagamenti**: le chiavi di Stripe (qui sotto).
 
+**Come sapere che funziona, dopo aver scritto una chiave.** Sempre da gestore, nella **Console** ci sono due pulsanti fatti per questo:
+
+- **Prova dei modelli**: manda una domanda vera a ogni modello che ha una chiave e poi gli fa usare uno strumento, come fanno gli agenti quando mandano un'email o scrivono un lead. Costa pochi token. Se la chiave o il nome del modello sono sbagliati lo leggi lì, con la risposta del fornitore.
+- **Prova dei servizi**: controlla posta (fa l'accesso, non spedisce niente), ricerca, Stripe (la chiave e ogni prezzo `price_…` che hai scritto) e Google, con chiamate che non costano. Per Stripe ti ripete l'indirizzo del webhook e gli eventi da accendere.
+
+Due cose su **Kimi**: il modello di partenza (`kimi-k3`) ragiona sempre prima di rispondere e, se non gli dici niente, al massimo: risposte migliori ma più lente e più care. Nel gruppo Modelli puoi scrivere `low` nel campo «Kimi: quanto ragiona» per i lavori d'ufficio, e alzare i **secondi di attesa** se un modello ti risponde spesso «non ha risposto entro 120 secondi».
+
 Quello che salvi vale subito, senza riavviare, e vale più del file `.env`. Chiavi e password non vengono mai rimostrate: vedi solo «impostata». Nel file `.env` restano obbligatorie solo le righe del punto 3 (indirizzo, HTTPS, `SFB_SECRET_KEY`): senza `SFB_SECRET_KEY` il pannello rifiuta di salvare chiavi e password.
 
 ### Come farti pagare con la carta (Stripe)
