@@ -139,6 +139,7 @@ MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("tenants", "origin", "TEXT NOT NULL DEFAULT 'gestore'"),         # 'gestore' oppure 'registrazione'
               ("tenants", "platform_keys", "INTEGER NOT NULL DEFAULT 1"),       # può usare le chiavi dei modelli della piattaforma
               ("users", "email_verified", "INTEGER NOT NULL DEFAULT 1"),
+              ("tenants", "kind", "TEXT NOT NULL DEFAULT 'azienda'"),           # 'azienda' oppure 'persona' (chi si registra solo per sé)
               ("users", "totp_secret", "TEXT NOT NULL DEFAULT ''"),             # accesso in due passaggi: chiave dell'app (cifrata quando si può)
               ("users", "totp_on", "INTEGER NOT NULL DEFAULT 0"),               # 1 da quando il primo codice è stato confermato
               ("users", "totp_last", "INTEGER NOT NULL DEFAULT 0"),             # ultimo intervallo usato: lo stesso codice non vale due volte

@@ -126,7 +126,10 @@ def register(con, body, ip):
     if site.enabled() and body.get("accept") is not True:  # le pagine legali stanno sul sito: senza sito non c'è niente da accettare
         raise ApiError(400, "Per registrarti devi accettare le Condizioni di servizio e aver letto l'Informativa sulla privacy.")
     pid = package_id()
+    kind = "persona" if body.get("kind") == "persona" else "azienda"
     company = str(body.get("company") or "").strip()
+    if kind == "persona" and not company:  # chi si registra solo per sé non ha un'azienda da nominare: lo spazio prende il suo nome
+        company = " ".join(str(body.get("name") or "").split())
     email = str(body.get("email") or "").strip().lower()
     agents = body.get("agents") if body.get("agents") is not None else []
     if not isinstance(agents, list) or any(not isinstance(a, str) for a in agents):
@@ -150,6 +153,7 @@ def register(con, body, ip):
     tenant_id = ops.create_tenant(con, name, pid, email, body.get("name"), body.get("password"), actor_id=None,
                                   origin="registrazione", platform_keys=1 if config.get("SFB_REGISTER_PLATFORM_KEYS") == "1" else 0,
                                   email_verified=0 if verify else 1, agents=set(agents))
+    con.execute("UPDATE tenants SET kind=? WHERE id=?", (kind, tenant_id))
     trial = config.get_int("SFB_TRIAL_DAYS", 0)
     if trial > 0:  # prova gratuita: l'azienda nasce con una scadenza, che il gestore sposta quando il cliente paga
         con.execute("UPDATE tenants SET paid_until=?, on_trial=1 WHERE id=?",

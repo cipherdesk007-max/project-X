@@ -260,7 +260,7 @@ def acceptance(url, email=None, password=None, agents=False):
     status, headers, _ = call("GET", "/", raw=True)
     csp = headers.get("Content-Security-Policy", "")
     add(status == 200 and "default-src 'self'" in csp and "http" not in csp, "Pagina servita con regole di sicurezza che ammettono solo file di questo server")
-    missing = [p for p in ("/app", "/sito.css", "/sito.js", "/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/logo-alvea.png", "/icon.png") if call("GET", p, raw=True)[0] != 200]
+    missing = [p for p in ("/app", "/sito.css", "/sito.js", "/app.js", "/app.css", "/office.js", "/vendor/mini3d.js", "/logo.png", "/logo-alvea.png", "/icon.png", "/icon-180.png", "/icon-512.png", "/manifest.webmanifest") if call("GET", p, raw=True)[0] != 200]
     add(not missing, "Sito, applicazione e marchio presenti" if not missing else "File della schermata mancanti: %s" % ", ".join(missing))
     from server import legal
     if b"data-register" in call("GET", "/", raw=True)[2]:  # c'è il sito pubblico: devono esserci anche le sue pagine legali (i dati che mancano li segnala controlla-produzione)

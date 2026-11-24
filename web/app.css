@@ -142,6 +142,7 @@ tr.group td { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 
   .stage { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px 8px; margin-top: 18px; }
   .center { display: contents; }
   .center > * { grid-column: 1 / -1; justify-self: center; }
+  #firstStepsSlot { order: -5; justify-self: stretch; }
   .notice { order: -4; }
   .orb { order: -3; }
   .chat { order: -2; }
@@ -265,6 +266,31 @@ button.ticker:hover { border-color: var(--glow); }
 .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .check small.plain { color: var(--muted); }
 .check.accept { margin: 4px 0 10px; align-items: center; min-height: 44px; font-size: 14px; }
+/* primi passi */
+.firststeps { border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); background: rgba(255, 106, 0, 0.06); border-radius: 16px; padding: 14px 16px; text-align: left; width: 100%; max-width: 560px; margin: 0 auto; }
+#firstStepsSlot { width: 100%; }
+#firstStepsSlot:empty { display: none; }
+.firststeps header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.firststeps h2 { font-size: 16px; margin: 0; }
+.firststeps .meta { color: var(--muted); font-size: 12.5px; }
+.firststeps header .btn { margin-left: auto; }
+.firststeps ul { list-style: none; padding: 0; margin: 0 0 10px; display: flex; flex-direction: column; gap: 2px; }
+.firststeps li { display: grid; grid-template-columns: 22px 1fr; column-gap: 8px; align-items: center; min-height: 36px; font-size: 14px; }
+.firststeps li small { grid-column: 2; color: var(--warn); font-size: 12px; margin-top: -4px; padding-bottom: 4px; }
+.firststeps .mark { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink, #0b0f14); }
+.firststeps li.done .mark { background: var(--ok); border-color: var(--ok); }
+.firststeps li.done { color: var(--muted); }
+.firststeps .steplink { background: none; border: 0; padding: 6px 0; color: var(--text); font: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent); text-underline-offset: 3px; min-height: 36px; }
+.firststeps .steplink:hover { color: var(--glow); }
+.firststeps .tries { display: flex; flex-wrap: wrap; gap: 6px; }
+.firststeps .tries .btn { white-space: normal; text-align: left; height: auto; line-height: 1.3; padding: 7px 12px; }
+@media (max-width: 900px) {  /* su telefono: righe più strette e gli esempi su una riga sola che scorre di lato */
+  .firststeps li { min-height: 36px; font-size: 13.5px; }
+  .firststeps .steplink { min-height: 36px; padding: 4px 0; }
+  .firststeps .tries { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
+  .firststeps .tries .btn { flex: none; max-width: 230px; }
+}
+.opanel .firststeps { max-width: none; }
 /* accesso in due passaggi */
 .steps2fa { margin: 6px 0 14px; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; max-width: 70ch; line-height: 1.5; }
 .steps2fa .btn { margin-top: 6px; }

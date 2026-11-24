@@ -20,6 +20,8 @@ CHAT_PER_MINUTE = 30
 STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/app": ("index.html", "text/html; charset=utf-8"),
           "/sito.css": ("sito.css", "text/css; charset=utf-8"), "/sito.js": ("sito.js", "text/javascript; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"),
           "/app.css": ("app.css", "text/css; charset=utf-8"), "/logo.png": ("logo.png", "image/png"), "/logo-alvea.png": ("logo-alvea.png", "image/png"), "/icon.png": ("icon.png", "image/png"),
+          "/icon-180.png": ("icon-180.png", "image/png"), "/icon-512.png": ("icon-512.png", "image/png"),
+          "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),  # per mettere l'applicazione sulla schermata del telefono
           "/favicon.ico": ("icon.png", "image/png"), "/office.js": ("office.js", "text/javascript; charset=utf-8"),
           "/vendor/mini3d.js": ("vendor/mini3d.js", "text/javascript; charset=utf-8")}
 # Tutto viene dallo stesso server: nessun CDN, nessuno script in linea, nessun eval. Il motore 3D è un file locale.
@@ -157,14 +159,25 @@ def r_me(q):
         own_only = not q.tenant.get("platform_keys", 1)
         out["tenant"] = {"id": q.tenant["id"], "name": q.tenant["name"], "package_id": pkg["id"], "package_name": pkg["name"],
                          "stopped": bool(q.tenant.get("stopped")), "limits": pkg.get("limits") or {}, "own_keys_only": own_only,
-                         "subscription": ops.subscription(q.tenant)}
+                         "subscription": ops.subscription(q.tenant), "kind": q.tenant.get("kind") or "azienda"}
         out["entitled"] = sorted(team.active(q.con, q.tenant))  # agenti accesi
         out["ceiling"] = sorted(team.ceiling(q.tenant))         # tetto del pacchetto
         out["agent_status"] = _agent_status(q.con, q.tenant)
-        out["models"] = [{"id": m["id"], "name": m["name"], "configured": llm.configured(m["id"], keys, not own_only) or (
-                              m["id"] == "locale" and bool(local.online_device(q.con, q.tenant["id"], "modello")))}
-                         for m in team.models_for(q.con, q.tenant)]
+        out["models"] = _models(q, keys)
     return out
+
+
+def _models(q, keys=None):
+    """I modelli che l'azienda può scegliere, e per ognuno se è pronto a rispondere."""
+    if keys is None:
+        try:
+            keys = connectors.load(q.con, q.tenant["id"], "modelli")
+        except connectors.ConnectorError:
+            keys = {}
+    own_only = not q.tenant.get("platform_keys", 1)
+    return [{"id": m["id"], "name": m["name"], "configured": llm.configured(m["id"], keys, not own_only) or (
+                 m["id"] == "locale" and bool(local.online_device(q.con, q.tenant["id"], "modello")))}
+            for m in team.models_for(q.con, q.tenant)]
 
 
 def _agent_status(con, tenant):
@@ -206,6 +219,26 @@ def _agent_status(con, tenant):
     return out
 
 
+def _first_steps(q):
+    """Le prime cose da fare per chi è appena arrivato, con quello che ha già fatto davvero. Ogni voce porta alla scheda giusta."""
+    tid = q.tenant["id"]
+    count = lambda sql: q.con.execute(sql, (tid,)).fetchone()[0]
+    models = any(m["configured"] for m in _models(q))
+    sub = ops.subscription(q.tenant)
+    steps = [
+        {"id": "modello", "text": "Un modello pronto a rispondere", "done": models, "tab": "collegamenti",
+         "hint": "" if models else "Scrivi la chiave di un modello nella scheda Collegamenti."},
+        {"id": "messaggio", "text": "Scrivi il primo messaggio a un agente", "done": count("SELECT COUNT(*) FROM conversations WHERE tenant_id=?") > 0, "tab": "", "hint": ""},
+        {"id": "agenti", "text": "Scegli gli agenti del tuo team", "done": count("SELECT COUNT(*) FROM audit WHERE tenant_id=? AND action='agente_impostato'") > 0
+            or q.tenant.get("origin") == "registrazione", "tab": "agenti", "hint": ""},
+        {"id": "collegamento", "text": "Collega la posta o un altro servizio", "done": count("SELECT COUNT(*) FROM connectors WHERE tenant_id=? AND name<>'modelli'") > 0, "tab": "collegamenti", "hint": ""},
+        {"id": "sicurezza", "text": "Proteggi l'accesso con i due passaggi", "done": bool(q.user.get("totp_on")), "tab": "sicurezza", "hint": ""},
+    ]
+    if q.tenant.get("on_trial") and sub.get("days_left") is not None:
+        steps.append({"id": "abbonamento", "text": "Attiva l'abbonamento prima che finisca la prova (%d giorni)" % max(0, sub["days_left"]), "done": False, "tab": "abbonamento", "hint": ""})
+    return steps
+
+
 def r_summary(q):
     """Numeri per l'intestazione, letti spesso: azioni in attesa, novità, stato."""
     tid = q.tenant["id"]
@@ -218,6 +251,8 @@ def r_summary(q):
         "pending": q.con.execute(sql, params).fetchone()[0], "stopped": bool(q.tenant.get("stopped")),
         "automations": q.con.execute("SELECT COUNT(*) FROM automations WHERE tenant_id=? AND active=1", (tid,)).fetchone()[0],
         "connections": q.con.execute("SELECT COUNT(*) FROM connectors WHERE tenant_id=? AND name<>'modelli'", (tid,)).fetchone()[0]})
+    if q.user["role"] == "admin":
+        out["first_steps"] = _first_steps(q)
     if (q.query.get("office") or [""])[0] == "1":  # la vista Ufficio 3D chiede anche lo stato di ogni agente acceso
         out["office"] = office.snapshot(q.con, q.tenant, _agent_status(q.con, q.tenant))
     return out

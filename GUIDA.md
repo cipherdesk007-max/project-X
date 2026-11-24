@@ -95,6 +95,8 @@ Se hai già un sito altrove e qui vuoi solo l'applicazione, scrivi `SFB_SITE=0` 
 
 ## 8. Primo cliente
 
+Chi si registra sceglie «Per la mia azienda» oppure «Solo per me» (professionisti e privati: non devono inventarsi un'azienda). Appena entrato trova i **Primi passi**: cosa fare per cominciare, con le voci già fatte spuntate. Dal telefono può mettere Alvea sulla schermata iniziale: su iPhone, Safari → Condividi → «Aggiungi a Home»; su Android, Chrome → menu → «Aggiungi a schermata Home».
+
 1. Entra come gestore: vedi le aziende e i loro pacchetti.
 2. Il cliente si registra da `#registrati`, sceglie gli agenti e inserisce le sue chiavi dei modelli (chi si registra da solo non usa le tue, a meno che tu non glielo conceda).
 3. Se vuole agenti sul suo computer (Video Editor, Email, Dev, modello locale): scarica il launcher, lo apre, e scrive il codice che crea in **Centro di controllo › Computer**. Sul suo computer serve Python 3.9 o successivo.

@@ -163,12 +163,57 @@
     if (!S.sum.latest) return "Nessuna novità";
     return (S.sum.unread ? S.sum.unread + " da leggere · " : "") + S.sum.latest.title;
   }
+  /* Primi passi: per chi è appena arrivato, cosa fare adesso e cosa ha già fatto. Sparisce quando è tutto fatto o quando lo si chiude. */
+  function stepsKey() { return "alvea_primi_passi_" + (S.me && S.me.user ? S.me.user.id : 0); }
+  function firstSteps() {  // un posto fisso nella schermata: il contenuto arriva e si aggiorna senza ridisegnare tutto
+    return el("div", { id: "firstStepsSlot" }, firstStepsCard());
+  }
+  function paintFirstSteps() {
+    var slot = document.getElementById("firstStepsSlot");
+    if (!slot) return;
+    var key = S.sum && S.sum.first_steps ? S.sum.first_steps.map(function (s) { return s.id + (s.done ? "1" : "0") + s.text; }).join("|") : "";
+    if (slot.getAttribute("data-key") === key) return;
+    slot.setAttribute("data-key", key);
+    slot.textContent = "";
+    append(slot, firstStepsCard());
+  }
+  function toChat(text) {  // porta al campo della chat, dalla vista compatta o dall'Ufficio, con un testo già scritto se serve
+    var input = document.getElementById("chatInput");
+    if (!input) { if (text) S.draft = text; S.view = "agente"; render(); input = document.getElementById("chatInput"); }
+    if (input) { if (text) { input.value = text; S.draft = text; } input.focus(); }
+  }
+  function firstStepsCard() {
+    var steps = S.sum && S.sum.first_steps, closed = false;
+    try { closed = window.localStorage.getItem(stepsKey()) === "chiusi"; } catch (e) { closed = false; }
+    if (!steps || closed || steps.every(function (s) { return s.done; })) return null;
+    var done = steps.filter(function (s) { return s.done; }).length;
+    var tries = ["Scrivimi un post per presentare la mia attività", "Prepara una risposta gentile a un cliente che chiede uno sconto", "Fammi un piano di lavoro per questa settimana"];
+    return el("section", { class: "firststeps", id: "firstSteps", "aria-label": "Primi passi" },
+      el("header", {}, el("h2", { text: "Primi passi" }), el("span", { class: "meta", text: done + " di " + steps.length + " fatti" }),
+        el("button", { class: "btn small", type: "button", text: "Chiudi", "aria-label": "Chiudi i primi passi", onclick: function () {
+          try { window.localStorage.setItem(stepsKey(), "chiusi"); } catch (e) { /* resta aperto */ }
+          var n = document.getElementById("firstSteps"); if (n) n.remove();
+        } })),
+      el("ul", {}, steps.map(function (s) {
+        var go = s.done ? null : function () {
+          if (s.tab) { keepDraft(); S.view = "centro"; S.tab = s.tab; render(); } else toChat("");
+        };
+        return el("li", { class: s.done ? "done" : "" }, el("span", { class: "mark", "aria-hidden": "true", text: s.done ? "✓" : "" }),
+          go ? el("button", { type: "button", class: "steplink", text: s.text, onclick: go }) : el("span", { text: s.text }),
+          s.hint ? el("small", { text: s.hint }) : null);
+      })),
+      el("p", { class: "meta", text: "Prova a chiedere:" }),
+      el("div", { class: "tries" }, tries.map(function (t) {
+        return el("button", { class: "btn small", type: "button", text: t, onclick: function () { toChat(t); } });
+      })));
+  }
   function refreshPending() {
     if (!S.me || !S.me.tenant) return;
     api("GET", "/summary").then(function (out) {
       S.pending = out.pending;
       S.sum = out;
       if (S.me && S.me.tenant && S.me.tenant.stopped !== out.stopped) { S.me.tenant.stopped = out.stopped; keepDraft(); render(); return; }
+      paintFirstSteps();
       var set = function (id, text) { var n = document.getElementById(id); if (n) n.textContent = text; };
       set("pendingCount", String(S.pending));
       set("tickerText", tickerText());
@@ -268,13 +313,13 @@
       return el("label", { class: "check" }, el("input", { type: "checkbox", id: "reg_a_" + a.id, checked: STARTER.indexOf(a.id) !== -1 }),
         el("span", {}, el("strong", { text: a.name }), el("small", { class: "plain", text: a.does })));
     }));
-    var send = el("button", { class: "btn primary", type: "submit", text: "Crea l'azienda" });
+    var send = el("button", { class: "btn primary", type: "submit", text: S.regKind === "persona" ? "Crea il mio spazio" : "Crea l'azienda" });
     return el("form", { class: "login wide", autocomplete: "on", onsubmit: function (e) {
       e.preventDefault();
       err.textContent = ""; send.disabled = true;
       var agents = S.reg.agents.filter(function (a) { return document.getElementById("reg_a_" + a.id).checked; }).map(function (a) { return a.id; });
       S.lastEmail = val("reg_email");
-      api("POST", "/register", { company: val("reg_company"), name: val("reg_name"), email: val("reg_email"), password: val("reg_password"),
+      api("POST", "/register", { kind: S.regKind || "azienda", company: S.regKind === "persona" ? "" : val("reg_company"), name: val("reg_name"), email: val("reg_email"), password: val("reg_password"),
                                  website: val("reg_website"), agents: agents, accept: !S.reg.terms || document.getElementById("reg_accept").checked })
         .then(function (out) {
           if (out.token) { setToken(out.token); S.auth = "login"; return loadMe(); }
@@ -287,9 +332,21 @@
         .catch(function (e2) { send.disabled = false; err.textContent = e2.message; });
     } },
       el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
-      el("p", { text: "Registra la tua azienda e scegli gli agenti del tuo team. Potrai accenderli e spegnerli quando vuoi." }),
+      el("p", { text: "Registrati e scegli gli agenti del tuo team. Potrai accenderli e spegnerli quando vuoi." }),
       el("div", { class: "panel form" },
-        field("Nome dell'azienda", "reg_company", { required: true, maxlength: "120", autocomplete: "organization" }),
+        el("div", { class: "field" }, el("label", { text: "Per chi è" }),
+          el("div", { class: "seg", role: "group", "aria-label": "Per chi è" }, [["azienda", "Per la mia azienda"], ["persona", "Solo per me"]].map(function (k) {
+            return el("button", { type: "button", id: "reg_kind_" + k[0], "aria-pressed": String((S.regKind || "azienda") === k[0]), text: k[1], onclick: function () {
+              S.regKind = k[0];  // si cambia senza ridisegnare, per non perdere quello che è già stato scritto
+              var solo = k[0] === "persona", box = document.getElementById("reg_company_box"), input = document.getElementById("reg_company");
+              box.hidden = solo; input.required = !solo;
+              document.getElementById("reg_kind_azienda").setAttribute("aria-pressed", String(!solo));
+              document.getElementById("reg_kind_persona").setAttribute("aria-pressed", String(solo));
+              send.textContent = solo ? "Crea il mio spazio" : "Crea l'azienda";
+            } });
+          }))),
+        el("div", { class: "field", id: "reg_company_box", hidden: S.regKind === "persona" }, el("label", { for: "reg_company", text: "Nome dell'azienda" }),
+          el("input", { id: "reg_company", required: S.regKind !== "persona", maxlength: "120", autocomplete: "organization" })),
         field("Il tuo nome", "reg_name", { required: true, maxlength: "120", autocomplete: "name" }),
         field("Email", "reg_email", { type: "email", required: true, autocomplete: "username" }),
         field("Password (almeno 10 caratteri)", "reg_password", { type: "password", required: true, minlength: "10", autocomplete: "new-password" }),
@@ -331,7 +388,7 @@
       el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
       ticker,
       el("div", { class: "who" }, me.demo ? el("span", { class: "chip wait", title: "Risponde un modello finto a regole fisse", text: "Demo" }) : null,
-        me.tenant ? el("span", { text: me.tenant.name + " · " + me.tenant.package_name }) : null,
+        me.tenant ? el("span", { text: (me.tenant.kind === "persona" ? "Spazio personale" : me.tenant.name) + " · " + me.tenant.package_name }) : null,
         el("span", {}, el("strong", { text: me.user.name }), " · " + ROLE[me.user.role]),
         el("button", { class: "btn small", type: "button", onclick: logout, text: "Esci" })));
   }
@@ -383,7 +440,7 @@
       .then(function (out) {
         T.conv = out.conversation_id;
         T.log.push({ role: "bot", text: out.reply, agent: out.agent_id, model: out.model, events: out.events });
-        if (out.events.some(function (ev) { return ev.approval_id; })) refreshPending();
+        if (out.events.some(function (ev) { return ev.approval_id; }) || (S.sum && S.sum.first_steps)) refreshPending();  // anche per segnare fatto il primo passo
       })
       .catch(function (err) { T.log.push({ role: "err", text: err.message }); })
       .then(function () { S.busy = false; S.busyFor = null; if (S.me) { keepDraft(); render(); pollOffice(); } });
@@ -421,9 +478,10 @@
     var stopped = S.me.tenant.stopped;
     var center = el("div", { class: "center" },
       el("div", { class: "hero" }, el("h1", { text: "Centro operativo" }),
-        el("p", { text: "Coordina gli agenti e segui quello che succede nella tua azienda." }),
+        el("p", { text: S.me.tenant.kind === "persona" ? "Coordina i tuoi agenti e segui quello che succede." : "Coordina gli agenti e segui quello che succede nella tua azienda." }),
         canOffice() ? el("button", { class: "btn small", type: "button", text: "Apri l'Ufficio 3D", onclick: function () { keepDraft(); S.view = "ufficio"; render(); } }) : null),
       stopped ? el("div", { class: "banner stopbanner", role: "alert", text: "Arresto d'emergenza attivo: chat, lavori automatici e azioni approvate sono fermi." }) : null,
+      firstSteps(),
       el("div", { class: "notice" }, el("span", { class: "tag" }, el("span", { class: "dot warn" }), "Avvisi"),
         el("span", { text: S.me.user.role === "admin" ? "Azioni in attesa della tua approvazione" : "Tue azioni in attesa di approvazione" }),
         el("span", { class: "count", id: "pendingCount", text: String(S.pending) })),
@@ -538,12 +596,14 @@
     });
   }
   function rowsData(snap) { return [{ id: "centrale", name: "Centrale", state: snap.central.state, tone: "" }].concat(snap.agents.map(function (a) { return { id: a.id, name: a.name, state: a.state, tone: a.tone }; })); }
+  function officeName() { return S.me.tenant.kind === "persona" ? S.me.user.name : S.me.tenant.name; }  // chi è registrato solo per sé vede il suo nome
   function officeOverview(snap) {
     var admin = S.me.user.role === "admin";
     return el("aside", { class: "opanel", id: "opanel", "aria-label": "Ufficio" },
-      el("h2", { text: "Ufficio di " + S.me.tenant.name }),
+      el("h2", { text: "Ufficio di " + officeName() }),
       el("p", { class: "sub", id: "stripText", text: stripText() }),
       S.me.tenant.stopped ? el("div", { class: "banner stopbanner", role: "alert", text: "Arresto d'emergenza attivo: chat, lavori automatici e azioni approvate sono fermi." }) : null,
+      firstSteps(),
       el("p", { class: "sub", text: snap.agents.length ? "Clicca un agente o la sua postazione per aprire la chat diretta, le attività in tempo reale e gli elaborati."
                                                        : "Nessun agente acceso: un amministratore li sceglie nel Centro di controllo, scheda Agenti." }),
       live("oList", "olist", rowsData(snap), bList),
@@ -601,11 +661,11 @@
       api("GET", "/summary?office=1").then(function (out) {
         S.opoll = false;
         if (!S.me || !S.me.tenant) return;
-        S.pending = out.pending; S.sum = out; S.osnap = out.office;
+        S.pending = out.pending; S.sum = out; S.osnap = out.office; paintFirstSteps();
         var ids = out.office.agents.map(function (a) { return a.id; }).sort().join(","), set = function (n, text) { var x = document.getElementById(n); if (x) x.textContent = text; };
         if (S.me.tenant.stopped !== out.stopped) { S.me.tenant.stopped = out.stopped; keepDraft(); render(); return; }
         if (ids !== S.me.entitled.slice().sort().join(",") && S.oreload !== ids) { S.oreload = ids; keepDraft(); loadMe(); return; }  // il team è cambiato altrove
-        if (S.view === "ufficio" && OFFICE) OFFICE.update(out.office, S.me.tenant.name);
+        if (S.view === "ufficio" && OFFICE) OFFICE.update(out.office, officeName());
         set("tickerText", tickerText()); set("stripText", stripText());
         paintOfficeLive();
       }).catch(function () { S.opoll = false; });
@@ -620,7 +680,7 @@
     if (!OFFICE) OFFICE = SFBOffice.create({ onPick: pickOffice, onCompact: function () { keepDraft(); S.view = "agente"; render(); } });
     var snap = officeSnap();
     if (S.osel && !officeItem(S.osel)) { S.osel = null; S.agent = null; S.focus = null; S.odetail = null; }
-    OFFICE.update(snap, S.me.tenant.name);
+    OFFICE.update(snap, officeName());
     OFFICE.select(S.osel);
     setTimeout(function () { OFFICE.resume(); var log = document.getElementById("log"); if (log) log.scrollTop = log.scrollHeight; }, 0);
     return el("main", { class: "office" }, OFFICE.node, S.osel ? officePanel(S.osel) : officeOverview(snap));

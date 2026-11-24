@@ -137,7 +137,7 @@ def page():
 <section class="hero"><div class="wrap">
 <p class="eyebrow"><span data-count>{n}</span> agenti · un solo sistema</p>
 <h1>Una squadra di agenti AI che lavora per la tua azienda.</h1>
-<p class="lead">Posta, calendario, contenuti, clienti, video: ogni agente ha un compito preciso. Loro preparano il lavoro, tu decidi cosa esce.</p>
+<p class="lead">Posta, calendario, contenuti, clienti, video: ogni agente ha un compito preciso. Loro preparano il lavoro, tu decidi cosa esce. Per le aziende, per i professionisti e per chi lavora da solo.</p>
 <div class="cta"><a class="btn primary big" href="/app#registrati" data-register>Prova Alvea</a><a class="btn big" href="#launcher">Verifica il tuo computer</a></div>
 <p class="note" id="trial" hidden></p>
 <div class="hive" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>

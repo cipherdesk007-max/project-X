@@ -32,6 +32,12 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 24: anche per chi è da solo, e primi passi per chi arriva
+
+- **Registrazione «Solo per me»**: chi non è un'azienda non deve più inventarne una. Lo spazio prende il suo nome (`tenants.kind = 'persona'`), e intestazione e Ufficio mostrano lui, non un nome d'azienda.
+- **Primi passi** sulla prima schermata (vista compatta e Ufficio) per chi amministra: cosa fare adesso e cosa è già stato fatto davvero (modello pronto, primo messaggio, agenti, un collegamento, due passaggi, abbonamento se in prova), ogni voce porta alla scheda giusta, più tre richieste d'esempio da toccare. Si chiude e resta chiuso. I dati arrivano da `/api/summary` (`first_steps`).
+- **Applicazione sulla schermata del telefono**: `manifest.webmanifest` e icone; da iPhone e Android «Aggiungi a Home» mette Alvea a schermo intero con la sua icona.
+
 ## Novità della versione 23: accesso in due passaggi
 
 - Oltre alla password, il **codice a 6 cifre di un'app** (Google Authenticator, Microsoft Authenticator, Password dell'iPhone, 1Password…): è lo standard TOTP (RFC 6238), scritto in `server/twofactor.py` con la sola libreria standard e provato con i valori ufficiali dello standard. Niente SMS, niente servizi esterni.
@@ -351,7 +357,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 211 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 214 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 
