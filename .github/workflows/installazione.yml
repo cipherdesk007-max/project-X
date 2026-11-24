@@ -1,0 +1,43 @@
+# Installa Alvea da zero su macchine Linux appena create, come farà chi segue la guida su una VPS, e controlla che tutto
+# funzioni: servizio, HTTPS, copia di sicurezza e ripristino, aggiornamento, riavvio della macchina.
+# È un giro lento: parte solo quando cambia l'installazione, a mano (Actions > Installazione > Run workflow) e una volta
+# a settimana, perché i sistemi cambiano anche quando il nostro codice resta fermo.
+name: Installazione
+on:
+  push:
+    branches: [main]
+    paths: ["deploy/**", "strumenti/prova_installazione.*", ".github/workflows/installazione.yml", ".env.example"]
+  workflow_dispatch:
+  schedule:
+    - cron: "41 4 * * 1"
+jobs:
+  macchina:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        sistema: ["ubuntu:22.04", "ubuntu:24.04", "ubuntu:26.04", "debian:12", "debian:13"]
+    name: ${{ matrix.sistema }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Macchina appena creata (sistema minimo con systemd, utente root, senza sudo e senza Python)
+        run: |
+          printf 'FROM %s\nENV DEBIAN_FRONTEND=noninteractive\nRUN apt-get update -qq && apt-get install -y -qq systemd systemd-sysv dbus git >/dev/null\nSTOPSIGNAL SIGRTMIN+3\nCMD ["/sbin/init"]\n' "${{ matrix.sistema }}" > /tmp/Dockerfile
+          docker build -q -t macchina -f /tmp/Dockerfile /tmp
+          docker run -d --name vps --privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw --tmpfs /run --tmpfs /run/lock -v "$PWD":/src:ro macchina
+          for i in $(seq 1 40); do s=$(docker exec vps systemctl is-system-running 2>/dev/null || true); case "$s" in running|degraded) break ;; esac; sleep 1; done
+          echo "systemd: $s"
+          docker exec vps bash -c 'cp -a /src /srv/origine && chown -R root: /srv/origine && git -C /srv/origine checkout -q -B main && git clone -q /srv/origine /opt/alvea'
+      - name: Installazione e prove
+        run: docker exec vps bash /opt/alvea/strumenti/prova_installazione.sh
+      - name: Riavvio della macchina
+        run: |
+          docker restart vps
+          sleep 5
+          docker exec vps python3 /opt/alvea/strumenti/prova_installazione.py riavvio
+      - name: Cosa dice il servizio, se qualcosa è andato storto
+        if: failure()
+        run: docker exec vps bash -c 'systemctl status alvea caddy alvea-backup.timer --no-pager; journalctl -u alvea -u caddy -n 80 --no-pager' || true

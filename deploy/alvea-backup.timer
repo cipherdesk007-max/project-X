@@ -1,0 +1,11 @@
+# Ogni notte verso le 3:30. Se a quell'ora il server era spento, la copia parte alla prima accensione.
+[Unit]
+Description=Copia di sicurezza di Alvea, ogni notte
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=900
+Persistent=true
+
+[Install]
+WantedBy=timers.target

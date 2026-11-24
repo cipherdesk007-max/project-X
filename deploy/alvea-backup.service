@@ -1,0 +1,9 @@
+# Copia di sicurezza di Alvea: la lancia ogni notte alvea-backup.timer. A mano: systemctl start alvea-backup
+[Unit]
+Description=Copia di sicurezza di Alvea
+
+[Service]
+Type=oneshot
+User=alvea
+WorkingDirectory=/opt/alvea
+ExecStart=/bin/sh /opt/alvea/deploy/backup.sh /var/backups/alvea 14
