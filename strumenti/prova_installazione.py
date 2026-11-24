@@ -112,6 +112,13 @@ def indirizzo_esterno():
         s.close()
 
 
+def certificato_di_prova():
+    """Un certificato vero non si può avere per un dominio di prova: per provare il passaggio da Caddy al server si usa quello
+    interno di Caddy. Il resto della configurazione resta quello scritto dall'installazione (che la riscrive a ogni giro)."""
+    sh("grep -q 'tls internal' /etc/caddy/Caddyfile || sed -i 's|    encode gzip|    tls internal\\n    encode gzip|' /etc/caddy/Caddyfile; systemctl reload caddy; "
+       "grep -q '%s' /etc/hosts || echo '127.0.0.1 %s' >> /etc/hosts" % (DOMINIO, DOMINIO))
+
+
 def macchina():
     name = dict(l.strip().split("=", 1) for l in open("/etc/os-release") if "=" in l).get("PRETTY_NAME", "?").strip('"')
     print("Macchina: %s | %s | %s" % (name, sh("python3 --version")[1].strip(), sh("caddy version 2>/dev/null | cut -d' ' -f1")[1].strip() or "caddy non ancora installato"), flush=True)
@@ -183,8 +190,7 @@ def installa():
     atteso(code == 0, "Caddy accetta la configurazione", out)
     status, heads, _ = http("GET", "http://127.0.0.1/app", headers={"Host": DOMINIO})
     atteso(status in (301, 308) and heads.get("Location", "").startswith("https://%s/" % DOMINIO), "Chi arriva in HTTP viene portato in HTTPS", (status, heads))
-    # Un certificato vero non si può avere per un dominio di prova: per provare il passaggio da Caddy al server uso quello interno di Caddy.
-    sh("sed -i 's|    encode gzip|    tls internal\\n    encode gzip|' /etc/caddy/Caddyfile && systemctl reload caddy && grep -q '%s' /etc/hosts || echo '127.0.0.1 %s' >> /etc/hosts" % (DOMINIO, DOMINIO))
+    certificato_di_prova()
     ok = aspetta(lambda: http("GET", "https://%s/api/health" % DOMINIO, insecure=True)[0] == 200, 40)
     atteso(ok, "Passando da Caddy in HTTPS il server risponde", http("GET", "https://%s/api/health" % DOMINIO, insecure=True))
     status, heads, page = http("GET", "https://%s/" % DOMINIO, insecure=True)
@@ -240,9 +246,9 @@ def installa():
 def riavvio():
     macchina()
     passo("Dopo il riavvio della macchina")
-    sh("grep -q '%s' /etc/hosts || echo '127.0.0.1 %s' >> /etc/hosts" % (DOMINIO, DOMINIO))
     atteso(aspetta(lambda: attivo("alvea") and salute(), 90), "Alvea è ripartito da solo", sh("systemctl status alvea --no-pager")[1])
     atteso(aspetta(lambda: attivo("caddy"), 60), "Caddy è ripartito da solo", sh("systemctl status caddy --no-pager")[1])
+    certificato_di_prova()
     atteso(attivo("alvea-backup.timer"), "La copia di ogni notte è ancora programmata")
     atteso(bool(login(EMAIL)) and bool(login(AZIENDA["admin_email"])), "Gestore e azienda entrano: i dati ci sono")
     atteso(aspetta(lambda: http("GET", "https://%s/api/health" % DOMINIO, insecure=True)[0] == 200, 40), "Passando da Caddy in HTTPS il server risponde")
