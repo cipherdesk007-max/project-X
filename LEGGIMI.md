@@ -36,7 +36,9 @@ Prima di aggiornare un'installazione con dati veri, fai una copia di `data/sales
 
 - **`Alvea-Launcher.exe` e `Alvea-Launcher.dmg`** vengono costruiti e provati in automatico su macchine vere di GitHub (`.github/workflows/launcher.yml`) ogni volta che cambia il launcher o un suo pacchetto, e pubblicati nel rilascio «launcher» del repository. Dentro c'è già Python: il cliente non deve installare niente.
 - **La prova** (`strumenti/prova_launcher.py`) fa quello che fa un cliente, con il programma costruito: prende dal server indirizzo e chiave, verifica il computer, lo collega con un codice usa e getta, scarica i pacchetti controllandone la firma, resta acceso, e controlla che lo stesso codice non valga due volte.
-- **Limiti di oggi**: i programmi non sono firmati (macOS e Windows mostrano un avviso alla prima apertura; per toglierlo servono un account sviluppatore Apple e un certificato di firma per Windows); il dmg è solo per Mac con processore Apple, non Intel; è un programma a riga di comando, non un'app con icona e finestre; il pulsante «Scarica il launcher» del sito consegna ancora la versione Python.
+- **Finestra del launcher** (versione 1.1): aperto con doppio clic mostra logo, indirizzo del proprio Alvea, codice di collegamento, i pulsanti «Verifica questo computer» e «Collega», lo stato e l'elenco degli agenti che possono lavorare su quel computer. I comandi a riga restano tutti. La chiave che controlla i pacchetti la prende dal server a cui viene collegato, quindi lo stesso exe o dmg vale per qualunque installazione.
+- **Tre programmi**: Windows, Mac con processore Apple, Mac con processore Intel. Il sito ha i pulsanti «Scarica per Windows» e «Scarica per Mac» (`/api/launcher/download?os=windows|mac|mac-intel`, che rimanda al rilascio su GitHub o all'indirizzo messo in `LAUNCHER_URL_…`). La finestra viene fotografata a ogni costruzione nei rami `foto-launcher-…`.
+- **Limiti di oggi**: i programmi non sono firmati (macOS e Windows mostrano un avviso alla prima apertura; per toglierlo servono un account sviluppatore Apple e un certificato di firma per Windows); su macOS il sistema lo chiama «Python» negli avvisi e non ha un'icona propria; la finestra è stata fotografata in automatico, non usata a mano da una persona.
 
 ## Novità della versione 15: prezzi dal pannello e otto agenti in più
 
@@ -310,7 +312,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 168 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 169 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

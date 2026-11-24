@@ -517,7 +517,7 @@ def cmd_finestra(cfg, args):
     buttons.pack(fill="x", padx=24, pady=(10, 6))
     status = tk.Label(root, text="Scrivi l'indirizzo del tuo Alvea e premi «Verifica questo computer».", fg=TEXT, bg=BG, anchor="w", justify="left", wraplength=720, font=("Helvetica", 13, "bold"))
     status.pack(fill="x", padx=24, pady=(6, 8))
-    out = tk.Text(root, bg="#06090c", fg="#d8dee6", relief="flat", height=14, wrap="word", font=("Courier", 11), padx=12, pady=10, state="disabled", highlightthickness=0)
+    out = tk.Text(root, bg="#06090c", fg="#d8dee6", relief="flat", height=14, wrap="word", font=("Courier", 11), spacing1=1, padx=12, pady=10, state="disabled", highlightthickness=0)
     out.pack(fill="both", expand=True, padx=24, pady=(0, 22))
 
     def say(line=""):
@@ -556,8 +556,13 @@ def cmd_finestra(cfg, args):
         hidden = [0]
 
         def line(text=""):  # nella finestra si elencano solo gli agenti che possono, o potrebbero, lavorare su questo computer
+            import re
+            parts = re.split(r"\s{2,}", str(text).strip(), maxsplit=2)
             if "SOLO SUI NOSTRI SERVER" in str(text):
                 hidden[0] += 1
+            elif len(parts) == 3:  # «Nome   VERDETTO   motivo» diventa una riga che va a capo bene
+                say("%s  %s: %s" % ("●" if parts[1] == "GIRA" else "○", parts[0], parts[1].lower()))
+                say("     %s" % parts[2])
             else:
                 say(text)
         verdicts(api, cfg, sp, log=line)
@@ -610,7 +615,8 @@ def cmd_finestra(cfg, args):
                 if item[0] == "riga":
                     out.configure(state="normal")
                     out.insert("end", item[1] + "\n")
-                    out.see("end")
+                    if state["listening"]:
+                        out.see("end")  # durante il lavoro si segue l'ultima riga; la verifica resta leggibile dall'inizio
                     out.configure(state="disabled")
                 else:
                     status.configure(text=item[1], fg=TEXT if item[2] else WARN)
