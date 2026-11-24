@@ -16,7 +16,7 @@ import threading
 from datetime import datetime, timedelta, timezone
 import time
 
-from . import audit, auth, catalog, config, connectors, db, google, legal, ops, site, team
+from . import audit, auth, catalog, config, connectors, db, google, i18n, legal, ops, site, team
 from .errors import ApiError
 
 TOKEN_SECONDS = 24 * 3600
@@ -48,6 +48,13 @@ def verification_on():
 def send_mail(to, subject, text):
     """Punto unico di invio: le prove lo sostituiscono per leggere i messaggi senza un server di posta."""
     connectors.smtp_send(smtp_cfg(), to, subject, text)
+
+
+def mail(con, to, subject, text):
+    """Un'email del servizio nella lingua di chi la riceve (l'ultima in cui ha usato l'interfaccia). Gli indirizzi e i nomi dentro restano com'erano."""
+    row = con.execute("SELECT lang FROM users WHERE LOWER(email)=?", (str(to).lower(),)).fetchone() if con is not None else None
+    lang = i18n.pick(row["lang"]) if row else "it"
+    send_mail(to, i18n.text(subject, lang, note=False), i18n.lines(text, lang))
 
 
 def throttle(ip, what, per_hour, count=True):
@@ -92,7 +99,7 @@ def _send_verification(con, user_id, email):
     con.execute("INSERT INTO email_tokens(token_hash,user_id,expires_at) VALUES(?,?,?)", (_hash(token), user_id, int(time.time()) + TOKEN_SECONDS))
     link = "%s/api/verify?token=%s" % (google.public_url(), token)
     try:
-        send_mail(email, "Conferma il tuo indirizzo per Alvea",
+        mail(con, email, "Conferma il tuo indirizzo per Alvea",
                   "Per attivare l'account apri questo collegamento entro 24 ore:\n\n%s\n\nSe non hai chiesto tu la registrazione, ignora questo messaggio." % link)
         return True
     except connectors.ConnectorError as e:
@@ -161,10 +168,12 @@ def register(con, body, ip):
         name = company
         while name and con.execute("SELECT 1 FROM tenants WHERE name=?", (name,)).fetchone():
             name = "%s (%s)" % (company, secrets.token_hex(2))  # i nomi uguali sono ammessi: non si rivela chi è già cliente
+        lang = i18n.pick(body.get("lang"))
         tenant_id = ops.create_tenant(con, name, pid, email, body.get("name"), body.get("password"), actor_id=None,
                                       origin="registrazione", platform_keys=1 if config.get("SFB_REGISTER_PLATFORM_KEYS") == "1" else 0,
                                       email_verified=0 if verify else 1, agents=set(agents))
         con.execute("UPDATE tenants SET kind=?, activity=? WHERE id=?", (kind, activity, tenant_id))
+        con.execute("UPDATE users SET lang=? WHERE tenant_id=?", (lang, tenant_id))
         trial = config.get_int("SFB_TRIAL_DAYS", 0)
         if trial > 0:  # prova gratuita: l'azienda nasce con una scadenza, che il gestore sposta quando il cliente paga
             con.execute("UPDATE tenants SET paid_until=?, on_trial=1 WHERE id=?",
@@ -216,9 +225,11 @@ def forgot(con, body, ip):
         text = ("Per scegliere una nuova password apri questo collegamento entro un'ora:\n\n%s/#reimposta-%s\n\n"
                 "Se non l'hai chiesto tu, ignora questo messaggio: la password resta quella di prima." % (google.public_url(), token))
 
+        lang = i18n.pick(user["lang"])
+
         def deliver(to=user["email"]):  # in un filo a parte: il tempo di risposta non rivela se l'indirizzo esiste
             try:
-                send_mail(to, "Alvea: scegli una nuova password", text)
+                send_mail(to, i18n.text("Alvea: scegli una nuova password", lang, note=False), i18n.lines(text, lang))
             except Exception as e:
                 print("ATTENZIONE: email di recupero non inviata: %s" % type(e).__name__)
 

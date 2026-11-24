@@ -32,6 +32,20 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 30: interfaccia, sito, email e agenti anche in inglese
+
+L'italiano resta la lingua di partenza. L'inglese è un dizionario (`i18n/en.json`: circa 1.400 voci e 250 modelli di frase) applicato ai testi nostri un attimo prima che escano: dal server (pagine del sito, risposte, errori, email) e nel browser (le scritte dell'interfaccia).
+
+- **Sito**: `/en`, `/en/privacy`, `/en/terms`, `/en/cookies`, con il pulsante IT/EN in alto e i collegamenti `hreflang` per i motori di ricerca. Le pagine legali in inglese dicono in testa che fa fede il testo italiano.
+- **Applicazione**: pulsante EN/IT nella schermata di accesso e nella barra in alto. La scelta resta nel browser e viene mandata al server con ogni richiesta (`X-Lang`).
+- **Email e agenti**: l'ultima lingua usata resta scritta sull'utente (`users.lang`). In quella partono conferma dell'indirizzo, nuova password, avvisi di scadenza e di pagamento (a ogni amministratore nella sua), e gli agenti rispondono in quella lingua.
+- **I dati delle persone non si traducono mai.** Nomi, titoli, note, messaggi, risposte degli agenti e i pezzi dentro una frase (l'oggetto di un'email da approvare) escono identici, anche quando per caso sono uguali a una voce del dizionario. Durante il lavoro questo era sbagliato in 18 punti (un cliente chiamato «Pronto» diventava «Ready»): ora c'è una prova che riempie un'azienda di parole del dizionario e confronta le risposte nelle due lingue.
+- **Nessuna decisione dipende più dal testo di un messaggio**: il pulsante «Rimanda il collegamento» si accende da un segnale del server (`unverified`), non dalla frase italiana.
+- **`python3 strumenti/traduzioni.py en`** rilegge codice, catalogo, sito e interfaccia e dice che cosa non ha ancora traduzione (deve dire 0 ovunque). Per aggiungere una lingua: un file `i18n/xx.json`, la sigla in `server/i18n.py` e gli indirizzi del sito in `server/site.py`.
+- Il gruppo «Ricerca» delle impostazioni ora si chiama «Ricerca web» (per non confondersi con l'Agente Ricerca). L'avviso di un lavoro automatico ora ha per titolo «Lavoro automatico «nome»: fatto».
+
+Non tradotti, di proposito: i comandi di `manage.py`, il registro del server, il launcher, le istruzioni interne date ai modelli (resta l'italiano, con in più la riga «rispondi in inglese») e le risposte del modello finto della demo.
+
 ## Novità della versione 29: il server sotto carico, come al lancio
 
 Due prove nuove e le correzioni di quello che hanno fatto cedere.
@@ -405,13 +419,15 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 - **Video grandi**: provati montaggi fino a 80 secondi in 1080×1920. Non provati file di centinaia di megabyte né il limite di caricamento su connessioni lente.
 - **L'Ufficio 3D è stato provato solo in Chrome senza schermo, con il disegno fatto dal processore** (SwiftShader), a 1440×950 e a 390×844 con tocco simulato. Non è stato provato su una scheda grafica vera, né su Safari, Firefox o un telefono reale: lì vanno guardati fluidità e consumo di batteria.
 - **Stripe vero non è stato usato**: creazione del pagamento e avvisi sono provati con uno Stripe finto e con firme calcolate secondo la documentazione. Prima di incassare va fatto un giro con le chiavi di prova di Stripe.
-- Nessuna prova di carico. SQLite regge bene decine di aziende, non migliaia di utenti contemporanei.
+- **L'inglese non è stato riletto da una persona madrelingua**, e le pagine legali in inglese sono una traduzione di cortesia: fa fede l'italiano. Con un modello vero non è stato provato che l'agente risponda davvero in inglese (con quello finto si controlla solo che l'istruzione ci sia).
+- La prova di carico (`strumenti/prova_carico.py`) è stata fatta su una macchina di prova, non sul server vero. SQLite regge bene decine di aziende, non migliaia di utenti contemporanei.
 
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 255 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 267 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
+python3 strumenti/traduzioni.py en           # testi senza traduzione inglese: deve dire «mancano 0» su ogni riga
 ```
 
 Le prove hanno nomi leggibili, per esempio: `test_agente_fuori_pacchetto_rifiutato_dal_server`, `test_azione_esterna_di_un_lavoro_automatico_aspetta_approvazione`, `test_un_agente_puo_solo_proporre_e_serve_la_conferma`, `test_ritorno_falsificato_rifiutato`, `test_due_processi_non_eseguono_lo_stesso_lavoro`. Altre, della versione 3: `test_spegnere_un_agente_lo_blocca_davvero_e_solo_per_quell_azienda`, `test_file_isolati_tra_aziende_su_api_e_su_disco`, `test_la_nuova_azienda_non_vede_niente_delle_altre`, `test_il_nome_del_file_non_diventa_mai_un_percorso`. Le prove sono state a loro volta controllate inserendo difetti nel codice, uno alla volta: 15 per la versione 2 e 26 per la versione 3, tutti scoperti (uno dei 26 solo dopo aver tolto anche la seconda protezione che lo copriva).

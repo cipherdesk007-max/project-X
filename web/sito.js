@@ -4,9 +4,11 @@
   "use strict";
   var hash = window.location.hash || "", token = null;
   try { token = window.sessionStorage.getItem("sfb_token"); } catch (e) { token = null; }
-  var home = window.location.pathname === "/";  // le pagine legali si leggono anche dopo l'accesso
+  var lang = document.documentElement.lang === "en" ? "en" : "it", app = lang === "en" ? "/app?lang=en" : "/app";
+  var words = lang === "en" ? { signin: "Sign in", trial: " days of free trial, no card needed." } : { signin: "Accedi", trial: " giorni di prova gratuita, senza carta." };
+  var home = window.location.pathname === "/" || window.location.pathname === "/en";  // le pagine legali si leggono anche dopo l'accesso
   if (home && (token || /^#(registrati|reimposta-|pagamento-|crediti-|abbonamento$|google-|verifica-)/.test(hash))) {
-    window.location.replace("/app" + hash);
+    window.location.replace(app + hash);
     return;
   }
   var root = document.documentElement;
@@ -89,9 +91,9 @@
       try { info = JSON.parse(request.responseText); } catch (e) { return; }
       var links = document.querySelectorAll("[data-register]"), i, note = document.getElementById("trial");
       if (!info.open) {  // registrazione chiusa: si entra solo con un account creato dal gestore
-        for (i = 0; i < links.length; i++) { links[i].setAttribute("href", "/app"); links[i].textContent = "Accedi"; }
+        for (i = 0; i < links.length; i++) { links[i].setAttribute("href", app); links[i].textContent = words.signin; }
       } else if (note && info.trial_days > 0) {
-        note.textContent = info.trial_days + " giorni di prova gratuita, senza carta.";
+        note.textContent = info.trial_days + words.trial;
         note.hidden = false;
       }
     };

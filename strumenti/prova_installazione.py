@@ -209,6 +209,13 @@ def installa():
     status, heads, page = http("GET", "https://%s/" % DOMINIO, insecure=True)
     atteso(status == 200 and b"data-register" in page and "default-src 'self'" in heads.get("Content-Security-Policy", ""), "Da fuori si vede il sito, con le regole di sicurezza")
     atteso(bool(login(AZIENDA["admin_email"], base="https://" + DOMINIO)), "L'accesso funziona anche passando da Caddy")
+    status, _, page = http("GET", "https://%s/en/privacy" % DOMINIO, insecure=True)
+    atteso(status == 200 and b'<html lang="en"' in page and b"Alvea Prova S.r.l." in page, "Il sito risponde anche in inglese, con gli stessi dati dell'azienda", status)
+    status, heads, page = http("GET", "https://%s/i18n/en.json" % DOMINIO, insecure=True)
+    atteso(status == 200 and isinstance(page, dict) and len(page.get("exact", {})) > 1000, "Il dizionario dell'inglese arriva al browser anche passando da Caddy", status)
+    status, _, out = http("POST", "https://%s/api/login" % DOMINIO, {"email": "nessuno@example.org", "password": "sbagliata"}, headers={"X-Lang": "en"}, insecure=True)
+    said = str(out.get("error", "")) if isinstance(out, dict) else ""
+    atteso(status in (401, 429) and said and "sbagliat" not in said.lower() and "riprova" not in said.lower(), "Chi usa l'inglese riceve gli errori in inglese", out)
 
     passo("Se il programma cade, riparte da solo")
     before = pid()

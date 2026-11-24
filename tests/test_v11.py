@@ -54,7 +54,8 @@ class Sito(Base):
         _, app = self.page("/app")
         self.assertIn("<title>alvea</title>", app)
         js = self.fetch("/sito.js")[2].decode("utf-8")
-        self.assertIn('window.location.replace("/app" + hash)', js)
+        self.assertIn('window.location.replace(app + hash)', js)
+        self.assertIn('app = lang === "en" ? "/app?lang=en" : "/app"', js, "chi arriva dal sito in inglese trova l'applicazione in inglese")
         pattern = re.search(r"/\^#\((.+?)\)/", js).group(1)
         rx = re.compile("^#(%s)" % pattern)
         for link in ("#registrati", "#reimposta-" + "a" * 30, "#pagamento-ok", "#pagamento-annullato", "#abbonamento", "#crediti-ok", "#crediti-annullato", "#google-ok", "#verifica-ok"):

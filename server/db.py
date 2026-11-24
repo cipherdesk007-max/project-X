@@ -163,7 +163,8 @@ def connect(path=None):
 
 
 # Colonne aggiunte dopo la prima versione: (tabella, colonna, dichiarazione).
-MIGRATIONS = [("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
+MIGRATIONS = [("users", "lang", "TEXT NOT NULL DEFAULT 'it'"),  # la lingua in cui la persona usa l'interfaccia: serve per le email e per gli agenti
+              ("tenants", "stopped", "INTEGER NOT NULL DEFAULT 0"),
               ("tenants", "origin", "TEXT NOT NULL DEFAULT 'gestore'"),         # 'gestore' oppure 'registrazione'
               ("tenants", "platform_keys", "INTEGER NOT NULL DEFAULT 1"),       # può usare le chiavi dei modelli della piattaforma
               ("users", "email_verified", "INTEGER NOT NULL DEFAULT 1"),

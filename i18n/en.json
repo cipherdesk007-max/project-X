@@ -1,0 +1,2398 @@
+{
+"exact": {
+"(.env)": "(.env)",
+"(pannello)": "(panel)",
+", chiave": ", key",
+", spento": ", off",
+". Altri sistemi, o se preferisci vedere il codice:": ". Other systems, or if you prefer to see the code:",
+".env": ".env",
+"1 giorno": "1 day",
+"1 utente": "1 user",
+": accenderne o spegnerne uno cambia subito il prezzo dell'abbonamento.": ": switching one on or off changes the subscription price straight away.",
+"A ogni accesso, dopo la password, ti viene chiesto il codice della tua app di autenticazione.": "Every time you sign in, after the password, you are asked for the code from your authenticator app.",
+"Abbiamo acceso gli agenti più utili per questa attività: puoi cambiarli qui sotto.": "We have switched on the most useful agents for this line of work: you can change them below.",
+"Abbonamento": "Subscription",
+"Abbonamento con carta disdetto": "Card subscription cancelled",
+"Accedi": "Sign in",
+"Accendere o spegnere un agente cambia il prezzo dal mese in corso.": "Switching an agent on or off changes the price from the current month.",
+"Accendi anche gli agenti consigliati": "Also switch on the recommended agents",
+"Accesso scaduto o mancante. Entra di nuovo.": "Session expired or missing. Sign in again.",
+"Accesso: quando entri nell'applicazione, il tuo accesso viene tenuto nella memoria della scheda del browser (sessionStorage). Sparisce quando chiudi la scheda o esci.": "Sign-in: when you enter the application, your session is kept in the browser tab's storage (sessionStorage). It disappears when you close the tab or sign out.",
+"Accetto le": "I accept the",
+"Account": "Account",
+"Account Google collegato (Gmail) oppure server IMAP e SMTP": "Connected Google account (Gmail) or IMAP and SMTP server",
+"Account WhatsApp Business con Cloud API: ID del numero e token": "WhatsApp Business account with Cloud API: number ID and token",
+"Account creato, ma l'email di conferma non è partita. Prova a entrare e usa «Rimanda il collegamento».": "Account created, but the confirmation email was not sent. Try signing in and use «Resend the link».",
+"Account creato. Ti abbiamo mandato un'email: apri il collegamento per attivarlo, poi entra da qui.": "Account created. We have sent you an email: open the link to activate it, then sign in from here.",
+"Acquisto annullato: non è stato addebitato niente.": "Purchase cancelled: nothing was charged.",
+"Agente": "Agent",
+"Agente Administration": "Administration Agent",
+"Agente Amministrazione": "Administration Agent",
+"Agente Ascolto": "Listening Agent",
+"Agente Assistenza": "Customer Support Agent",
+"Agente CRM Lead": "CRM Leads Agent",
+"Agente CRM Leads": "CRM Leads Agent",
+"Agente Calendar": "Calendar Agent",
+"Agente Calendario": "Calendar Agent",
+"Agente ChatGPT": "ChatGPT Agent",
+"Agente Content": "Content Agent",
+"Agente Contenuti": "Content Agent",
+"Agente Contracts": "Contracts Agent",
+"Agente Contratti": "Contracts Agent",
+"Agente Customer Support": "Customer Support Agent",
+"Agente Dev": "Dev Agent",
+"Agente Email": "Email Agent",
+"Agente Facebook": "Facebook Agent",
+"Agente Instagram": "Instagram Agent",
+"Agente LinkedIn": "LinkedIn Agent",
+"Agente Listening": "Listening Agent",
+"Agente Marketing": "Marketing Agent",
+"Agente Personal": "Personal Agent",
+"Agente Personale": "Personal Agent",
+"Agente Recensioni": "Reviews Agent",
+"Agente Report": "Reports Agent",
+"Agente Reports": "Reports Agent",
+"Agente Research": "Research Agent",
+"Agente Reviews": "Reviews Agent",
+"Agente Ricerca": "Research Agent",
+"Agente SEO and Blog": "SEO and Blog Agent",
+"Agente SEO e Blog": "SEO and Blog Agent",
+"Agente Shopify": "Shopify Agent",
+"Agente Team": "Team Agent",
+"Agente Telegram": "Telegram Agent",
+"Agente TikTok": "TikTok Agent",
+"Agente Traduzioni": "Translations Agent",
+"Agente Translations": "Translations Agent",
+"Agente Video Editor": "Video Editor Agent",
+"Agente Voce": "Voice Agent",
+"Agente Voice": "Voice Agent",
+"Agente WhatsApp": "WhatsApp Agent",
+"Agente YouTube": "YouTube Agent",
+"Agente sconosciuto.": "Unknown agent.",
+"Agenti": "Agents",
+"Agenti che leggono, scrivono bozze e si collegano con credenziali semplici.": "Agents that read, write drafts and connect with simple credentials.",
+"Agenti del team": "Team agents",
+"Agenti riavviati": "Agents restarted",
+"Agenzia di marketing o comunicazione": "Marketing or communications agency",
+"Agenzia immobiliare": "Real estate agency",
+"Aggiunge WhatsApp, i canali social e gli agenti per voce e riunioni.": "Adds WhatsApp, the social channels and the agents for voice and meetings.",
+"Aggiunge vendite e lavoro di squadra: negozio, lead, campagne, terzo modello, più utenti con ruoli.": "Adds sales and teamwork: store, leads, campaigns, a third model, more users with roles.",
+"Aggiungi": "Add",
+"Aggiungi documento": "Add document",
+"Aggiungi lead: nome, email, telefono": "Add lead: name, email, phone",
+"Aggiungi o togli": "Add or remove",
+"Aggiungi utente": "Add user",
+"Aggiunto": "Added",
+"Aiuta una persona sola: promemoria, lettere, piani, liste e documenti di tutti i giorni.": "Helps one person on their own: reminders, letters, plans, lists and everyday documents.",
+"Alcuni agenti possono girare su un tuo computer invece che sui nostri server. Il launcher controlla il computer e dice, agente per agente, se può girare lì: lo puoi fare prima di scegliere. Le chiavi dei modelli restano sempre sui nostri server.": "Some agents can run on a computer of yours instead of on our servers. The launcher checks the computer and tells you, agent by agent, whether it can run there: you can do this before choosing. The model keys always stay on our servers.",
+"Alcuni agenti sono indicati come «solo bozze»: preparano il materiale, ma pubblicare o inviare resta a te.": "Some agents are marked «drafts only»: they prepare the material, but publishing or sending is up to you.",
+"Alcuni di questi fornitori si trovano fuori dallo Spazio economico europeo. In quei casi il trasferimento avviene con le garanzie previste dagli articoli 44 e seguenti del GDPR, come una decisione di adeguatezza o le clausole contrattuali tipo della Commissione europea.": "Some of these providers are located outside the European Economic Area. In those cases the transfer takes place with the safeguards set out in Articles 44 and following of the GDPR, such as an adequacy decision or the European Commission's standard contractual clauses.",
+"Alla prima apertura il computer chiede una conferma, perché il programma non ha ancora una firma a pagamento. Su Windows: «Ulteriori informazioni», poi «Esegui comunque». Su Mac: Impostazioni di Sistema, Privacy e sicurezza, «Apri comunque».": "The first time you open it, the computer asks for confirmation, because the program does not have a paid signature yet. On Windows: «More info», then «Run anyway». On Mac: System Settings, Privacy & Security, «Open Anyway».",
+"Alla registrazione scegli di cosa ti occupi: si accendono gli agenti più utili e sanno già con chi stanno lavorando. Poi li cambi quando vuoi.": "When you sign up you choose what you do: the most useful agents are switched on and already know who they are working with. You can change them whenever you like.",
+"Altro": "Other",
+"Alvea mette a disposizione agenti basati sull'intelligenza artificiale che preparano e svolgono attività per la tua azienda. Gli agenti e i limiti di ogni pacchetto sono quelli descritti nel sito al momento dell'acquisto.": "Alvea provides agents based on artificial intelligence that prepare and carry out tasks for your company. The agents and the limits of each plan are those described on the website at the time of purchase.",
+"Alvea non usa cookie di profilazione né strumenti di statistica di terzi. Il sito non carica caratteri, script o immagini da altri siti. Per questo non vedi un banner dei cookie: per i soli strumenti tecnici la legge non richiede il consenso.": "Alvea does not use profiling cookies or third-party analytics tools. The website does not load fonts, scripts or images from other sites. That is why you do not see a cookie banner: the law does not require consent for strictly technical tools.",
+"Alvea — agenti AI per la tua azienda": "Alvea — AI agents for your company",
+"Alvea, pagina iniziale": "Alvea, home page",
+"Amministratore": "Administrator",
+"Amministrazione": "Administration",
+"Ancora nessun consumo.": "No usage yet.",
+"Ancora nessun documento.": "No documents yet.",
+"Ancora nessun fatto.": "No facts yet.",
+"Ancora nessun file.": "No files yet.",
+"Ancora nessuna novità.": "No news yet.",
+"Ancora niente.": "Nothing yet.",
+"Annulla": "Cancel",
+"Applica crediti": "Apply credits",
+"Approva e controlla": "Approve and stay in control",
+"Approva ed esegui": "Approve and run",
+"Approvazioni": "Approvals",
+"Appuntamenti salvati dall'Agente Calendario (calendario interno alla piattaforma).": "Appointments saved by the Calendar Agent (the platform's internal calendar).",
+"Apri l'Ufficio 3D": "Open the 3D Office",
+"Apri la tua app di autenticazione e scrivi il codice a 6 cifre di Alvea.": "Open your authenticator app and type Alvea's 6-digit code.",
+"Apri le novità": "Open the news",
+"Apri nell'app di questo telefono": "Open in this phone's app",
+"Archivio Media": "Media Archive",
+"Argomenti non validi.": "Invalid arguments.",
+"Argomenti troppo lunghi.": "Arguments too long.",
+"Arresto d'emergenza": "Emergency stop",
+"Arresto d'emergenza attivato": "Emergency stop activated",
+"Arresto d'emergenza attivo: chat, lavori automatici e azioni approvate sono fermi.": "Emergency stop active: chats, automated jobs and approved actions are stopped.",
+"Arresto d'emergenza attivo: gli agenti sono fermi finché un amministratore non li riavvia dal Centro di controllo.": "Emergency stop active: the agents are stopped until an administrator restarts them from the Control Centre.",
+"Arresto d'emergenza attivo: gli agenti sono fermi.": "Emergency stop active: the agents are stopped.",
+"Artigiano, impresa o installatore": "Tradesperson, contractor or installer",
+"Ascolto": "Listening",
+"Assistenza": "Customer Support",
+"Attiva": "Activate",
+"Attiva i due passaggi": "Turn on two-step sign-in",
+"Attiva nel team": "Switch on in the team",
+"Attività in tempo reale": "Live activity",
+"Attivo": "Active",
+"Auto e moto: concessionaria, autosalone, officina": "Cars and motorbikes: dealership, showroom, garage",
+"Automazioni": "Automations",
+"Avvisa il gruppo che domani siamo chiusi": "Tell the group we are closed tomorrow",
+"Avvisi": "Alerts",
+"Azienda": "Company",
+"Azienda non attiva.": "Company not active.",
+"Azienda non trovata.": "Company not found.",
+"Azienda sospesa o senza utenti attivi.": "Company suspended or without active users.",
+"Aziende": "Companies",
+"Aziende, pacchetto e stato.": "Companies, plan and status.",
+"Azione": "Action",
+"Azioni": "Actions",
+"Azioni in attesa della tua approvazione": "Actions awaiting your approval",
+"Basta per le chat e per un montaggio video alla volta.": "Enough for the chats and for one video edit at a time.",
+"Basta per le chat; il montaggio video sul server è a rischio.": "Enough for the chats; video editing on the server is at risk.",
+"Bot Telegram": "Telegram bot",
+"Bozze": "Drafts",
+"Business": "Business",
+"CRM Lead": "CRM Leads",
+"Calendar: leggere e creare eventi": "Calendar: read and create events",
+"Calendario": "Calendar",
+"Cambia pacchetto": "Change plan",
+"Canale": "Channel",
+"Caratteri": "Characters",
+"Carica": "Upload",
+"Caricamento interrotto o intestazioni troppo lunghe.": "Upload interrupted or headers too long.",
+"Caricamento interrotto.": "Upload interrupted.",
+"Caricamento interrotto: controlla la connessione e la dimensione del file.": "Upload interrupted: check the connection and the file size.",
+"Carico gli elaborati...": "Loading the outputs...",
+"Carico le attività...": "Loading the activity...",
+"Carico le impostazioni...": "Loading the settings...",
+"Carico...": "Loading...",
+"Carta, ricevute e disdetta": "Card, receipts and cancellation",
+"Casella email (IMAP e SMTP)": "Mailbox (IMAP and SMTP)",
+"Centrale": "Coordinator",
+"Centrale (tutti gli agenti)": "Coordinator (all agents)",
+"Centro di controllo": "Control Centre",
+"Centro operativo": "Operations centre",
+"Cerca": "Search",
+"Cerca sul web e riassume con le fonti.": "Searches the web and summarises with sources.",
+"Cerca sul web e riassumi con le fonti:": "Search the web and summarise with sources:",
+"Chat": "Chat",
+"Chat diretta": "Direct chat",
+"Chat predefinita (id)": "Default chat (id)",
+"ChatGPT": "ChatGPT",
+"ChatGPT: crediti ogni 1.000 token": "ChatGPT: credits per 1,000 tokens",
+"Che appuntamenti ho questa settimana?": "What appointments do I have this week?",
+"Che cosa usiamo": "What we use",
+"Che materiale c'è nell'Archivio Media?": "What material is in the Media Archive?",
+"Chi deve fare cosa, secondo questi appunti?": "Who has to do what, according to these notes?",
+"Chi fornisce il servizio": "Who provides the service",
+"Chi riceve i dati": "Who receives the data",
+"Chi si registra usa le tue chiavi dei modelli": "People who sign up use your model keys",
+"Chi si registra usa le tue chiavi dei modelli (1 sì, 0 no)": "People who sign up use your model keys (1 yes, 0 no)",
+"Chi sono gli utenti dell'azienda e che ruolo hanno?": "Who are the company's users and what roles do they have?",
+"Chi tratta i tuoi dati": "Who processes your data",
+"Chi è amministratore?": "Who is an administrator?",
+"Chiamate": "Calls",
+"Chiave API Brave Search": "Brave Search API key",
+"Chiave API OpenAI e nome del modello": "OpenAI API key and model name",
+"Chiave API di ChatGPT (OpenAI)": "ChatGPT API key (OpenAI)",
+"Chiave API di Claude (Anthropic)": "Claude API key (Anthropic)",
+"Chiave API di Kimi (Moonshot)": "Kimi API key (Moonshot)",
+"Chiave Brave Search API": "Brave Search API key",
+"Chiave ChatGPT (OpenAI)": "ChatGPT key (OpenAI)",
+"Chiave Claude (Anthropic)": "Claude key (Anthropic)",
+"Chiave Kimi (Moonshot)": "Kimi key (Moonshot)",
+"Chiave di Brave Search": "Brave Search key",
+"Chiave segreta di Stripe (sk_…)": "Stripe secret key (sk_…)",
+"Chiavi API dei modelli dell'azienda (facoltative)": "The company's model API keys (optional)",
+"Chiavi dei modelli, posta, ricerca, Google, registrazione, prezzi, dati dell'azienda e pagamenti: quello che salvi qui vale subito e ha la precedenza sul file .env. Un campo lasciato vuoto torna al valore del file. Chiavi e password non vengono mai mostrate: vedi solo se sono impostate.": "Model keys, mail, search, Google, sign-up, prices, company data and payments: what you save here applies immediately and takes precedence over the .env file. A field left empty goes back to the file's value. Keys and passwords are never shown: you only see whether they are set.",
+"Chiudi": "Close",
+"Chiudi i primi passi": "Close the first steps",
+"Cifratura non attiva (manca SFB_SECRET_KEY nel file .env): chiavi e password non si possono salvare dal pannello finché non la imposti.": "Encryption not active (SFB_SECRET_KEY is missing from the .env file): keys and passwords cannot be saved from the panel until you set it.",
+"Claude": "Claude",
+"Claude: crediti ogni 1.000 token": "Claude: credits per 1,000 tokens",
+"Clicca un agente o la sua postazione per aprire la chat diretta, le attività in tempo reale e gli elaborati.": "Click an agent or its workstation to open the direct chat, live activity and outputs.",
+"Codice": "Code",
+"Codice a 6 cifre": "6-digit code",
+"Codice dell'app o di riserva": "App code or backup code",
+"Codice già usato.": "Code already used.",
+"Codice non valido o scaduto: creane uno nuovo nel Centro di controllo, scheda Computer.": "Invalid or expired code: create a new one in the Control Centre, Computers tab.",
+"Codice non valido. Controlla di aver scritto il codice che l'app mostra adesso e che l'ora del telefono sia giusta.": "Invalid code. Check that you typed the code the app is showing now and that your phone's clock is right.",
+"Codice non valido. Scrivi quello che l'app mostra adesso, oppure un codice di riserva.": "Invalid code. Type the one the app is showing now, or a backup code.",
+"Collaudo": "Acceptance test",
+"Collega Google": "Connect Google",
+"Collega i tuoi strumenti": "Connect your tools",
+"Collega la posta o un altro servizio": "Connect mail or another service",
+"Collegamenti": "Links",
+"Collegamento di Google: se un amministratore collega l'account Google dell'azienda, per circa dieci minuti viene usato un cookie tecnico che serve a completare il collegamento in sicurezza. Poi viene cancellato.": "Google connection: if an administrator connects the company's Google account, a technical cookie is used for about ten minutes to complete the connection securely. It is then deleted.",
+"Collegamento di conferma non valido o scaduto. Entra e chiedi di rimandarlo.": "Invalid or expired confirmation link. Sign in and ask to have it resent.",
+"Collegamento già usato.": "Link already used.",
+"Collegamento non riuscito.": "Connection failed.",
+"Collegamento non valido o già usato: riprova da qui.": "Invalid or already used link: try again from here.",
+"Collegamento non valido o scaduto.": "Invalid or expired link.",
+"Collegamento non valido o scaduto: chiedine uno nuovo dalla pagina di accesso.": "Invalid or expired link: request a new one from the sign-in page.",
+"Collegamento sconosciuto.": "Unknown connection.",
+"Comandi di manutenzione pronti, senza scrivere niente. Non è un terminale libero: così chi rubasse la tua password non avrebbe in mano il server. Ogni comando lanciato finisce nel registro.": "Ready-made maintenance commands, with nothing to type. It is not a free terminal: that way anyone who stole your password would not have the server in their hands. Every command run ends up in the log.",
+"Comando non previsto. Dal pannello si lanciano solo i comandi dell'elenco.": "Command not allowed. Only the commands in the list can be run from the panel.",
+"Come funziona": "How it works",
+"Come gestirli": "How to manage them",
+"Come nel file .env": "As in the .env file",
+"Completo": "Complete",
+"Compra con carta": "Buy with card",
+"Comprati con carta": "Bought with card",
+"Computer": "Computers",
+"Computer dell'azienda": "Company computers",
+"Computer non trovato.": "Computer not found.",
+"Concedi le tue chiavi": "Grant your keys",
+"Condizioni": "Terms",
+"Condizioni di servizio": "Terms of Service",
+"Condizioni di servizio — Alvea": "Terms of Service — Alvea",
+"Conferma": "Confirm",
+"Conferma e attiva": "Confirm and activate",
+"Conferma prima il tuo indirizzo email: apri il collegamento che ti abbiamo mandato.": "First confirm your email address: open the link we sent you.",
+"Conferma: ferma tutti gli agenti": "Confirm: stop all agents",
+"Consigli": "Tips",
+"Console": "Console",
+"Consumi": "Usage",
+"Consumi dei modelli": "Model usage",
+"Contenuti": "Content",
+"Contenuti che inserisci o che gli agenti preparano per te: messaggi, bozze, contatti commerciali, appuntamenti, documenti e file caricati.": "Content you enter or that the agents prepare for you: messages, drafts, business contacts, appointments, documents and uploaded files.",
+"Contenuti e proprietà": "Content and ownership",
+"Contratti": "Contracts",
+"Controlla che nessuna riga del registro sia stata cambiata.": "Checks that no line of the log has been changed.",
+"Controlla questa traduzione e correggila:": "Check this translation and correct it:",
+"Controlla sito, applicazione, agenti, pacchetti e launcher di questo server.": "Checks this server's website, application, agents, packages and launcher.",
+"Controllo": "Control",
+"Controllo di produzione": "Production check",
+"Conversazione non trovata.": "Conversation not found.",
+"Conversazione non valida.": "Invalid conversation.",
+"Cookie": "Cookies",
+"Cookie — Alvea": "Cookies — Alvea",
+"Coordina gli agenti e segui quello che succede nella tua azienda.": "Coordinate the agents and follow what happens in your company.",
+"Coordina i tuoi agenti e segui quello che succede.": "Coordinate your agents and follow what happens.",
+"Coordina tutti gli agenti accesi: scrivi a lui quando non sai a chi chiedere.": "Coordinates all the agents switched on: write to it when you don't know who to ask.",
+"Copia i codici": "Copy the codes",
+"Copia la chiave": "Copy the key",
+"Copiata.": "Copied.",
+"Cosa fanno i concorrenti su:": "What are competitors doing about:",
+"Cosa serve": "What's needed",
+"Crea azienda": "Create company",
+"Crea codice di collegamento": "Create connection code",
+"Crea il mio spazio": "Create my space",
+"Crea il video nell'Archivio Media, senza pubblicarlo": "Creates the video in the Media Archive, without publishing it",
+"Crea l'azienda": "Create the company",
+"Crea l'azienda e il suo primo amministratore. Comunicagli email e password iniziale: potrà cambiarla un altro amministratore.": "Create the company and its first administrator. Give them the email and initial password: another administrator will be able to change it.",
+"Crea lavoro automatico": "Create automated job",
+"Crea un video in bozza con queste clip:": "Create a draft video with these clips:",
+"Creando un account accetti queste condizioni. Se le accetti per conto di un'azienda dichiari di avere il potere di farlo.": "By creating an account you accept these terms. If you accept them on behalf of a company, you declare that you have the authority to do so.",
+"Creata da te": "Created by you",
+"Creator, artista o musicista": "Creator, artist or musician",
+"Credenziali cifrate ma SFB_SECRET_KEY manca.": "Credentials are encrypted but SFB_SECRET_KEY is missing.",
+"Credenziali dei servizi che colleghi (posta, calendario, negozio, messaggistica): le conserviamo cifrate e le usiamo solo per eseguire le azioni che chiedi.": "Credentials for the services you connect (mail, calendar, store, messaging): we store them encrypted and use them only to carry out the actions you ask for.",
+"Credenziali non decifrabili: SFB_SECRET_KEY è cambiata.": "Credentials cannot be decrypted: SFB_SECRET_KEY has changed.",
+"Crediti": "Credits",
+"Crediti aggiunti": "Credits added",
+"Crediti attivi (1 sì, 0 no). Da spenti non cambia niente": "Credits active (1 yes, 0 no). When off, nothing changes",
+"Crediti attivi Da spenti non cambia niente": "Credits active. When off, nothing changes",
+"Crediti finiti": "Credits used up",
+"Crediti in una ricarica comprata a parte (0 = non si vendono)": "Credits in a top-up bought separately (0 = not sold)",
+"Crediti inclusi ogni mese nel pacchetto Business": "Credits included every month in the Business plan",
+"Crediti inclusi ogni mese nel pacchetto Completo": "Credits included every month in the Complete plan",
+"Crediti inclusi ogni mese nel pacchetto Start": "Credits included every month in the Start plan",
+"Crediti ogni 1.000 token": "Credits per 1,000 tokens",
+"Crediti quasi finiti": "Credits almost used up",
+"Da adesso a ogni accesso serve anche il codice dell'app.": "From now on every sign-in also needs the code from the app.",
+"Da collegare": "To connect",
+"Da una trascrizione incollata ricava decisioni e cose da fare.": "Extracts decisions and to-dos from a pasted transcript.",
+"Dal gestore": "From the platform operator",
+"Dammi cinque frasi d'apertura che fermano chi scorre": "Give me five opening lines that stop people scrolling",
+"Dammi cinque idee di post per la pagina aziendale": "Give me five post ideas for the company page",
+"Dammi dieci idee di post per questo mese": "Give me ten post ideas for this month",
+"Dammi dieci idee di video per il canale": "Give me ten video ideas for the channel",
+"Dammi dieci idee di video per questo mese": "Give me ten video ideas for this month",
+"Dammi un secondo parere su questo testo:": "Give me a second opinion on this text:",
+"Dati": "Data",
+"Dati dell'account e contenuti: per tutta la durata del contratto. Dopo la chiusura li cancelliamo entro 30 giorni, salvo che tu chieda prima una copia.": "Account data and content: for the whole duration of the contract. After closure we delete them within 30 days, unless you ask for a copy first.",
+"Dati dell'account: nome, email, nome dell'azienda. La password non la conserviamo: ne teniamo solo un'impronta non reversibile.": "Account data: name, email, company name. We do not store your password: we keep only a non-reversible fingerprint of it.",
+"Dati di fatturazione: 10 anni, come richiede la legge.": "Billing data: 10 years, as required by law.",
+"Dati di pagamento: il pagamento con carta avviene sulle pagine di Stripe. Noi non vediamo e non conserviamo il numero della carta; riceviamo solo l'esito e gli identificativi del cliente e dell'abbonamento.": "Payment data: card payments take place on Stripe's pages. We do not see or store the card number; we receive only the outcome and the customer and subscription identifiers.",
+"Dati personali": "Personal data",
+"Dati separati per azienda": "Data kept separate per company",
+"Dati tecnici di sicurezza: per il tempo necessario a riconoscere e gestire gli abusi.": "Technical security data: for the time needed to detect and handle abuse.",
+"Dati tecnici: indirizzo IP e orario delle richieste, usati per la sicurezza e per limitare gli abusi, e il registro delle azioni fatte nell'azienda (chi ha fatto cosa e quando).": "Technical data: IP address and time of requests, used for security and to limit abuse, and the log of actions carried out in the company (who did what and when).",
+"Demo": "Demo",
+"Dettaglio": "Detail",
+"Dev": "Dev",
+"Deve restare almeno un amministratore attivo.": "At least one active administrator must remain.",
+"Di cosa ti occupi": "What you do",
+"Dice agli agenti con chi stanno lavorando, così rispondono nel modo giusto per il tuo mestiere.": "It tells the agents who they are working with, so they answer in the right way for your line of work.",
+"Dice cosa manca prima di aprire ai clienti.": "Says what is missing before opening to customers.",
+"Disattiva": "Turn off",
+"Disdetta e recesso": "Cancellation and withdrawal",
+"Disdetta registrata": "Cancellation recorded",
+"Disdetta ritirata": "Cancellation withdrawn",
+"Disponibilità e modifiche": "Availability and changes",
+"Documenti": "Documents",
+"Dom": "Sun",
+"Domanda": "Question",
+"Dominio (nome.myshopify.com)": "Domain (name.myshopify.com)",
+"Dominio del negozio e token Admin API": "Store domain and Admin API token",
+"Dopo aver salvato una chiave, nella Console del gestore premi «Prova dei modelli»: manda una domanda vera a ogni modello e gli fa usare uno strumento, come fanno gli agenti. Costa pochi token e dice subito se la chiave o il nome del modello sono sbagliati.": "After saving a key, press «Model test» in the operator's Console: it sends a real question to each model and has it use a tool, as the agents do. It costs a few tokens and tells you straight away if the key or the model name is wrong.",
+"Dopo aver salvato, nella Console del gestore premi «Prova dei servizi»: controlla con una chiamata vera, che non costa e non spedisce niente, che la chiave sia accettata.": "After saving, press «Service test» in the operator's Console: it checks with a real call, which costs nothing and sends nothing, that the key is accepted.",
+"Dove girano gli agenti": "Where the agents run",
+"Dove sono previsti, i crediti misurano l'uso dei modelli messi a disposizione da noi. Quelli inclusi nel pacchetto si rinnovano all'inizio di ogni mese e non si accumulano. Quelli comprati a parte non scadono finché il contratto è attivo. I crediti non sono convertibili in denaro. Se usi una tua chiave del modello i crediti non vengono scalati.": "Where they apply, credits measure the use of the models we provide. Those included in the plan are renewed at the start of each month and do not accumulate. Those bought separately do not expire while the contract is active. Credits cannot be converted into money. If you use your own model key, no credits are deducted.",
+"EN": "EN",
+"Elaborati generati": "Generated outputs",
+"Elemento non trovato.": "Item not found.",
+"Elenca i contatti che non sento da un mese": "List the contacts I haven't heard from in a month",
+"Elenca i contatti da richiamare questa settimana": "List the contacts to call back this week",
+"Elenca i file della cartella di lavoro": "List the files in the working folder",
+"Elenca i lead da richiamare": "List the leads to call back",
+"Elenco delle aziende": "List of companies",
+"Email": "Email",
+"Email dell'amministratore": "Administrator's email",
+"Email di contatto, anche per le richieste sulla privacy": "Contact email, also for privacy requests",
+"Email o password non corretti.": "Incorrect email or password.",
+"Email, messaggi, comandi: ogni azione verso l'esterno aspetta l'approvazione di un amministratore.": "Emails, messages, commands: every outward action waits for an administrator's approval.",
+"English version": "English version",
+"Entra": "Sign in",
+"Entra con l'email e la password della tua azienda.": "Sign in with your company's email and password.",
+"Errore interno del server. Riprova; se continua, avvisa il gestore (il dettaglio è nel registro del server).": "Internal server error. Try again; if it continues, tell the platform operator (the detail is in the server log).",
+"Es. dai sempre del lei ai clienti.": "E.g. always address customers formally.",
+"Esci": "Sign out",
+"Esegui il comando prove": "Run the tests command",
+"Esegui ora": "Run now",
+"Esiste già un utente con questa email.": "A user with this email already exists.",
+"Esiste già un'azienda con questo nome.": "A company with this name already exists.",
+"Evento non leggibile.": "Unreadable event.",
+"FFmpeg": "FFmpeg",
+"FFmpeg: sul computer dell'azienda oppure sui nostri server": "FFmpeg: on the company's computer or on our servers",
+"FFprobe": "FFprobe",
+"Facciamo il possibile perché il servizio sia sempre raggiungibile, ma non garantiamo che funzioni senza interruzioni: possono esserci manutenzioni e guasti, anche dei fornitori dei modelli.": "We do everything we can to keep the service reachable at all times, but we do not guarantee that it will work without interruption: there may be maintenance and outages, including those of the model providers.",
+"Facebook": "Facebook",
+"Facoltativo: account Google collegato per leggere i Fogli": "Optional: connected Google account to read Sheets",
+"Facoltativo: account Google collegato. Outlook non è ancora collegato": "Optional: connected Google account. Outlook is not connected yet",
+"Fammi il resoconto delle attività della settimana": "Give me a report of this week's activity",
+"Fammi il riepilogo di questa settimana": "Give me this week's summary",
+"Fammi la lista delle cose da fare per:": "Make me a to-do list for:",
+"Fammi un elenco di idee su:": "Give me a list of ideas about:",
+"Fammi un piano di lavoro per questa settimana": "Make me a work plan for this week",
+"Fatti sull'azienda": "Facts about the company",
+"Fatto": "Fact",
+"File di testo (.txt, .md, .csv)": "Text file (.txt, .md, .csv)",
+"File non trovato sul disco.": "File not found on disk.",
+"File non trovato.": "File not found.",
+"Fine": "End",
+"Firma dei pacchetti": "Package signing",
+"Firma non valida.": "Invalid signature.",
+"Fissa un appuntamento domani alle 10:": "Book an appointment tomorrow at 10:",
+"Fissa un appuntamento per un sopralluogo": "Book an appointment for a site visit",
+"Fogli: leggere": "Sheets: read",
+"Formato non valido: verticale, orizzontale o quadrato.": "Invalid format: vertical, horizontal or square.",
+"Fornitore e paese del server (es. Hetzner, Germania): va nell'informativa": "Server provider and country (e.g. Hetzner, Germany): it goes in the privacy policy",
+"Gestione della piattaforma: aziende e pacchetti": "Platform management: companies and plans",
+"Gestore": "Platform operator",
+"Gio": "Thu",
+"Giorni (per i lavori a un'ora)": "Days (for jobs at a set time)",
+"Giorni di prova gratuita (0 = nessuna scadenza)": "Free trial days (0 = no expiry)",
+"Giorni di tolleranza dopo la scadenza, da 0 a 30 (0 = pausa dal giorno dopo)": "Grace days after expiry, from 0 to 30 (0 = pause from the day after)",
+"Gira solo sul computer: lavora in una cartella scelta da te.": "Runs only on the computer: it works in a folder you choose.",
+"Gli agenti": "The agents",
+"Gli agenti che usano i modelli della piattaforma si fermano finché i crediti non si ricaricano o non ne compri altri.": "Agents that use the platform's models stop until the credits are topped up or you buy more.",
+"Gli agenti non sostituiscono un professionista: bozze di contratti, preventivi, solleciti e testi amministrativi vanno verificati da chi ne ha la competenza.": "The agents do not replace a professional: draft contracts, quotes, payment reminders and administrative texts must be checked by someone qualified to do so.",
+"Gli agenti preparano il lavoro. Quello che esce verso l'esterno parte solo dopo l'approvazione di un amministratore.": "The agents prepare the work. Whatever goes out to the outside world leaves only after an administrator's approval.",
+"Gli agenti restano attivi fino alla scadenza già pagata.": "The agents stay active until the end of the period already paid for.",
+"Gli operatori usano gli agenti. Solo gli amministratori approvano le azioni, cambiano i collegamenti e vedono il registro.": "Operators use the agents. Only administrators approve actions, change connections and see the log.",
+"Gmail: inviare (dopo approvazione)": "Gmail: send (after approval)",
+"Gmail: leggere la posta": "Gmail: read mail",
+"Google": "Google",
+"Google collegato.": "Google connected.",
+"Google non ha accettato il codice: controlla client ID, secret e indirizzo di ritorno.": "Google did not accept the code: check the client ID, secret and return address.",
+"Google non ha dato il permesso di accesso continuo: riprova.": "Google did not grant ongoing access: try again.",
+"Google non ha rinnovato l'accesso.": "Google did not renew access.",
+"Google: Gmail, Calendar, Fogli": "Google: Gmail, Calendar, Sheets",
+"Hai già questo pacchetto.": "You already have this plan.",
+"Hai già un abbonamento con carta attivo: per cambiare carta o disdire usa «Carta, ricevute e disdetta».": "You already have an active card subscription: to change card or cancel, use «Card, receipts and cancellation».",
+"Ho già un account": "I already have an account",
+"Hotel, B&B o attività turistica": "Hotel, B&B or tourism business",
+"I contenuti che inserisci e quelli che gli agenti producono per te restano tuoi. Ci autorizzi a trattarli solo per fornirti il servizio. Il software, il marchio e il sito di Alvea restano nostri.": "The content you enter and the content the agents produce for you remains yours. You authorise us to process it only to provide you with the service. Alvea's software, brand and website remain ours.",
+"I crediti devono essere un numero intero.": "Credits must be a whole number.",
+"I crediti non sono attivi su questa piattaforma: l'uso dei modelli segue le regole del tuo pacchetto (scheda Consumi).": "Credits are not active on this platform: model usage follows the rules of your plan (Usage tab).",
+"I dati che inserisci alla registrazione devono essere veri. Sei responsabile della custodia delle tue credenziali e di ciò che fanno gli utenti che aggiungi alla tua azienda. Se sospetti un accesso non autorizzato avvisaci subito.": "The data you enter when signing up must be true. You are responsible for keeping your credentials safe and for what the users you add to your company do. If you suspect unauthorised access, tell us immediately.",
+"I dati dei tuoi clienti": "Your customers' data",
+"I dati di ogni azienda sono separati da quelli delle altre. Le credenziali dei servizi collegati sono cifrate. Ogni azione finisce in un registro concatenato, in cui una modifica successiva si riconosce. Il collegamento al sito è protetto con HTTPS.": "Each company's data is kept separate from the others'. Credentials for connected services are encrypted. Every action ends up in a chained log, in which a later change can be detected. The connection to the website is protected with HTTPS.",
+"I pacchetti locali non sono firmati su questo server: i launcher non potranno installarli. Il gestore deve eseguire «manage.py firma-pacchetti».": "The local packages are not signed on this server: launchers will not be able to install them. The platform operator must run «manage.py firma-pacchetti».",
+"I testi e le proposte degli agenti sono generati da modelli di intelligenza artificiale e possono contenere errori o imprecisioni: vanno sempre controllati prima di usarli.": "The agents' texts and suggestions are generated by artificial intelligence models and may contain errors or inaccuracies: always check them before using them.",
+"I tuoi dati sono trattati come descritto nell'Informativa sulla privacy. Per i dati di altre persone che inserisci nell'applicazione tu sei il titolare del trattamento e noi il responsabile: li trattiamo solo secondo le tue istruzioni, per fornire il servizio, con misure di sicurezza adeguate e con i fornitori indicati nell'informativa (articolo 28 del GDPR).": "Your data is processed as described in the Privacy Policy. For other people's data that you enter into the application, you are the data controller and we are the processor: we process it only according to your instructions, to provide the service, with appropriate security measures and with the providers listed in the policy (Article 28 of the GDPR).",
+"I tuoi diritti": "Your rights",
+"ID client OAuth": "OAuth client ID",
+"ID del numero": "Number ID",
+"ID del prezzo Stripe di una ricarica, pagamento singolo (price_…)": "Stripe price ID of a top-up, one-off payment (price_…)",
+"ID del prezzo mensile del pacchetto Business (price_…)": "Monthly price ID of the Business plan (price_…)",
+"ID del prezzo mensile del pacchetto Completo (price_…)": "Monthly price ID of the Complete plan (price_…)",
+"ID del prezzo mensile del pacchetto Start (price_…)": "Monthly price ID of the Start plan (price_…)",
+"IT": "IT",
+"Il Centrale non produce elaborati suoi: li trovi alla postazione dell'agente che ha fatto lavorare.": "The Coordinator does not produce outputs of its own: you find them at the workstation of the agent it put to work.",
+"Il caricamento automatico non è ancora collegato": "Automatic upload is not connected yet",
+"Il caricamento deve essere multipart/form-data con un campo «file».": "The upload must be multipart/form-data with a «file» field.",
+"Il caricamento non è nel formato atteso (multipart/form-data).": "The upload is not in the expected format (multipart/form-data).",
+"Il collegamento agli account pubblicitari non è ancora fatto": "The connection to advertising accounts is not built yet",
+"Il collegamento va concluso nello stesso browser e allo stesso indirizzo in cui è iniziato (quello impostato in SFB_PUBLIC_URL).": "The connection must be completed in the same browser and at the same address where it started (the one set in SFB_PUBLIC_URL).",
+"Il computer dell'azienda non ha risposto in tempo.": "The company's computer did not respond in time.",
+"Il consenso è stato negato su Google.": "Consent was denied on Google.",
+"Il corpo della richiesta deve essere un oggetto JSON.": "The request body must be a JSON object.",
+"Il corpo della richiesta non è JSON valido.": "The request body is not valid JSON.",
+"Il costo dipende dal modello che scegli nella chat. Il modello «Locale» e le chiavi proprie dell'azienda non consumano crediti.": "The cost depends on the model you choose in the chat. The «Local» model and the company's own keys do not use credits.",
+"Il dominio Shopify deve essere del tipo nome.myshopify.com.": "The Shopify domain must look like name.myshopify.com.",
+"Il file prodotto non è di un tipo ammesso.": "The produced file is not of an allowed type.",
+"Il file è vuoto.": "The file is empty.",
+"Il launcher controlla il tuo computer e ti dice, agente per agente, se può farlo girare. Lo scopri prima di scegliere, senza account. Per farli lavorare sul tuo computer serve poi l'abbonamento attivo.": "The launcher checks your computer and tells you, agent by agent, whether it can run it. You find out before choosing, without an account. To have them work on your computer you then need an active subscription.",
+"Il launcher è un programma facoltativo che permette ad alcuni agenti di lavorare sul tuo computer. Esegue solo i pacchetti firmati da noi e, per l'agente che lavora sul codice, solo i comandi che hai permesso tu. Lo installi e lo usi sotto la tua responsabilità sul computer che scegli.": "The launcher is an optional program that lets some agents work on your computer. It runs only packages signed by us and, for the agent that works on code, only the commands you have allowed. You install and use it at your own responsibility on the computer you choose.",
+"Il modello linguistico gira sul computer: nessuna chiave API, nessun costo a consumo.": "The language model runs on the computer: no API key, no usage costs.",
+"Il modello locale ha dato una risposta non leggibile.": "The local model gave an unreadable reply.",
+"Il nome è obbligatorio (massimo 80 caratteri).": "The name is required (maximum 80 characters).",
+"Il pacchetto è il tetto massimo: dentro quel tetto ogni azienda accende gli agenti che vuole. Le aziende registrate da sole usano le proprie chiavi dei modelli, finché non concedi le tue.": "The plan is the ceiling: within that ceiling each company switches on the agents it wants. Companies that signed up on their own use their own model keys, until you grant yours.",
+"Il pagamento con carta avviene sulle pagine di Stripe, che usa i propri cookie secondo la propria informativa.": "Card payments take place on the pages of Stripe, which uses its own cookies according to its own policy.",
+"Il pagamento con carta non è attivo: il gestore deve inserire le chiavi di Stripe e il prezzo del tuo pacchetto.": "Card payment is not active: the platform operator must enter the Stripe keys and the price of your plan.",
+"Il pagamento con carta non è attivo: per rinnovare contatta chi ti ha venduto il servizio.": "Card payment is not active: to renew, contact whoever sold you the service.",
+"Il prezzo dell'abbonamento è stato aggiornato.": "The subscription price has been updated.",
+"Il prezzo è quello mostrato prima del pagamento: la quota del pacchetto più, se prevista, una quota per ogni agente acceso. I prezzi si intendono al netto dell'IVA, se dovuta.": "The price is the one shown before payment: the plan fee plus, where applicable, a fee for each agent switched on. Prices are exclusive of VAT, where due.",
+"Il recupero della password via email non è attivo su questo server: chiedi a un amministratore della tua azienda di impostartene una nuova.": "Password recovery by email is not active on this server: ask an administrator of your company to set a new one for you.",
+"Il sabato siamo aperti solo la mattina.": "On Saturdays we are open in the morning only.",
+"Il server non riesce a salvare il file (spazio su disco o permessi).": "The server cannot save the file (disk space or permissions).",
+"Il server è molto carico in questo momento. Riprova tra qualche secondo.": "The server is very busy right now. Try again in a few seconds.",
+"Il servizio": "The service",
+"Il servizio ha dato una risposta non leggibile.": "The service gave an unreadable reply.",
+"Il servizio è pensato per aziende e professionisti e non è rivolto a chi ha meno di 18 anni.": "The service is designed for companies and professionals and is not intended for anyone under 18.",
+"Il tetto mensile è un numero intero di token, 0 per nessun tetto.": "The monthly cap is a whole number of tokens, 0 for no cap.",
+"Il tuo nome": "Your name",
+"Il tuo team": "Your team",
+"Impostazioni della piattaforma": "Platform settings",
+"In attesa di approvazione": "Awaiting approval",
+"In breve": "In short",
+"In più per ogni agente acceso: euro al mese (0 = conta solo il pacchetto)": "Extra for each agent switched on: euros per month (0 = only the plan counts)",
+"Incolla qui il testo oppure scegli un file.": "Paste the text here or choose a file.",
+"Indica almeno un agente da modificare.": "Specify at least one agent to change.",
+"Indica is_active, config oppure mode.": "Specify is_active, config or mode.",
+"Indica l'indirizzo del Foglio Google o il suo identificativo.": "Specify the Google Sheet's address or its identifier.",
+"Indirizzo confermato: ora puoi entrare.": "Address confirmed: you can now sign in.",
+"Indirizzo del destinatario non valido (uno solo per messaggio).": "Invalid recipient address (only one per message).",
+"Indirizzo della tua istanza SearXNG": "Address of your SearXNG instance",
+"Indirizzo di Ollama accanto al server (es. http://127.0.0.1:11434/v1)": "Address of Ollama next to the server (e.g. http://127.0.0.1:11434/v1)",
+"Indirizzo email non valido.": "Invalid email address.",
+"Indirizzo non consentito: rete interna o riservata.": "Address not allowed: internal or reserved network.",
+"Indirizzo non trovato.": "Address not found.",
+"Indirizzo non valido.": "Invalid address.",
+"Indirizzo o nome utente": "Address or username",
+"Informativa sulla privacy": "Privacy Policy",
+"Informativa sulla privacy — Alvea": "Privacy Policy — Alvea",
+"Inizio": "Start",
+"Instagram": "Instagram",
+"Intelligenza artificiale": "Artificial intelligence",
+"Intervallo di celle non valido (es. Foglio1!A1:D50).": "Invalid cell range (e.g. Sheet1!A1:D50).",
+"Invia": "Send",
+"Invio solo dopo approvazione": "Sends only after approval",
+"Invio...": "Sending...",
+"Istruzioni dell'azienda per questo agente (facoltative)": "The company's instructions for this agent (optional)",
+"Kimi": "Kimi",
+"Kimi, Claude, ChatGPT, Locale. Li scegli tu, conversazione per conversazione. Con un modello locale i testi non lasciano il tuo computer.": "Kimi, Claude, ChatGPT, Local. You choose them, conversation by conversation. With a local model the texts never leave your computer.",
+"Kimi: crediti ogni 1.000 token": "Kimi: credits per 1,000 tokens",
+"Kimi: quanto ragiona prima di rispondere: low, high oppure max (vuoto = decide Kimi, cioè il massimo: più lento e più caro)": "Kimi: how much it reasons before replying: low, high or max (empty = Kimi decides, i.e. the maximum: slower and more expensive)",
+"L'Agente Amministrazione": "The Administration Agent",
+"L'Agente Ascolto": "The Listening Agent",
+"L'Agente Assistenza": "The Customer Support Agent",
+"L'Agente CRM Lead": "The CRM Leads Agent",
+"L'Agente Calendario": "The Calendar Agent",
+"L'Agente ChatGPT": "The ChatGPT Agent",
+"L'Agente Contenuti": "The Content Agent",
+"L'Agente Contratti": "The Contracts Agent",
+"L'Agente Dev": "The Dev Agent",
+"L'Agente Email": "The Email Agent",
+"L'Agente Facebook": "The Facebook Agent",
+"L'Agente Instagram": "The Instagram Agent",
+"L'Agente LinkedIn": "The LinkedIn Agent",
+"L'Agente Marketing": "The Marketing Agent",
+"L'Agente Personale": "The Personal Agent",
+"L'Agente Recensioni": "The Reviews Agent",
+"L'Agente Report": "The Reports Agent",
+"L'Agente Ricerca": "The Research Agent",
+"L'Agente SEO e Blog": "The SEO and Blog Agent",
+"L'Agente Shopify": "The Shopify Agent",
+"L'Agente Team": "The Team Agent",
+"L'Agente Telegram": "The Telegram Agent",
+"L'Agente TikTok": "The TikTok Agent",
+"L'Agente Traduzioni": "The Translations Agent",
+"L'Agente Video Editor": "The Video Editor Agent",
+"L'Agente Voce": "The Voice Agent",
+"L'Agente WhatsApp": "The WhatsApp Agent",
+"L'Agente YouTube": "The YouTube Agent",
+"L'abbonamento con carta continua a rinnovarsi.": "The card subscription keeps renewing.",
+"L'abbonamento scade oggi.": "The subscription expires today.",
+"L'abbonamento è mensile, si paga in anticipo con carta tramite Stripe e si rinnova ogni mese finché non lo disdici.": "The subscription is monthly, paid in advance by card through Stripe, and renews every month until you cancel it.",
+"L'accesso Google non è ancora configurato sulla piattaforma. Il gestore crea un client OAuth di tipo «Applicazione web» nella console Google Cloud, scrive ID client e segreto nel pannello (Impostazioni della piattaforma, gruppo «Google») e registra questo indirizzo di ritorno:": "Google sign-in is not set up on the platform yet. The platform operator creates an OAuth client of type «Web application» in the Google Cloud console, writes the client ID and secret in the panel (Platform settings, «Google» group) and registers this return address:",
+"L'accesso Google non è configurato sulla piattaforma: il gestore inserisce ID client e segreto nel pannello, Impostazioni della piattaforma, gruppo «Google» (vedi LEGGIMI).": "Google sign-in is not set up on the platform: the platform operator enters the client ID and secret in the panel, Platform settings, «Google» group (see LEGGIMI).",
+"L'accesso in due passaggi non è attivo.": "Two-step sign-in is not active.",
+"L'accesso in due passaggi è già attivo.": "Two-step sign-in is already active.",
+"L'accesso in due passaggi è già attivo. Per cambiare telefono disattivalo e riattivalo.": "Two-step sign-in is already active. To change phone, turn it off and on again.",
+"L'account Google non è collegato. Un amministratore lo collega nel Centro di controllo, scheda Collegamenti.": "The Google account is not connected. An administrator connects it in the Control Centre, Connections tab.",
+"L'acquisto di crediti non è attivo: il gestore deve impostare la ricarica e il suo prezzo.": "Buying credits is not active: the platform operator must set up the top-up and its price.",
+"L'acquisto di ricariche non è attivo: per averne altri contatta chi ti ha venduto il servizio.": "Buying top-ups is not active: to get more, contact whoever sold you the service.",
+"L'agente non è attivo nel team dell'azienda.": "The agent is not active in the company's team.",
+"L'attesa massima per un modello va da 10 a 900 secondi.": "The maximum wait for a model ranges from 10 to 900 seconds.",
+"L'elenco degli agenti non è valido.": "The list of agents is not valid.",
+"L'ultimo addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta.": "The last card charge failed. Stripe will try again over the next few days: in the meantime check or change the card.",
+"L'ultimo addebito sulla carta non è riuscito: controlla la carta nella scheda Abbonamento del Centro di controllo.": "The last card charge failed: check the card in the Subscription tab of the Control Centre.",
+"La chiave dei due passaggi non si decifra: SFB_SECRET_KEY è cambiata. Dal server: python3 manage.py togli-due-passaggi <email>.": "The two-step key cannot be decrypted: SFB_SECRET_KEY has changed. From the server: python3 manage.py togli-due-passaggi <email>.",
+"La chiave dei due passaggi è cifrata ma SFB_SECRET_KEY manca nel file .env.": "The two-step key is encrypted but SFB_SECRET_KEY is missing from the .env file.",
+"La fine dell'evento deve essere dopo l'inizio.": "The end of the event must be after the start.",
+"La musica indicata non è un file audio dell'Archivio Media di questa azienda.": "The music specified is not an audio file from this company's Media Archive.",
+"La password della casella resta sul computer e non arriva al server.": "The mailbox password stays on the computer and never reaches the server.",
+"La posta non è collegata. Un amministratore collega Google (Gmail) oppure una casella IMAP/SMTP nel Centro di controllo, scheda Collegamenti.": "Mail is not connected. An administrator connects Google (Gmail) or an IMAP/SMTP mailbox in the Control Centre, Connections tab.",
+"La pubblicazione automatica non è ancora collegata": "Automatic publishing is not connected yet",
+"La registrazione è chiusa: le aziende vengono create dal gestore.": "Sign-up is closed: companies are created by the platform operator.",
+"La ricerca privata con SearXNG è già disponibile lato server (SEARXNG_URL); sul computer non è ancora inclusa.": "Private search with SearXNG is already available on the server side (SEARXNG_URL); it is not yet included on the computer.",
+"La ricerca web non è configurata: serve una chiave Brave Search API (Centro di controllo, scheda Collegamenti).": "Web search is not set up: a Brave Search API key is needed (Control Centre, Connections tab).",
+"La richiesta per l'agente è obbligatoria (massimo 4000 caratteri).": "The request for the agent is required (maximum 4000 characters).",
+"La scadenza è una data nel formato AAAA-MM-GG, oppure vuota per nessuna scadenza.": "The expiry is a date in the format YYYY-MM-DD, or empty for no expiry.",
+"La trascrizione automatica dell'audio non è ancora collegata": "Automatic audio transcription is not connected yet",
+"La tua azienda usa le proprie chiavi dei modelli: inseriscine almeno una qui sotto, alla voce «Chiavi API dei modelli», altrimenti gli agenti non possono rispondere.": "Your company uses its own model keys: enter at least one below, under «Model API keys», otherwise the agents cannot reply.",
+"Launcher": "Launcher",
+"Launcher sul computer, con la cartella di lavoro scelta da te": "Launcher on the computer, with the working folder you choose",
+"Lavori": "Jobs",
+"Lavori automatici": "Automated jobs",
+"Lavoro automatico non trovato.": "Automated job not found.",
+"Lavoro non trovato o non assegnato a questo computer.": "Job not found or not assigned to this computer.",
+"Le anteprime restano valide 15 minuti: se un video non parte più, riapri la scheda.": "Previews stay valid for 15 minutes: if a video no longer plays, reopen the tab.",
+"Le azioni verso l'esterno (inviare un'email o un messaggio, scrivere un file, eseguire un comando) partono solo dopo l'approvazione di un amministratore della tua azienda.": "Outward actions (sending an email or a message, writing a file, running a command) start only after approval by an administrator of your company.",
+"Le azioni verso l'esterno partono solo dopo l'approvazione di un amministratore della tua azienda, che ne resta responsabile.": "Outward actions start only after approval by an administrator of your company, who remains responsible for them.",
+"Le chiamate vere non sono ancora collegate": "Real phone calls are not connected yet",
+"Le credenziali vengono salvate in chiaro nel database del server: manca SFB_SECRET_KEY o il pacchetto cryptography. Vedi il file LEGGIMI.": "The credentials are saved in clear text in the server's database: SFB_SECRET_KEY or the cryptography package is missing. See the LEGGIMI file.",
+"Le impostazioni non si decifrano: SFB_SECRET_KEY è cambiata.": "The settings cannot be decrypted: SFB_SECRET_KEY has changed.",
+"Le impostazioni sono cifrate ma SFB_SECRET_KEY manca nel file .env.": "The settings are encrypted but SFB_SECRET_KEY is missing from the .env file.",
+"Le persone iscritte possono essere molte di più: contano quelle che scrivono nello stesso momento.": "Many more people can be signed up: what counts is how many write at the same time.",
+"Le ricariche le compra un amministratore dell'azienda.": "Top-ups are bought by an administrator of the company.",
+"Lead": "Leads",
+"Lead non trovato.": "Lead not found.",
+"Legge applicabile e foro": "Governing law and jurisdiction",
+"Legge e scrive codice in una cartella del tuo computer ed esegue i comandi che hai permesso.": "Reads and writes code in a folder on your computer and runs the commands you have allowed.",
+"Legge i messaggi ricevuti dal bot e ne invia.": "Reads the messages received by the bot and sends messages.",
+"Legge la posta, la ordina per priorità e prepara le risposte.": "Reads your mail, sorts it by priority and drafts the replies.",
+"Legge ordini e prodotti del negozio.": "Reads the store's orders and products.",
+"Leggi gli ultimi messaggi ricevuti dal bot": "Read the latest messages received by the bot",
+"Leggi il file README.md e spiegami cosa fa il progetto": "Read the README.md file and explain what the project does",
+"Leggi la posta e dimmi le tre cose più urgenti": "Read my mail and tell me the three most urgent things",
+"Leggi la posta non letta e dimmi le tre cose più urgenti.": "Read the unread mail and tell me the three most urgent things.",
+"Leggi questa pagina e dimmi i punti principali:": "Read this page and tell me the main points:",
+"Leggi questo Foglio Google e riassumilo:": "Read this Google Sheet and summarise it:",
+"Li ho segnati": "I've written them down",
+"Libero professionista": "Freelance professional",
+"LinkedIn": "LinkedIn",
+"Locale": "Local",
+"Lun": "Mon",
+"Luogo": "Place",
+"Mac con processore Intel:": "Mac with an Intel processor:",
+"Mai eseguito": "Never run",
+"Manca il file: va mandato nel campo «file».": "The file is missing: it must be sent in the «file» field.",
+"Manca il nome del modello ChatGPT: il gestore lo scrive nel pannello, Impostazioni della piattaforma, gruppo «Modelli» (i nomi cambiano spesso: va copiato dal sito di OpenAI).": "The ChatGPT model name is missing: the platform operator writes it in the panel, Platform settings, «Models» group (names change often: copy it from the OpenAI website).",
+"Manca la chat di destinazione: indicala o imposta la chat predefinita.": "The destination chat is missing: specify it or set the default chat.",
+"Manca la chiave API di questo modello": "The API key for this model is missing",
+"Manca la chiave API di questo modello: un amministratore la inserisce nel Centro di controllo, scheda Collegamenti, alla voce «Chiavi API dei modelli».": "The API key for this model is missing: an administrator enters it in the Control Centre, Connections tab, under «Model API keys».",
+"Manca la dimensione del caricamento (Content-Length).": "The upload size is missing (Content-Length).",
+"Manda su Telegram:": "Send on Telegram:",
+"Manda un WhatsApp al +39 … per confermare l'appuntamento": "Send a WhatsApp to +39 … to confirm the appointment",
+"Manda un'email di prova": "Send a test email",
+"Manda una domanda vera a ogni modello configurato e gli fa usare uno strumento, come fanno gli agenti: dice se risponde, in quanto tempo e con quanti token.": "Sends a real question to each configured model and has it use a tool, as the agents do: it says whether it replies, how long it takes and how many tokens.",
+"Manda una email a cliente@esempio.it:": "Send an email to customer@example.com:",
+"Mandami il collegamento": "Send me the link",
+"Mar": "Tue",
+"Marketing": "Marketing",
+"Memoria": "Memory",
+"Memoria, processore, disco e stima delle persone che possono lavorare insieme.": "Memory, processor, disk and an estimate of how many people can work together.",
+"Mer": "Wed",
+"Mese": "Month",
+"Messaggio": "Message",
+"Messaggio troppo lungo (massimo 8000 caratteri).": "Message too long (maximum 8000 characters).",
+"Metodo non ammesso.": "Method not allowed.",
+"Metti al lavoro la tua squadra.": "Put your team to work.",
+"Metti in pausa": "Pause",
+"Minori": "Minors",
+"Modalità Compatta / Mobile": "Compact / Mobile mode",
+"Modelli": "Models",
+"Modello": "Model",
+"Modello sconosciuto.": "Unknown model.",
+"Modifica non valida.": "Invalid change.",
+"Modifiche": "Changes",
+"Monta clip, immagini e musica dell'Archivio Media in un video pronto da pubblicare.": "Edits clips, images and music from the Media Archive into a video ready to publish.",
+"Monta i video sul computer: i file non passano da altri servizi.": "Edit videos on the computer: the files don't go through other services.",
+"Monta un video verticale con tutte le clip": "Edit a vertical video with all the clips",
+"Montaggi e operazioni eseguiti fuori dalla chat, sul computer o sui nostri server.": "Edits and operations carried out outside the chat, on the computer or on our servers.",
+"Montaggio video sul server: manca FFmpeg. Il Video Editor funziona solo sui computer dei clienti.": "Video editing on the server: FFmpeg is missing. The Video Editor works only on customers' computers.",
+"Mostra o nascondi tre richieste d'esempio": "Show or hide three example requests",
+"Negozio Shopify": "Shopify store",
+"Negozio o vendita online": "Shop or online store",
+"Nei giorni scelti, a un'ora": "On the chosen days, at a set time",
+"Nei limiti consentiti dalla legge, la nostra responsabilità per danni derivanti dal servizio non supera quanto hai pagato nei dodici mesi precedenti. Questo limite non vale in caso di dolo o colpa grave e non riduce i diritti che la legge riconosce ai consumatori.": "To the extent permitted by law, our liability for damages arising from the service does not exceed what you paid in the previous twelve months. This limit does not apply in cases of wilful misconduct or gross negligence and does not reduce the rights the law grants to consumers.",
+"Nel team": "In the team",
+"Nessun agente acceso: un amministratore li sceglie nel Centro di controllo, scheda Agenti.": "No agent switched on: an administrator chooses them in the Control Centre, Agents tab.",
+"Nessun computer collegato.": "No computer connected.",
+"Nessun computer dell'azienda ha un modello locale acceso (Ollama). Apri il launcher e controlla la verifica.": "No company computer has a local model running (Ollama). Open the launcher and check the verification.",
+"Nessun elaborato finora. Bozze, lead, appuntamenti e video creati da questo agente compaiono qui.": "No outputs so far. Drafts, leads, appointments and videos created by this agent appear here.",
+"Nessun lavoro automatico.": "No automated jobs.",
+"Nessun lavoro finora.": "No jobs so far.",
+"Nessun modello locale disponibile: serve Ollama accanto al server (il gestore ne scrive l'indirizzo nel pannello, Impostazioni della piattaforma, gruppo «Modelli») oppure sul computer dell'azienda, con il launcher aperto.": "No local model available: Ollama is needed next to the server (the platform operator writes its address in the panel, Platform settings, «Models» group) or on the company's computer, with the launcher open.",
+"Nessun modello è pronto: un amministratore inserisce una chiave API nel Centro di controllo, scheda Collegamenti.": "No model is ready: an administrator enters an API key in the Control Centre, Connections tab.",
+"Nessun utente con questa email.": "No user with this email.",
+"Nessuna attività registrata finora.": "No activity recorded so far.",
+"Nessuna azienda. Creane una qui sotto.": "No companies. Create one below.",
+"Nessuna impostazione da salvare.": "No settings to save.",
+"Nessuna modifica.": "No changes.",
+"Nessuna novità": "No news",
+"Nessuna richiesta.": "No requests.",
+"Nessuna scadenza impostata.": "No expiry set.",
+"Nessuno": "None",
+"Nessuno. Google e gli altri siti di recensioni non sono ancora collegati": "None. Google and other review sites are not connected yet",
+"Nessuno. HubSpot e altri CRM non sono ancora collegati": "None. HubSpot and other CRMs are not connected yet",
+"Nessuno. I programmi di fatturazione non sono ancora collegati": "None. Invoicing software is not connected yet",
+"Nessuno. Il sito e gli strumenti di analisi non sono ancora collegati": "None. The website and analytics tools are not connected yet",
+"Nessuno: usa i documenti caricati in Memoria": "None: it uses the documents uploaded to Memory",
+"Nessuno: usa solo il modello scelto": "None: it only uses the chosen model",
+"Niente di pertinente.": "Nothing relevant.",
+"Niente parte senza di te": "Nothing goes out without you",
+"No": "No",
+"Noi non usiamo i tuoi contenuti per addestrare modelli. Ogni fornitore tratta i dati secondo le proprie condizioni per l'uso tramite API, che ti invitiamo a leggere prima di scegliere il modello.": "We do not use your content to train models. Each provider processes data under its own terms for API use, which we invite you to read before choosing the model.",
+"Nome": "Name",
+"Nome del mittente": "Sender name",
+"Nome del modello ChatGPT": "ChatGPT model name",
+"Nome del modello Claude": "Claude model name",
+"Nome del modello Kimi": "Kimi model name",
+"Nome del modello locale": "Local model name",
+"Nome dell'amministratore": "Administrator's name",
+"Nome dell'azienda": "Company name",
+"Non c'è abbastanza spazio nell'archivio.": "There is not enough space in the archive.",
+"Non c'è ancora un pagamento con carta da gestire per questa azienda.": "There is no card payment to manage for this company yet.",
+"Non ci sono clip o immagini da montare: caricale nell'Archivio Media.": "There are no clips or images to edit: upload them to the Media Archive.",
+"Non facciamo profilazione a fini pubblicitari e non vendiamo i tuoi dati.": "We do not carry out profiling for advertising purposes and we do not sell your data.",
+"Non hai il telefono? Scrivi uno dei codici di riserva.": "Don't have your phone? Type one of the backup codes.",
+"Non hai un account? Registra la tua azienda": "Don't have an account? Sign up your company",
+"Non indicato": "Not specified",
+"Non puoi usare Alvea per attività illecite, per inviare comunicazioni non richieste, per violare diritti di altri, per trattare dati di persone senza averne titolo, per aggirare i limiti del tuo pacchetto o per compromettere la sicurezza della piattaforma. In questi casi possiamo sospendere l'account.": "You may not use Alvea for unlawful activities, to send unsolicited communications, to infringe other people's rights, to process people's data without entitlement, to get around the limits of your plan or to compromise the platform's security. In these cases we may suspend the account.",
+"Non sono compresi i limiti del fornitore del modello (richieste al minuto della tua chiave): di solito arrivano prima.": "The model provider's limits (your key's requests per minute) are not included: they usually come first.",
+"Non è stato concesso nessuno dei servizi richiesti.": "None of the requested services was granted.",
+"Non è stato possibile salvare le credenziali cifrate: controlla SFB_SECRET_KEY.": "The encrypted credentials could not be saved: check SFB_SECRET_KEY.",
+"Nostri server": "Our servers",
+"Note": "Notes",
+"Novità": "News",
+"Numero REA (facoltativo)": "Company register number (optional)",
+"Numero di crediti non valido.": "Invalid number of credits.",
+"Numero non valido: serve il formato internazionale, es. 393331234567.": "Invalid number: the international format is needed, e.g. 393331234567.",
+"Numero troppo grande.": "Number too large.",
+"Nuova azienda": "New company",
+"Nuova password": "New password",
+"Nuovo fatto": "New fact",
+"Nuovo lavoro": "New job",
+"OK": "OK",
+"Oggetto non valido.": "Invalid subject.",
+"Oggi entri con la sola password. Con i due passaggi, chi la scopre non entra lo stesso: serve anche il codice a 6 cifre che cambia ogni 30 secondi sulla tua app (Google Authenticator, Microsoft Authenticator, le Password dell'iPhone e simili).": "Today you sign in with the password alone. With two-step sign-in, anyone who discovers it still cannot get in: they also need the 6-digit code that changes every 30 seconds in your app (Google Authenticator, Microsoft Authenticator, iPhone Passwords and the like).",
+"Ogni azienda vede solo i propri dati. Le chiavi dei modelli e dei servizi restano sul server.": "Each company sees only its own data. Model and service keys stay on the server.",
+"Ogni azione finisce in un registro concatenato: una riga cambiata dopo si vede.": "Every action ends up in a chained log: a line changed afterwards shows.",
+"Ogni azione verso l'esterno (email, Telegram, WhatsApp) aspetta qui. Parte solo quando un amministratore la approva.": "Every outward action (email, Telegram, WhatsApp) waits here. It goes out only when an administrator approves it.",
+"Ogni pacchetto contiene tutto quello del precedente. Puoi salire quando vuoi.": "Each plan contains everything in the previous one. You can move up whenever you like.",
+"Ogni riga contiene l'hash della precedente: una modifica o una cancellazione rompe la catena. Qui non compare il testo dei messaggi.": "Each line contains the hash of the previous one: a change or deletion breaks the chain. The text of messages does not appear here.",
+"Ogni tot minuti": "Every so many minutes",
+"Ognuno dice chiaramente cosa fa oggi. Dove c'è scritto «solo bozze», l'agente prepara e tu pubblichi o invii.": "Each one says clearly what it does today. Where it says «drafts only», the agent prepares and you publish or send.",
+"Operatore": "Operator",
+"Oppure scegli «Inserisci una chiave di configurazione» e scrivi: account": "Or choose «Enter a setup key» and type: account",
+"Ora può eseguire gli agenti impostati su «computer».": "It can now run the agents set to «computer».",
+"Organizza la mia settimana con queste scadenze:": "Organise my week around these deadlines:",
+"Organizza la mia settimana con questi impegni:": "Organise my week around these commitments:",
+"PEC (facoltativa)": "Certified email (optional)",
+"Pacchetti": "Plans",
+"Pacchetto": "Plan",
+"Pacchetto (tetto degli agenti)": "Plan (ceiling on agents)",
+"Pacchetto Business: euro al mese": "Business plan: euros per month",
+"Pacchetto Completo: euro al mese": "Complete plan: euros per month",
+"Pacchetto Start: euro al mese (0 = non impostato)": "Start plan: euros per month (0 = not set)",
+"Pacchetto non firmato: il gestore deve eseguire «manage.py firma-pacchetti».": "Unsigned package: the platform operator must run «manage.py firma-pacchetti».",
+"Pacchetto sconosciuto.": "Unknown plan.",
+"Paga con carta": "Pay with card",
+"Pagamenti": "Payments",
+"Pagamenti non configurati.": "Payments not set up.",
+"Pagamento annullato: non è stato addebitato niente.": "Payment cancelled: nothing was charged.",
+"Pagamento con carta attivo: si rinnova da solo ogni mese.": "Card payment active: it renews by itself every month.",
+"Pagamento e disdetta li fa un amministratore dell'azienda.": "Payment and cancellation are handled by an administrator of the company.",
+"Pagamento non riuscito": "Payment failed",
+"Pagamento ricevuto": "Payment received",
+"Pagamento ricevuto da Stripe: i crediti arrivano entro pochi secondi. Se non li vedi, ricarica la pagina.": "Payment received from Stripe: the credits arrive within a few seconds. If you don't see them, reload the page.",
+"Pagamento ricevuto da Stripe: la scadenza si aggiorna entro pochi secondi. Se non cambia, ricarica la pagina.": "Payment received from Stripe: the expiry date updates within a few seconds. If it doesn't change, reload the page.",
+"Pagato fino al (vuoto = nessuna scadenza)": "Paid until (empty = no expiry)",
+"Pagina non trovata.": "Page not found.",
+"Partita IVA": "VAT number",
+"Password": "Password",
+"Password (almeno 10 caratteri)": "Password (at least 10 characters)",
+"Password cambiata: ora puoi entrare.": "Password changed: you can now sign in.",
+"Password della casella": "Mailbox password",
+"Password dimenticata?": "Forgot your password?",
+"Password iniziale (almeno 10 caratteri)": "Initial password (at least 10 characters)",
+"Password non corretta.": "Incorrect password.",
+"Password o codice non corretti.": "Incorrect password or code.",
+"Password o password per app": "Password or app password",
+"Per aggiungere utenti attiva l'Agente Team nella scheda Agenti.": "To add users, switch on the Team Agent in the Agents tab.",
+"Per chi è": "Who it's for",
+"Per collegare Google le credenziali devono essere cifrate: installa il pacchetto 'cryptography' e imposta SFB_SECRET_KEY (vedi LEGGIMI).": "To connect Google the credentials must be encrypted: install the 'cryptography' package and set SFB_SECRET_KEY (see LEGGIMI).",
+"Per collegare Google le credenziali devono essere cifrate: serve SFB_SECRET_KEY e il pacchetto cryptography (vedi LEGGIMI).": "To connect Google the credentials must be encrypted: SFB_SECRET_KEY and the cryptography package are needed (see LEGGIMI).",
+"Per cominciare, la tua password": "To begin, your password",
+"Per disattivarlo, o per passare a un telefono nuovo, servono password e codice.": "To turn it off, or to move to a new phone, you need the password and the code.",
+"Per far funzionare il servizio usiamo fornitori che trattano i dati per nostro conto:": "To run the service we use providers that process data on our behalf:",
+"Per fatture, contabilità e obblighi fiscali: obbligo di legge (art. 6, par. 1, lett. c).": "For invoices, accounting and tax obligations: legal obligation (Art. 6(1)(c)).",
+"Per firmare i pacchetti serve il programma openssl.": "The openssl program is needed to sign the packages.",
+"Per fornirti il servizio che hai chiesto: esecuzione del contratto (art. 6, par. 1, lett. b GDPR).": "To provide you with the service you asked for: performance of the contract (Art. 6(1)(b) GDPR).",
+"Per il tuo mestiere": "For your line of work",
+"Per la mia azienda": "For my company",
+"Per la sicurezza della piattaforma e la prevenzione degli abusi: nostro legittimo interesse (art. 6, par. 1, lett. f).": "For the security of the platform and the prevention of abuse: our legitimate interest (Art. 6(1)(f)).",
+"Per quanto tempo": "For how long",
+"Per registrarti devi accettare le Condizioni di servizio e aver letto l'Informativa sulla privacy.": "To sign up you must accept the Terms of Service and have read the Privacy Policy.",
+"Per salvare chiavi e password dal pannello serve la cifratura: metti SFB_SECRET_KEY nel file .env (la crea «python3 manage.py init») e installa il pacchetto cryptography.": "To save keys and passwords from the panel, encryption is needed: put SFB_SECRET_KEY in the .env file («python3 manage.py init» creates it) and install the cryptography package.",
+"Per sicurezza apro solo indirizzi scritti dall'utente in questo messaggio o trovati dalla ricerca web in questa stessa richiesta.": "For safety I only open addresses written by the user in this message or found by the web search in this same request.",
+"Per vedere cosa troverebbe un agente. La ricerca è per parole, non per significato.": "To see what an agent would find. The search is by words, not by meaning.",
+"Perché li trattiamo": "Why we process it",
+"Permesso che Google classifica «con restrizioni»: per usarlo con i clienti serve una verifica di sicurezza.": "A permission Google classifies as «restricted»: to use it with customers a security assessment is needed.",
+"Personale": "Personal",
+"Pezzi": "Pieces",
+"Più utenti per azienda, con due ruoli: operatore e amministratore.": "Several users per company, with two roles: operator and administrator.",
+"Porta (465 oppure 587)": "Port (465 or 587)",
+"Porta IMAP (di solito 993)": "IMAP port (usually 993)",
+"Porta SMTP (465 oppure 587)": "SMTP port (465 or 587)",
+"Possiamo aggiornare funzioni e agenti. Se cambiamo queste condizioni o i prezzi te lo comunichiamo con almeno 30 giorni di anticipo: se non sei d'accordo puoi disdire prima che la modifica abbia effetto.": "We may update features and agents. If we change these terms or the prices, we will tell you at least 30 days in advance: if you do not agree, you can cancel before the change takes effect.",
+"Possiamo sospendere o chiudere un account in caso di violazione grave di queste condizioni o di mancato pagamento prolungato, avvisandoti quando possibile. Alla chiusura puoi chiedere una copia dei tuoi dati entro 30 giorni; poi vengono cancellati, salvo quelli che la legge ci impone di conservare.": "We may suspend or close an account in the event of a serious breach of these terms or prolonged non-payment, notifying you where possible. On closure you can ask for a copy of your data within 30 days; after that it is deleted, except for what the law requires us to keep.",
+"Posta": "Mail",
+"Posta del mattino": "Morning mail",
+"Posta, calendario, contenuti, clienti, video: ogni agente ha un compito preciso. Loro preparano il lavoro, tu decidi cosa esce. Per le aziende, per i professionisti e per chi lavora da solo.": "Mail, calendar, content, customers, video: every agent has a precise job. They prepare the work, you decide what goes out. For companies, for professionals and for people who work on their own.",
+"Posta, calendario, negozio, Telegram, WhatsApp: ogni collegamento si fa una volta, dal Centro di controllo.": "Mail, calendar, store, Telegram, WhatsApp: each connection is made once, from the Control Centre.",
+"Prepara bozze di contratti, lettere formali e informative da far controllare a un legale.": "Drafts contracts, formal letters and notices to be checked by a lawyer.",
+"Prepara copioni brevi, frasi d'apertura e didascalie per i video verticali.": "Prepares short scripts, opening lines and captions for vertical videos.",
+"Prepara copioni per le telefonate.": "Prepares scripts for phone calls.",
+"Prepara cosa dire a un cliente in ritardo con il pagamento": "Prepare what to say to a customer who is late paying",
+"Prepara e invia messaggi WhatsApp ai clienti.": "Prepares and sends WhatsApp messages to customers.",
+"Prepara il messaggio per avvisare che l'ordine è pronto": "Prepare the message to say the order is ready",
+"Prepara il messaggio per confermare una visita": "Prepare the message to confirm a viewing",
+"Prepara il piano di una campagna per:": "Prepare a campaign plan for:",
+"Prepara il piano editoriale di un mese per questo cliente:": "Prepare a one-month editorial plan for this client:",
+"Prepara il riepilogo del mese per il commercialista": "Prepare the month's summary for the accountant",
+"Prepara il testo di un evento per sabato": "Prepare the text for an event on Saturday",
+"Prepara la bozza di un contratto di fornitura per:": "Draft a supply contract for:",
+"Prepara la risposta a questa domanda di un cliente:": "Prepare the reply to this customer question:",
+"Prepara la risposta a un cliente che chiede dov'è il suo ordine": "Prepare the reply to a customer asking where their order is",
+"Prepara la risposta all'ultima email ricevuta": "Prepare the reply to the last email received",
+"Prepara piani di campagna e testi degli annunci.": "Prepares campaign plans and ad copy.",
+"Prepara post e didascalie per il profilo aziendale.": "Prepares posts and captions for the company profile.",
+"Prepara post per la pagina aziendale.": "Prepares posts for the company page.",
+"Prepara post, eventi e risposte ai commenti per la pagina aziendale.": "Prepares posts, events and replies to comments for the company page.",
+"Prepara preventivi, solleciti di pagamento e riepiloghi per il commercialista.": "Prepares quotes, payment reminders and summaries for the accountant.",
+"Prepara risposte alle recensioni dei clienti, anche a quelle negative.": "Prepares replies to customer reviews, including negative ones.",
+"Prepara titoli, descrizioni, capitoli, copioni e idee per i video del canale.": "Prepares titles, descriptions, chapters, scripts and ideas for the channel's videos.",
+"Prepara un post per annunciare una nuova assunzione": "Prepare a post announcing a new hire",
+"Prepara un post sugli orari di questo mese": "Prepare a post about this month's opening hours",
+"Prepara un preventivo per questo lavoro:": "Prepare a quote for this job:",
+"Prepara un preventivo per tre giornate di lavoro": "Prepare a quote for three days of work",
+"Prepara un preventivo per:": "Prepare a quote for:",
+"Prepara un'informativa da far controllare a un legale su:": "Prepare a notice to be checked by a lawyer about:",
+"Prepara una email per i clienti su:": "Prepare an email to customers about:",
+"Prepara una lettera formale a un cliente per ricordare una scadenza": "Prepare a formal letter reminding a customer of a deadline",
+"Prepara una risposta gentile a un cliente che chiede uno sconto": "Prepare a polite reply to a customer asking for a discount",
+"Prezzi": "Prices",
+"Prezzi e pagamento": "Prices and payment",
+"Prezzo dell'abbonamento aggiornato": "Subscription price updated",
+"Prima chiedi la chiave da mettere nell'app.": "First request the key to put in the app.",
+"Prima salva il server SMTP nelle impostazioni della posta.": "First save the SMTP server in the mail settings.",
+"Primi passi": "First steps",
+"Privacy": "Privacy",
+"Programma per il tuo computer": "Program for your computer",
+"Pronto": "Ready",
+"Propone orari, legge e salva appuntamenti.": "Suggests times, reads and saves appointments.",
+"Proponi gli hashtag per un post su:": "Suggest hashtags for a post about:",
+"Proponi titolo e descrizione per questa pagina:": "Suggest a title and description for this page:",
+"Proponi titolo e descrizione per un video su:": "Suggest a title and description for a video about:",
+"Proponi una promozione per il prossimo mese": "Suggest a promotion for next month",
+"Proponimi tre promozioni per il prossimo mese": "Suggest three promotions for next month",
+"Proposta non trovata.": "Proposal not found.",
+"Proposte degli agenti": "Agents' proposals",
+"Proteggi l'accesso con i due passaggi": "Protect sign-in with two-step verification",
+"Prova Alvea": "Try Alvea",
+"Prova dei modelli": "Model test",
+"Prova dei servizi": "Service test",
+"Prova gratuita": "Free trial",
+"Prova la ricerca": "Try the search",
+"Prova posta, ricerca, Stripe e Google con chiamate vere che non costano e non spediscono niente: dice quale chiave è sbagliata.": "Tests mail, search, Stripe and Google with real calls that cost nothing and send nothing: it says which key is wrong.",
+"Puoi cancellare o bloccare cookie e memoria del sito dalle impostazioni del tuo browser. Se blocchi la memoria della scheda non riuscirai a restare collegato all'applicazione.": "You can delete or block cookies and site storage from your browser settings. If you block the tab's storage you will not be able to stay signed in to the application.",
+"Puoi comprare da 1 a 20 ricariche alla volta.": "You can buy from 1 to 20 top-ups at a time.",
+"Puoi disdire in qualsiasi momento dal tuo pannello. La disdetta vale dalla fine del periodo già pagato: fino ad allora continui a usare il servizio, e il periodo iniziato non viene rimborsato, salvo quanto previsto dalla legge.": "You can cancel at any time from your panel. Cancellation takes effect at the end of the period already paid for: until then you keep using the service, and the period already started is not refunded, except as provided by law.",
+"Quali dati raccogliamo": "What data we collect",
+"Quali parole chiave userebbe chi cerca:": "Which keywords would someone use to search for:",
+"Quali prodotti sono quasi esauriti?": "Which products are almost out of stock?",
+"Quali sono gli ordini di oggi?": "What are today's orders?",
+"Quando": "When",
+"Quando scrivi a un agente, il tuo messaggio e il contesto necessario vengono inviati al fornitore del modello che hai scelto, che genera la risposta. I modelli disponibili sono: Kimi, di Moonshot AI (Singapore e Cina); Claude, di Anthropic (Stati Uniti); ChatGPT, di OpenAI (Stati Uniti). Con un modello locale i testi restano sul server o sul tuo computer.": "When you write to an agent, your message and the necessary context are sent to the provider of the model you chose, which generates the reply. The available models are: Kimi, by Moonshot AI (Singapore and China); Claude, by Anthropic (United States); ChatGPT, by OpenAI (United States). With a local model the texts stay on the server or on your computer.",
+"Quante ricariche": "How many top-ups",
+"Quanti lead nuovi ci sono questo mese?": "How many new leads are there this month?",
+"Quanti operatori ci sono?": "How many operators are there?",
+"Quanto costa ogni modello": "How much each model costs",
+"Quanto regge il server": "How much the server can take",
+"Quello che è successo mentre non guardavi: esiti dei lavori automatici, azioni in attesa, avvisi.": "What happened while you weren't looking: results of automated jobs, pending actions, alerts.",
+"Questa funzione è per gli utenti di un'azienda.": "This feature is for a company's users.",
+"Questa informativa riguarda il sito e l'applicazione Alvea ed è scritta secondo il Regolamento (UE) 2016/679 (GDPR).": "This policy covers the Alvea website and application and is written in accordance with Regulation (EU) 2016/679 (GDPR).",
+"Queste condizioni sono regolate dalla legge italiana. Se sei un consumatore è competente il giudice del luogo in cui risiedi o hai il domicilio. Negli altri casi è competente in via esclusiva il foro della nostra sede.": "These terms are governed by Italian law. If you are a consumer, the competent court is that of the place where you reside or are domiciled. In other cases the court of our registered office has exclusive jurisdiction.",
+"Questo agente non è attivo nel team dell'azienda.": "This agent is not active in the company's team.",
+"Questo browser non mette a disposizione WebGL": "This browser does not provide WebGL",
+"Questo collegamento serve a un agente non incluso nel pacchetto.": "This connection is for an agent not included in the plan.",
+"Questo computer non è collegato: serve un codice nuovo.": "This computer is not connected: a new code is needed.",
+"Questo modello non è disponibile per l'azienda.": "This model is not available for the company.",
+"Questo modello non è disponibile: il suo agente non è attivo nel team dell'azienda.": "This model is not available: its agent is not active in the company's team.",
+"Ragione sociale di chi vende il servizio (compare sul sito e nelle pagine legali)": "Company name of whoever sells the service (it appears on the website and in the legal pages)",
+"Recensioni": "Reviews",
+"Registrata da sola": "Signed up on its own",
+"Registrati e scegli gli agenti del tuo team. Potrai accenderli e spegnerli quando vuoi.": "Sign up and choose your team's agents. You can switch them on and off whenever you like.",
+"Registrazione": "Sign-up",
+"Registrazione aperta": "Sign-up open",
+"Registrazione aperta (1 sì, 0 no)": "Sign-up open (1 yes, 0 no)",
+"Registro": "Log",
+"Registro che non si riscrive": "A log that cannot be rewritten",
+"Registro delle azioni": "Action log",
+"Rendi amministratore": "Make administrator",
+"Rendi operatore": "Make operator",
+"Report": "Reports",
+"Responsabilità": "Liability",
+"Riassume numeri e attività dell'azienda e legge i Fogli Google.": "Summarises the company's numbers and activity and reads Google Sheets.",
+"Riassumi in cinque punti questo documento:": "Summarise this document in five points:",
+"Riassumi le vendite di questa settimana": "Summarise this week's sales",
+"Riattiva": "Reactivate",
+"Riavvia gli agenti": "Restart the agents",
+"Ricariche": "Top-ups",
+"Ricava decisioni e cose da fare da questa trascrizione:": "Extract decisions and to-dos from this transcript:",
+"Ricerca": "Research",
+"Ricerca web (Brave Search API)": "Web search (Brave Search API)",
+"Richiesta non trovata o già decisa.": "Request not found or already decided.",
+"Richiesta non valida.": "Invalid request.",
+"Richiesta per l'agente": "Request for the agent",
+"Richiesta troppo grande.": "Request too large.",
+"Ricollega con questi servizi": "Reconnect with these services",
+"Rifirma i pacchetti per i computer dei clienti dopo un aggiornamento.": "Re-signs the packages for customers' computers after an update.",
+"Rifiuta": "Reject",
+"Rimanda il collegamento": "Resend the link",
+"Rimuovi": "Remove",
+"Ringrazia per questa recensione a cinque stelle:": "Say thank you for this five-star review:",
+"Rinnova con carta": "Renew with card",
+"Riservato agli amministratori dell'azienda.": "Reserved for the company's administrators.",
+"Riservato al gestore della piattaforma.": "Reserved for the platform operator.",
+"Risorsa non trovata.": "Resource not found.",
+"Risponde alle domande dei clienti usando i documenti e la memoria dell'azienda.": "Answers customer questions using the company's documents and memory.",
+"Risponde un modello finto a regole fisse": "A fake model with fixed rules is replying",
+"Rispondi a chi chiede informazioni e prezzi": "Reply to someone asking for information and prices",
+"Rispondi a chi chiede se il prezzo è trattabile": "Reply to someone asking whether the price is negotiable",
+"Rispondi a questa recensione negativa:": "Reply to this negative review:",
+"Rispondi a questa recensione:": "Reply to this review:",
+"Rispondi a questo commento:": "Reply to this comment:",
+"Rispondi a un cliente che segnala un errore": "Reply to a customer reporting an error",
+"Rispondi a un marchio che propone una collaborazione": "Reply to a brand proposing a collaboration",
+"Rispondi con garbo a questa recensione negativa:": "Reply gracefully to this negative review:",
+"Rispondi in inglese a questa richiesta di disponibilità:": "Reply in English to this availability request:",
+"Risposta del modello non leggibile.": "Unreadable reply from the model.",
+"Risposta del modello senza contenuto.": "Reply from the model with no content.",
+"Ristorante, bar o locale": "Restaurant, bar or venue",
+"Ruolo": "Role",
+"Ruolo non valido.": "Invalid role.",
+"SEO e Blog": "SEO and Blog",
+"SFB_SECRET_KEY è impostata ma la cifratura non funziona: installa il pacchetto 'cryptography' (pip3 install cryptography) o controlla la chiave.": "SFB_SECRET_KEY is set but encryption is not working: install the 'cryptography' package (pip3 install cryptography) or check the key.",
+"Sab": "Sat",
+"Salute e benessere: studio, palestra, centro estetico": "Health and wellness: practice, gym, beauty salon",
+"Salva": "Save",
+"Salva azienda": "Save company",
+"Salva crediti": "Save credits",
+"Salva e aggiorna i lead nella piattaforma": "Saves and updates leads in the platform",
+"Salva google": "Save Google",
+"Salva i verbali come bozze": "Saves the minutes as drafts",
+"Salva la nuova password": "Save the new password",
+"Salva modelli": "Save models",
+"Salva pagamenti": "Save payments",
+"Salva posta": "Save mail",
+"Salva prezzi": "Save prices",
+"Salva registrazione": "Save sign-up",
+"Salva scadenza": "Save expiry",
+"Salva tetto": "Save cap",
+"Salvati dall'Agente CRM Lead.": "Saved by the CRM Leads Agent.",
+"Salvato: vale da subito.": "Saved: it applies immediately.",
+"Scarica il launcher": "Download the launcher",
+"Scarica per Mac": "Download for Mac",
+"Scarica per Windows": "Download for Windows",
+"Scarta": "Discard",
+"Scegli (facoltativo)": "Choose (optional)",
+"Scegli almeno un servizio Google da collegare.": "Choose at least one Google service to connect.",
+"Scegli gli agenti": "Choose the agents",
+"Scegli gli agenti del tuo team": "Choose your team's agents",
+"Scegli il modello": "Choose the model",
+"Scegli il pacchetto": "Choose your plan",
+"Scegli un comando qui sopra: il risultato compare qui.": "Choose a command above: the result appears here.",
+"Scegli una nuova password di almeno 10 caratteri.": "Choose a new password of at least 10 characters.",
+"Scollega": "Disconnect",
+"Scorri per vedere gli agenti": "Scroll to see the agents",
+"Scrive articoli per il sito, con parole chiave, titoli e descrizioni per i motori di ricerca.": "Writes articles for the website, with keywords, titles and descriptions for search engines.",
+"Scrive file ed esegue comandi solo dopo approvazione": "Writes files and runs commands only after approval",
+"Scrive post, schede prodotto ed email commerciali.": "Writes posts, product pages and sales emails.",
+"Scrivi il codice a 6 cifre della tua app di autenticazione.": "Type the 6-digit code from your authenticator app.",
+"Scrivi il copione di un video di 30 secondi su:": "Write the script for a 30-second video about:",
+"Scrivi il copione di un video di tre minuti su:": "Write the script for a three-minute video about:",
+"Scrivi il copione di una telefonata per fissare un appuntamento": "Write the script for a call to book an appointment",
+"Scrivi il messaggio da lasciare in segreteria": "Write the voicemail message to leave",
+"Scrivi il messaggio per chiedere una recensione a un cliente soddisfatto": "Write the message asking a happy customer for a review",
+"Scrivi il primo messaggio a un agente": "Write your first message to an agent",
+"Scrivi il promemoria per gli appuntamenti di domani": "Write the reminder for tomorrow's appointments",
+"Scrivi il verbale di questa riunione:": "Write the minutes of this meeting:",
+"Scrivi l'annuncio di questa auto:": "Write the listing for this car:",
+"Scrivi l'annuncio di questo appartamento:": "Write the listing for this apartment:",
+"Scrivi l'email con cui entri: ti mandiamo un collegamento per scegliere una nuova password.": "Type the email you sign in with: we will send you a link to choose a new password.",
+"Scrivi la didascalia per questa foto:": "Write the caption for this photo:",
+"Scrivi la didascalia per questo video:": "Write the caption for this video:",
+"Scrivi la nota di rilascio di questa versione:": "Write the release note for this version:",
+"Scrivi la scheda di questo prodotto:": "Write the product page for this product:",
+"Scrivi la scheda di un prodotto partendo da queste caratteristiche:": "Write a product page starting from these features:",
+"Scrivi le informazioni di arrivo per gli ospiti": "Write the arrival information for guests",
+"Scrivi qui sotto il codice a 6 cifre che l'app mostra adesso.": "Type below the 6-digit code the app is showing now.",
+"Scrivi tre varianti di un annuncio": "Write three versions of an ad",
+"Scrivi tre varianti di un annuncio per:": "Write three versions of an ad for:",
+"Scrivi un articolo per il sito su:": "Write an article for the website about:",
+"Scrivi un messaggio.": "Type a message.",
+"Scrivi un post LinkedIn su questo risultato:": "Write a LinkedIn post about this result:",
+"Scrivi un post per la pagina su:": "Write a post for the page about:",
+"Scrivi un post per la serata di sabato": "Write a post for Saturday night",
+"Scrivi un post per presentare questa novità:": "Write a post to present this news:",
+"Scrivi un promemoria gentile per un pagamento": "Write a polite payment reminder",
+"Scrivi un sollecito gentile per una fattura non pagata": "Write a polite reminder for an unpaid invoice",
+"Scrivi un sollecito gentile per una fattura scaduta": "Write a polite reminder for an overdue invoice",
+"Scrivi una lettera di diffida per un mancato pagamento": "Write a formal notice for a missed payment",
+"Scrivi una lettera di reclamo per:": "Write a complaint letter about:",
+"Scrivi una lettera formale per:": "Write a formal letter about:",
+"Scrivi una proposta per questo cliente:": "Write a proposal for this client:",
+"Scrivi una risposta di scuse per un ritardo": "Write an apology for a delay",
+"Scrivimi un post per presentare la mia attività": "Write me a post to present my business",
+"Se accendi o spegni agenti o cambi pacchetto, il prezzo dell'abbonamento si aggiorna di conseguenza e la differenza viene calcolata in proporzione ai giorni.": "If you switch agents on or off or change plan, the subscription price is updated accordingly and the difference is calculated in proportion to the days.",
+"Se alla registrazione è indicata una prova gratuita, dura i giorni indicati e non richiede la carta. Alla fine il servizio va in pausa finché non attivi l'abbonamento. Gli agenti che lavorano sul tuo computer richiedono l'abbonamento attivo.": "If a free trial is offered at sign-up, it lasts the number of days shown and does not require a card. At the end the service pauses until you activate the subscription. Agents that work on your computer require an active subscription.",
+"Se cambiamo questa informativa in modo rilevante te lo comunichiamo per email o nell'applicazione prima che la modifica abbia effetto.": "If we change this policy in a significant way, we will tell you by email or in the application before the change takes effect.",
+"Se colleghi servizi di altri fornitori (per esempio Google, Telegram, WhatsApp, Shopify, o una tua chiave di un modello) valgono anche le loro condizioni. Non rispondiamo dei loro malfunzionamenti o delle loro modifiche.": "If you connect services from other providers (for example Google, Telegram, WhatsApp, Shopify, or your own model key), their terms also apply. We are not liable for their malfunctions or changes.",
+"Se l'indirizzo è in attesa di conferma, ti abbiamo mandato un nuovo collegamento.": "If the address is awaiting confirmation, we have sent you a new link.",
+"Se l'indirizzo è registrato, tra poco ricevi un'email con il collegamento. Vale un'ora.": "If the address is registered, you will shortly receive an email with the link. It is valid for one hour.",
+"Se nell'applicazione inserisci dati di altre persone (i tuoi clienti, contatti, dipendenti), il titolare di quei dati sei tu e noi li trattiamo per tuo conto come responsabile del trattamento, secondo l'articolo 28 del GDPR e le Condizioni di servizio. Sta a te avere una base valida per trattarli e informare gli interessati.": "If you enter other people's data into the application (your customers, contacts, employees), you are the controller of that data and we process it on your behalf as data processor, under Article 28 of the GDPR and the Terms of Service. It is up to you to have a valid basis for processing it and to inform the people concerned.",
+"Se ritieni che i tuoi dati siano trattati in modo scorretto puoi presentare un reclamo al Garante per la protezione dei dati personali (www.garanteprivacy.it).": "If you believe your data is being processed incorrectly, you can lodge a complaint with the Italian Data Protection Authority (www.garanteprivacy.it).",
+"Se un pagamento non va a buon fine ti avvisiamo. Trascorsi gli eventuali giorni di tolleranza il servizio va in pausa finché il pagamento non è regolare; i tuoi dati restano conservati.": "If a payment fails, we notify you. Once any grace days have passed, the service pauses until payment is in order; your data is kept.",
+"SearXNG": "SearXNG",
+"SearXNG rifiuta le risposte JSON: va attivato «json» in search.formats nel suo settings.yml.": "SearXNG refuses JSON replies: «json» must be enabled in search.formats in its settings.yml.",
+"Secondi di attesa massima per una risposta di un modello, da 10 a 900 (vuoto = 120)": "Maximum seconds to wait for a model's reply, from 10 to 900 (empty = 120)",
+"Sede legale (via, CAP, città)": "Registered office (street, postcode, city)",
+"Segna come cliente il lead numero": "Mark as customer lead number",
+"Segna subito questi codici di riserva in un posto sicuro: si vedono solo adesso. Ognuno vale una volta, se il telefono non c'è.": "Write down these backup codes in a safe place right now: they are shown only now. Each one works once, if you don't have your phone.",
+"Segna tutte come lette": "Mark all as read",
+"Segreto client OAuth": "OAuth client secret",
+"Segreto del webhook di Stripe (whsec_…)": "Stripe webhook secret (whsec_…)",
+"Selezionala e copiala a mano.": "Select it and copy it by hand.",
+"Serve": "Needs",
+"Serve almeno un modello con la chiave API configurata.": "At least one model with its API key set up is needed.",
+"Server": "Server",
+"Server IMAP": "IMAP server",
+"Server SMTP": "SMTP server",
+"Servizi di terzi": "Third-party services",
+"Sezioni": "Sections",
+"Shopify": "Shopify",
+"Si apre la pagina di consenso di Google e poi torni qui. La password di Google non passa mai da Alvea.": "Google's consent page opens and then you come back here. Your Google password never passes through Alvea.",
+"Sicurezza": "Security",
+"Sicurezza e controllo": "Security and control",
+"Sicurezza: accesso in due passaggi": "Security: two-step sign-in",
+"Sito web": "Website",
+"Software e tecnologia": "Software and technology",
+"Solo bozze": "Drafts only",
+"Solo bozze e promemoria nella piattaforma": "Only drafts and reminders in the platform",
+"Solo bozze: il caricamento è manuale": "Drafts only: you upload manually",
+"Solo bozze: la pubblicazione è manuale": "Drafts only: you publish manually",
+"Solo bozze: la risposta la mandi tu": "Drafts only: you send the reply",
+"Solo bozze: la risposta la pubblichi tu": "Drafts only: you publish the reply",
+"Solo bozze: non emette fatture e non muove soldi": "Drafts only: it does not issue invoices or move money",
+"Solo bozze: non spende e non pubblica": "Drafts only: it does not spend or publish",
+"Solo bozze: non è un parere legale": "Drafts only: this is not legal advice",
+"Solo l'amministratore cambia utenti e ruoli": "Only the administrator changes users and roles",
+"Solo lettura": "Read only",
+"Solo per me": "Just for me",
+"Solo risposte": "Answers only",
+"Sono ammessi solo indirizzi http o https.": "Only http or https addresses are allowed.",
+"Sono passati più di 10 minuti: riprova.": "More than 10 minutes have passed: try again.",
+"Sospendi": "Suspend",
+"Sospensione e chiusura": "Suspension and closure",
+"Spazio dell'archivio esaurito o file troppo grande.": "Archive space used up or file too large.",
+"Spazio personale": "Personal space",
+"Spazio usato": "Space used",
+"Spegni": "Switch off",
+"Spento": "Off",
+"Spiega in parole semplici questa funzione:": "Explain this function in plain words:",
+"Spiegami in parole semplici:": "Explain in plain words:",
+"Stai parlando con": "You are talking to",
+"Start": "Start",
+"Stato": "Status",
+"Stima, non garanzia: misurata con un modello finto che risponde subito.": "An estimate, not a guarantee: measured with a fake model that replies instantly.",
+"Stripe ha risposto con un indirizzo di pagamento inatteso.": "Stripe replied with an unexpected payment address.",
+"Stripe ha risposto con un indirizzo inatteso.": "Stripe replied with an unexpected address.",
+"Stripe, per i pagamenti con carta;": "Stripe, for card payments;",
+"Studio professionale": "Professional firm",
+"Su Google Calendar scrive solo dopo approvazione; senza Google usa il calendario interno": "Writes to Google Calendar only after approval; without Google it uses the internal calendar",
+"Sui nostri server o sul tuo computer": "On our servers or on your computer",
+"Sul telefono apri la tua app di autenticazione e aggiungi un account.": "On your phone, open your authenticator app and add an account.",
+"Supera il limite del pacchetto della tua azienda: il server rifiuta le richieste a questo agente.": "It exceeds the limit of your company's plan: the server refuses requests to this agent.",
+"Sì": "Yes",
+"Team": "Team",
+"Telefono": "Phone",
+"Telegram": "Telegram",
+"Telegram ha rifiutato il messaggio.": "Telegram refused the message.",
+"Terzo modello a scelta, accanto a Kimi e Claude.": "A third model to choose from, alongside Kimi and Claude.",
+"Testi, post, campagne, copioni e verbali preparati dagli agenti. La pubblicazione è manuale.": "Texts, posts, campaigns, scripts and minutes prepared by the agents. Publishing is manual.",
+"Testo": "Text",
+"Tetto mensile di token (0 = nessuno)": "Monthly token cap (0 = none)",
+"Ti manderemo un'email per confermare l'indirizzo.": "We will send you an email to confirm the address.",
+"Tiene le schede dei lead e il loro stato.": "Keeps lead records and their status.",
+"TikTok": "TikTok",
+"Tipo": "Type",
+"Tipo di attività": "Type of business",
+"Tipo di attività sconosciuto.": "Unknown type of business.",
+"Tipo di chiave: basata sull'ora.": "Key type: time-based.",
+"Tipo di orario non valido.": "Invalid schedule type.",
+"Titolo": "Title",
+"Tocca un agente per parlare solo con lui. Senza scelta risponde il Centrale, che usa tutti gli agenti attivi.": "Tap an agent to talk only to it. With no choice, the Coordinator replies, using all the active agents.",
+"Togli dal pannello": "Remove from the panel",
+"Togli le tue chiavi": "Withdraw your keys",
+"Token del bot": "Bot token",
+"Token del bot Telegram": "Telegram bot token",
+"Token di accesso": "Access token",
+"Token di accesso Admin API": "Admin API access token",
+"Token in ingresso": "Input tokens",
+"Token in uscita": "Output tokens",
+"Token usati per mese e per modello. Servono a calcolare il costo dell'azienda con i listini dei fornitori.": "Tokens used per month and per model. They are used to work out the company's cost with the providers' price lists.",
+"Torna al Centrale": "Back to the Coordinator",
+"Torna all'accesso": "Back to sign-in",
+"Traduce e adatta testi, email e schede prodotto nelle lingue dei tuoi clienti.": "Translates and adapts texts, emails and product pages into your customers' languages.",
+"Traduci il menù in inglese e tedesco": "Translate the menu into English and German",
+"Traduci in inglese questo messaggio:": "Translate this message into English:",
+"Traduci in inglese:": "Translate into English:",
+"Traduci in tedesco e adatta il tono a un cliente:": "Translate into German and adapt the tone for a customer:",
+"Traduzioni": "Translations",
+"Trascina per ruotare · rotella o due dita per lo zoom · Maiusc e trascina per spostare · frecce, + e − da tastiera": "Drag to rotate · wheel or two fingers to zoom · Shift and drag to move · arrows, + and − from the keyboard",
+"Trascrizione sul computer: il launcher verifica i requisiti, il collegamento non è ancora incluso.": "Transcription on the computer: the launcher checks the requirements, the connection is not included yet.",
+"Tre pacchetti, ognuno contiene il precedente. Dentro il tuo pacchetto accendi solo gli agenti che ti servono.": "Three plans, each containing the previous one. Within your plan you switch on only the agents you need.",
+"Troppe registrazioni in questo momento. Riprova più tardi.": "Too many sign-ups right now. Try again later.",
+"Troppe richieste da questo indirizzo. Riprova tra un'ora.": "Too many requests from this address. Try again in an hour.",
+"Troppi messaggi in un minuto. Aspetta qualche secondo.": "Too many messages in one minute. Wait a few seconds.",
+"Troppi reindirizzamenti.": "Too many redirects.",
+"Troppo poca: serve almeno 1 GB, meglio 2.": "Too little: at least 1 GB is needed, preferably 2.",
+"Trovami un'ora libera giovedì pomeriggio": "Find me a free hour on Thursday afternoon",
+"Tue azioni in attesa di approvazione": "Your actions awaiting approval",
+"Ufficio": "Office",
+"Ufficio 3D": "3D Office",
+"Ultime novità": "Latest news",
+"Un agente non scrive mai in memoria da solo: propone, e decidi tu. Conferma solo ciò che è vero e che vuoi venga ricordato in ogni conversazione.": "An agent never writes to memory by itself: it proposes, and you decide. Confirm only what is true and what you want remembered in every conversation.",
+"Un altro comando è ancora in corso: aspetta che finisca.": "Another command is still running: wait for it to finish.",
+"Un campo del modulo è troppo lungo.": "A form field is too long.",
+"Un cliente chiede come funziona il reso: cosa rispondo?": "A customer asks how returns work: what do I reply?",
+"Un modello pronto a rispondere": "A model ready to reply",
+"Un operatore può rimuovere solo i file che ha caricato lui.": "An operator can only remove the files they uploaded themselves.",
+"Un pulsante ferma subito tutti gli agenti dell'azienda, finché non li riavvii.": "One button immediately stops all of the company's agents, until you restart them.",
+"Una squadra di agenti AI che lavora per la tua azienda.": "A team of AI agents working for your company.",
+"Usa le tue chiavi dei modelli.": "It uses your model keys.",
+"Usa servizi in rete: gira sui nostri server.": "It uses online services: it runs on our servers.",
+"Usa solo le proprie chiavi dei modelli.": "It uses only its own model keys.",
+"Usati questo mese": "Used this month",
+"Uso consentito": "Permitted use",
+"Uso dell'intelligenza artificiale": "Use of artificial intelligence",
+"Uso personale": "Personal use",
+"Utente": "User",
+"Utente (di solito l'indirizzo email)": "User (usually the email address)",
+"Utente non trovato.": "User not found.",
+"Utenti": "Users",
+"Vai al contenuto": "Skip to content",
+"Ven": "Fri",
+"Verifica del computer non valida.": "Invalid computer verification.",
+"Verifica del registro": "Log check",
+"Verifica il tuo computer": "Check your computer",
+"Versione API (es. 2026-10)": "API version (e.g. 2026-10)",
+"Versione API Shopify non valida (es. 2026-10).": "Invalid Shopify API version (e.g. 2026-10).",
+"Versione Graph API (vuoto = v26.0)": "Graph API version (empty = v26.0)",
+"Versione Graph API o ID del numero non validi.": "Invalid Graph API version or number ID.",
+"Versione italiana": "Versione italiana",
+"Video Editor": "Video Editor",
+"Vista": "View",
+"Voce": "Voice",
+"Voce sintetica sul computer: il launcher verifica i requisiti, il collegamento non è ancora incluso.": "Synthetic voice on the computer: the launcher checks the requirements, the connection is not included yet.",
+"Vuoi far girare Video Editor, Email o Dev sul tuo computer?": "Want to run Video Editor, Email or Dev on your computer?",
+"WAHA": "WAHA",
+"WhatsApp": "WhatsApp",
+"WhatsApp Business (Cloud API)": "WhatsApp Business (Cloud API)",
+"WhatsApp self-hosted con WAHA: il launcher verifica se è acceso, il collegamento non è ancora incluso.": "Self-hosted WhatsApp with WAHA: the launcher checks whether it is running, the connection is not included yet.",
+"YouTube": "YouTube",
+"[da compilare: PEC]": "[to be filled in: certified email]",
+"[da compilare: email di contatto]": "[to be filled in: contact email]",
+"[da compilare: fornitore e paese del server]": "[to be filled in: server provider and country]",
+"[da compilare: numero REA]": "[to be filled in: company register number]",
+"[da compilare: partita IVA]": "[to be filled in: VAT number]",
+"[da compilare: ragione sociale]": "[to be filled in: company name]",
+"[da compilare: sede legale]": "[to be filled in: registered office]",
+"abbonamento senza voce o senza prodotto": "subscription with no item or no product",
+"account Google": "Google account",
+"agente acceso": "agent switched on",
+"agenti": "agents",
+"agenti accesi": "agents switched on",
+"agenti · un solo sistema": "agents · one system",
+"alvea": "alvea",
+"attivo.": "active.",
+"audio": "audio",
+"azienda": "company",
+"calendario": "calendar",
+"canale": "channel",
+"crediti": "credits",
+"crediti disponibili": "credits available",
+"da Business": "from Business",
+"da Complete": "from Complete",
+"da Completo": "from Complete",
+"da Start": "from Start",
+"da approvare": "to approve",
+"da collegare": "to connect",
+"da configurare": "to set up",
+"da ricollegare": "to reconnect",
+"dal pacchetto Business": "from the Business plan",
+"dal pacchetto Completo": "from the Complete plan",
+"dal pacchetto Start": "from the Start plan",
+"e ho letto l'": "and I have read the",
+"e verifica prima di scegliere: ti dice cosa gira e cosa no, senza account.": "and check before choosing: it tells you what runs and what doesn't, without an account.",
+"es. 500 o -200": "e.g. 500 or -200",
+"faster-whisper": "faster-whisper",
+"google": "Google",
+"i fornitori dei modelli di intelligenza artificiale indicati sopra, solo per i messaggi inviati al loro modello;": "the providers of the artificial intelligence models listed above, only for the messages sent to their model;",
+"i servizi che decidi tu di collegare (per esempio Google, Telegram, WhatsApp, Shopify), con cui scambiamo solo i dati necessari a ciò che chiedi.": "the services you decide to connect (for example Google, Telegram, WhatsApp, Shopify), with which we exchange only the data needed for what you ask;",
+"il fornitore di posta con cui inviamo le email di servizio (conferma dell'indirizzo, nuova password, avvisi di scadenza);": "the email provider we use to send service emails (address confirmation, new password, expiry notices);",
+"impostato (lascia vuoto per non cambiarlo)": "set (leave empty to keep it)",
+"in arrivo": "coming soon",
+"in attesa": "waiting",
+"in attesa di approvazione": "awaiting approval",
+"in coda": "queued",
+"in corso": "in progress",
+"in pausa": "paused",
+"intestazioni mancanti": "missing headers",
+"is_active deve essere vero o falso.": "is_active must be true or false.",
+"kokoro-onnx": "kokoro-onnx",
+"l'Agente Amministrazione": "the Administration Agent",
+"l'Agente Ascolto": "the Listening Agent",
+"l'Agente Assistenza": "the Customer Support Agent",
+"l'Agente CRM Lead": "the CRM Leads Agent",
+"l'Agente Calendario": "the Calendar Agent",
+"l'Agente ChatGPT": "the ChatGPT Agent",
+"l'Agente Contenuti": "the Content Agent",
+"l'Agente Contratti": "the Contracts Agent",
+"l'Agente Dev": "the Dev Agent",
+"l'Agente Email": "the Email Agent",
+"l'Agente Facebook": "the Facebook Agent",
+"l'Agente Instagram": "the Instagram Agent",
+"l'Agente LinkedIn": "the LinkedIn Agent",
+"l'Agente Marketing": "the Marketing Agent",
+"l'Agente Personale": "the Personal Agent",
+"l'Agente Recensioni": "the Reviews Agent",
+"l'Agente Report": "the Reports Agent",
+"l'Agente Ricerca": "the Research Agent",
+"l'Agente SEO e Blog": "the SEO and Blog Agent",
+"l'Agente Shopify": "the Shopify Agent",
+"l'Agente Team": "the Team Agent",
+"l'Agente Telegram": "the Telegram Agent",
+"l'Agente TikTok": "the TikTok Agent",
+"l'Agente Traduzioni": "the Translations Agent",
+"l'Agente Video Editor": "the Video Editor Agent",
+"l'Agente Voce": "the Voice Agent",
+"l'Agente WhatsApp": "the WhatsApp Agent",
+"l'Agente YouTube": "the YouTube Agent",
+"lavagna": "whiteboard",
+"mode deve essere «cloud» oppure «locale».": "mode must be «cloud» or «locale».",
+"modelli": "models",
+"montaggio": "editing",
+"negozio": "store",
+"no": "no",
+"non attivo su questo server.": "not active on this server.",
+"non gira": "does not run",
+"non impostato": "not set",
+"non riuscito": "failed",
+"pagamenti": "payments",
+"pannello": "panel",
+"per 1 giorno": "for 1 more day",
+"percorso sconosciuto": "unknown path",
+"persona": "person",
+"posta": "mail",
+"prezzi": "prices",
+"registrazione": "sign-up",
+"ricerca": "search",
+"scrittura": "writing",
+"solo computer": "computer only",
+"solo nostri server": "our servers only",
+"solo oggi": "today only",
+"squadra": "team",
+"sì": "yes",
+"terminale": "terminal",
+"tutti": "everyone",
+"versione Intel": "Intel version",
+"versione con Python": "Python version",
+"· due passaggi": "· two-step",
+"È spento: il server rifiuta le richieste a questo agente finché un amministratore non lo attiva.": "It is switched off: the server refuses requests to this agent until an administrator switches it on.",
+"— non impostata": "— not set",
+"← Ufficio": "← Office",
+"Ricerca web": "Web search",
+"Salva ricerca web": "Save web search",
+"ricerca web": "web search",
+"Casella collegata": "Mailbox connected",
+"Collegato": "Connected",
+"Computer spento": "Computer off",
+"Gmail collegato": "Gmail connected",
+"Google Calendar": "Google Calendar",
+"Calendario interno": "Internal calendar",
+"Sui nostri server": "On our servers",
+"Sul computer": "On the computer",
+"Il numero": "The number",
+"Il nome": "The name",
+"Il nome dell'azienda": "The company name",
+"Il documento": "The document",
+"Il minuto": "The minute",
+"Scrivi la chiave di un modello nella scheda Collegamenti.": "Enter a model key in the Connections tab.",
+"Se leggi questo messaggio, la posta di servizio funziona.": "If you are reading this message, the service mail works.",
+"Alvea: email di prova": "Alvea: test email",
+"Acceso nel team": "Switched on in the team",
+"Coordina gli agenti attivi": "Coordinates the active agents",
+"Da collegare al suo servizio": "To be connected to its service",
+"Istruzioni aggiornate": "Instructions updated",
+"Richiesta rifiutata: agente non disponibile": "Request refused: agent not available",
+"Sta ragionando": "Thinking",
+"Abbonamento scaduto: per usare gli agenti sul tuo computer va rinnovato (scheda Abbonamento).": "Subscription expired: to use the agents on your computer it must be renewed (Subscription tab).",
+"Prima di collegare un computer va attivato l'abbonamento (scheda Abbonamento). Intanto gli agenti lavorano sui nostri server.": "Before connecting a computer the subscription must be activated (Subscription tab). Meanwhile the agents work on our servers.",
+"Hai pagato fuori dalla piattaforma: per cambiare pacchetto contatta chi ti ha venduto il servizio.": "You paid outside the platform: to change plan, contact whoever sold you the service.",
+"Il cambio di pacchetto lo fa chi ti ha venduto il servizio.": "Plan changes are made by whoever sold you the service.",
+"Per rinnovare contatta chi ti ha venduto il servizio.": "To renew, contact whoever sold you the service.",
+"Ricarica pagata con carta": "Top-up paid by card",
+"Troppi tentativi sbagliati da questo indirizzo. Riprova tra qualche minuto.": "Too many wrong attempts from this address. Try again in a few minutes.",
+"Troppi tentativi sbagliati. Riprova tra qualche minuto.": "Too many wrong attempts. Try again in a few minutes.",
+"Mi sono fermato: troppi passaggi per una sola richiesta. Riprova con una richiesta più semplice.": "I stopped: too many steps for a single request. Try again with a simpler request.",
+"Strumento non disponibile nel pacchetto di questa azienda.": "Tool not available in this company's plan.",
+"Il lavoro sul computer non è riuscito.": "The job on the computer failed.",
+"Conferma il tuo indirizzo per Alvea": "Confirm your address for Alvea",
+"Per attivare l'account apri questo collegamento entro 24 ore:": "To activate your account, open this link within 24 hours:",
+"Se non hai chiesto tu la registrazione, ignora questo messaggio.": "If you did not ask to sign up, ignore this message.",
+"Alvea: scegli una nuova password": "Alvea: choose a new password",
+"Per scegliere una nuova password apri questo collegamento entro un'ora:": "To choose a new password, open this link within one hour:",
+"Se non l'hai chiesto tu, ignora questo messaggio: la password resta quella di prima.": "If you did not ask for this, ignore this message: the password stays the same.",
+"Alvea: pagamento non riuscito": "Alvea: payment failed",
+"L'addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta dalla scheda Abbonamento.": "The card charge failed. Stripe will try again over the next few days: in the meantime check or change the card from the Subscription tab.",
+"Se la scadenza passa senza un pagamento, gli agenti vanno in pausa; i dati restano al loro posto.": "If the expiry date passes without a payment, the agents pause; the data stays where it is.",
+"Dopo quella data gli agenti vanno in pausa; i dati restano al loro posto.": "After that date the agents pause; the data stays where it is.",
+"eseguito": "done",
+"rifiutato": "refused",
+"fallito": "failed",
+"errore": "error",
+"fatto": "done",
+"approvata ed eseguita": "approved and carried out",
+"approvata ma fallita": "approved but failed",
+"rifiutata": "rejected",
+"finito": "finished",
+"sul computer dell'azienda": "on the company's computer",
+"sui nostri server": "on our servers",
+"Fermo: arresto d'emergenza": "Stopped: emergency stop",
+"approvata": "approved",
+"eseguita": "carried out",
+"fallita": "failed",
+"amministratore": "administrator",
+"operatore": "operator",
+"gestore": "platform operator",
+"Cambia lingua": "Change language",
+"Language": "Language",
+"Italiano": "Italiano",
+"English": "English",
+"Passa all'italiano": "Switch to Italian",
+"Switch to English": "Switch to English",
+"email_leggi_recenti": "read recent email",
+"email leggi recenti": "read recent email",
+"email_invia": "send email",
+"email invia": "send email",
+"video_elenca_materiale": "list video material",
+"video elenca materiale": "list video material",
+"video_monta": "edit video",
+"video monta": "edit video",
+"dev_salva_codice": "save code",
+"dev salva codice": "save code",
+"dev_elenca_file": "list files",
+"dev elenca file": "list files",
+"dev_leggi_file": "read file",
+"dev leggi file": "read file",
+"dev_scrivi_file": "write file",
+"dev scrivi file": "write file",
+"dev_esegui_comando": "run command",
+"dev esegui comando": "run command",
+"calendario_crea_evento": "create calendar event",
+"calendario crea evento": "create calendar event",
+"calendario_elenca_eventi": "list calendar events",
+"calendario elenca eventi": "list calendar events",
+"contenuti_salva_bozza": "save content draft",
+"contenuti salva bozza": "save content draft",
+"contenuti_elenca_bozze": "list content drafts",
+"contenuti elenca bozze": "list content drafts",
+"personale_salva_bozza": "save HR draft",
+"personale salva bozza": "save HR draft",
+"traduzioni_salva_bozza": "save translation draft",
+"traduzioni salva bozza": "save translation draft",
+"facebook_salva_bozza": "save Facebook draft",
+"facebook salva bozza": "save Facebook draft",
+"seo_salva_bozza": "save SEO draft",
+"seo salva bozza": "save SEO draft",
+"recensioni_salva_bozza": "save review draft",
+"recensioni salva bozza": "save review draft",
+"youtube_salva_bozza": "save YouTube draft",
+"youtube salva bozza": "save YouTube draft",
+"tiktok_salva_bozza": "save TikTok draft",
+"tiktok salva bozza": "save TikTok draft",
+"contratti_salva_bozza": "save contract draft",
+"contratti salva bozza": "save contract draft",
+"assistenza_salva_risposta": "save support reply",
+"assistenza salva risposta": "save support reply",
+"amministrazione_salva_bozza": "save admin draft",
+"amministrazione salva bozza": "save admin draft",
+"ricerca_web": "web search",
+"ricerca_leggi_pagina": "read web page",
+"ricerca leggi pagina": "read web page",
+"fogli_leggi": "read sheet",
+"fogli leggi": "read sheet",
+"memoria_cerca": "search memory",
+"memoria cerca": "search memory",
+"memoria_proponi": "propose to memory",
+"memoria proponi": "propose to memory",
+"report_riepilogo": "activity summary",
+"report riepilogo": "activity summary",
+"telegram_invia_messaggio": "send Telegram message",
+"telegram invia messaggio": "send Telegram message",
+"telegram_leggi_messaggi": "read Telegram messages",
+"telegram leggi messaggi": "read Telegram messages",
+"shopify_ordini_recenti": "recent Shopify orders",
+"shopify ordini recenti": "recent Shopify orders",
+"shopify_prodotti": "Shopify products",
+"shopify prodotti": "Shopify products",
+"crm_aggiungi_lead": "add lead",
+"crm aggiungi lead": "add lead",
+"crm_elenca_lead": "list leads",
+"crm elenca lead": "list leads",
+"crm_aggiorna_lead": "update lead",
+"crm aggiorna lead": "update lead",
+"marketing_salva_campagna": "save campaign",
+"marketing salva campagna": "save campaign",
+"team_elenca_utenti": "list users",
+"team elenca utenti": "list users",
+"whatsapp_invia_messaggio": "send WhatsApp message",
+"whatsapp invia messaggio": "send WhatsApp message",
+"instagram_salva_post": "save Instagram post",
+"instagram salva post": "save Instagram post",
+"linkedin_salva_post": "save LinkedIn post",
+"linkedin salva post": "save LinkedIn post",
+"voce_salva_copione": "save script",
+"voce salva copione": "save script",
+"ascolto_salva_verbale": "save minutes",
+"ascolto salva verbale": "save minutes",
+"Sta ragionando per un lavoro automatico": "Thinking, for an automated job",
+"Lavoro automatico": "Automated job",
+"Consumo all'80% del tetto del mese": "Usage at 80% of the monthly cap",
+"lun": "Mon",
+"mar": "Tue",
+"mer": "Wed",
+"gio": "Thu",
+"ven": "Fri",
+"sab": "Sat",
+"dom": "Sun",
+"ogni giorno": "every day",
+"Esito:": "Outcome:"
+},
+"patterns": [
+[
+"In Stripe crea un webhook verso {0} con gli eventi checkout.session.completed, invoice.paid, invoice.payment_failed, customer.subscription.updated e customer.subscription.deleted, e copia qui il suo segreto. Per la disdetta e il cambio carta attiva in Stripe il portale clienti. I prezzi sono abbonamenti mensili creati in Stripe, uno per pacchetto.",
+"In Stripe, create a webhook to {0} with the events checkout.session.completed, invoice.paid, invoice.payment_failed, customer.subscription.updated and customer.subscription.deleted, and copy its secret here. For cancellation and card changes, enable the customer portal in Stripe. The prices are monthly subscriptions created in Stripe, one per plan."
+],
+[
+"Se sei un consumatore hai 14 giorni dalla conclusione del contratto per recedere senza dare motivazioni, scrivendo a {0} (articoli 52 e seguenti del Codice del consumo). Se hai chiesto di iniziare a usare il servizio subito, in caso di recesso paghi solo la parte corrispondente ai giorni di servizio già forniti.",
+"If you are a consumer, you have 14 days from the conclusion of the contract to withdraw without giving reasons, by writing to {0} (Articles 52 and following of the Italian Consumer Code). If you asked to start using the service immediately, on withdrawal you pay only the part corresponding to the days of service already provided."
+],
+[
+"Ogni agente acceso costa {0} € al mese in più: accenderne o spegnerne uno cambia subito il prezzo dell'abbonamento. Accendi solo gli agenti che ti servono: {1} attivi su {2} disponibili con il pacchetto {3}. Un agente spento non risponde, non riceve strumenti e non esegue azioni, nemmeno quelle già in attesa.",
+"Each agent switched on costs an extra €{0} per month: switching one on or off changes the subscription price straight away. Switch on only the agents you need: {1} active out of {2} available with the {3:t} plan. An agent that is switched off does not reply, receives no tools and carries out no actions, not even those already waiting."
+],
+[
+"Puoi chiedere in ogni momento di accedere ai tuoi dati, correggerli, cancellarli, limitarne il trattamento, riceverne una copia in formato leggibile o opporti al trattamento (articoli da 15 a 22 del GDPR). Scrivi a {0}: rispondiamo entro un mese.",
+"You can ask at any time to access your data, correct it, delete it, restrict its processing, receive a copy in a readable format or object to its processing (Articles 15 to 22 of the GDPR). Write to {0}: we reply within one month."
+],
+[
+"Ogni agente acceso costa {0} € al mese in più. Accendi solo gli agenti che ti servono: {1} attivi su {2} disponibili con il pacchetto {3}. Un agente spento non risponde, non riceve strumenti e non esegue azioni, nemmeno quelle già in attesa.",
+"Each agent switched on costs an extra €{0} per month. Switch on only the agents you need: {1} active out of {2} available with the {3} plan. An agent that is switched off does not reply, receives no tools and carries out no actions, not even those already waiting."
+],
+[
+"Il modello non ha risposto entro %d secondi. Riprova; se succede spesso con un modello che ragiona a lungo, il gestore può alzare l'attesa o abbassare il ragionamento nel pannello, Impostazioni della piattaforma, gruppo «Modelli».",
+"The model did not reply within {0} seconds. Try again; if it happens often with a model that reasons for a long time, the platform operator can raise the wait or lower the reasoning in the panel, Platform settings, «Models» group."
+],
+[
+"Manca la chiave API per questo modello (%s): il gestore la inserisce nel pannello, Impostazioni della piattaforma, gruppo «Modelli»; oppure un amministratore mette la chiave dell'azienda nei Collegamenti.",
+"The API key for this model is missing ({0}): the platform operator enters it in the panel, Platform settings, «Models» group; or an administrator puts the company's key in Connections."
+],
+[
+"Crediti finiti: quelli inclusi nel pacchetto si ricaricano il %s. Un amministratore può comprarne altri nella scheda Crediti. Il modello «Locale» e le chiavi proprie dell'azienda non consumano crediti.",
+"Credits used up: those included in the plan are topped up on {0}. An administrator can buy more in the Credits tab. The «Local» model and the company's own keys do not use credits."
+],
+[
+"Accendi solo gli agenti che ti servono: {0} attivi su {1} disponibili con il pacchetto {2}. Un agente spento non risponde, non riceve strumenti e non esegue azioni, nemmeno quelle già in attesa.",
+"Switch on only the agents you need: {0} active out of {1} available with the {2:t} plan. An agent that is switched off does not reply, receives no tools and carries out no actions, not even those already waiting."
+],
+[
+"Un agente esegue da solo una richiesta salvata. Le azioni verso l'esterno finiscono comunque nelle approvazioni. Dopo 3 errori di fila il lavoro va in pausa. {0} di {1} previsti dal pacchetto.",
+"An agent carries out a saved request by itself. Outward actions still end up in approvals. After 3 errors in a row the job is paused. {0} of {1} allowed by the plan."
+],
+[
+"Listini, condizioni, procedure. A ogni domanda il server cerca i passaggi pertinenti e li passa all'agente. {0} di {1} previsti dal pacchetto. Solo testo: i PDF vanno prima convertiti.",
+"Price lists, terms, procedures. For each question the server looks for the relevant passages and gives them to the agent. {0} of {1} allowed by the plan. Text only: PDFs must be converted first."
+],
+[
+"L'azienda ha usato l'80% dei %d token del mese. Al 100% gli agenti si fermano fino al mese prossimo, salvo che il gestore alzi il tetto. Il modello «Locale» non entra nel conto.",
+"The company has used 80% of the month's {0} tokens. At 100% the agents stop until next month, unless the platform operator raises the cap. The «Local» model is not counted."
+],
+[
+"Tetto di consumo del mese raggiunto (%d token): gli agenti riprendono il mese prossimo, oppure quando il gestore alza il tetto. Il modello «Locale» resta disponibile.",
+"Monthly usage cap reached ({0} tokens): the agents resume next month, or when the platform operator raises the cap. The «Local» model remains available."
+],
+[
+"Il pacchetto %s permette %d lavori automatici attivi. Quelli in più sono in pausa, non cancellati: puoi scegliere quali tenere attivi dalla scheda Automazioni.",
+"The {0:t} plan allows {1} active automated jobs. The extra ones are paused, not deleted: you can choose which to keep active from the Automations tab."
+],
+[
+"Crediti finiti: gli agenti che usano i modelli della piattaforma sono fermi fino alla ricarica del {0}, oppure finché non ne compri altri.",
+"Credits used up: the agents that use the platform's models are stopped until the top-up on {0}, or until you buy more."
+],
+[
+"Nessun computer dell'azienda è acceso e pronto per l'Agente %s. Apri il launcher sul computer (Centro di controllo, scheda Computer).",
+"No company computer is on and ready for the {0:t} Agent. Open the launcher on the computer (Control Centre, Computers tab)."
+],
+[
+"Modello locale sul server (Ollama): servono {0} GB di memoria e {1} core, qui non ci sono. Risponde a una persona alla volta.",
+"Local model on the server (Ollama): {0} GB of memory and {1} cores are needed, and they are not here. It answers one person at a time."
+],
+[
+"Tutto gira sui nostri server senza installare niente. Se preferisci, alcuni agenti possono lavorare sul tuo computer: {0}.",
+"Everything runs on our servers with nothing to install. If you prefer, some agents can work on your computer: {0:t}."
+],
+[
+"Abbonamento scaduto il %s: gli agenti sono in pausa finché non viene rinnovato. I dati dell'azienda restano al loro posto.",
+"Subscription expired on {0}: the agents are paused until it is renewed. The company's data stays where it is."
+],
+[
+"Con gli agenti accesi adesso l'abbonamento costa %d € al mese. La differenza la conteggia Stripe nella prossima fattura.",
+"With the agents switched on now, the subscription costs €{0} per month. Stripe will account for the difference on the next invoice."
+],
+[
+"Il titolare del trattamento è {0}, partita IVA {1}, con sede in {2}. Per qualunque domanda sui tuoi dati scrivi a {3}.",
+"The data controller is {0}, VAT number {1}, with registered office at {2}. For any question about your data, write to {3}."
+],
+[
+"Montaggio video sul server: {0} alla volta, circa {1} secondi per ogni minuto di video; gli altri aspettano in coda.",
+"Video editing on the server: {0} at a time, about {1} seconds for each minute of video; the others wait in the queue."
+],
+[
+"Il collegamento «%s» non è configurato. Un amministratore lo imposta nel Centro di controllo, scheda Collegamenti.",
+"The «{0:t}» connection is not set up. An administrator sets it up in the Control Centre, Connections tab."
+],
+[
+"Abbonamento scaduto il {0}: gli agenti sono in pausa finché non viene rinnovato. I dati restano al loro posto.",
+"Subscription expired on {0}: the agents are paused until it is renewed. The data stays where it is."
+],
+[
+"La tua azienda ha il pacchetto {0}. Ogni pacchetto contiene tutto quello del precedente più gli agenti nuovi.",
+"Your company has the {0:t} plan. Each plan contains everything in the previous one plus the new agents."
+],
+[
+"Modello locale sul server (Ollama): servono {0} GB di memoria e {1} core. Risponde a una persona alla volta.",
+"Local model on the server (Ollama): {0} GB of memory and {1} cores are needed. It answers one person at a time."
+],
+[
+"Una persona che lavora manda un messaggio ogni {0} secondi; un modello vero risponde in circa {1} secondi.",
+"A person at work sends a message every {0} seconds; a real model replies in about {1} seconds."
+],
+[
+"Clip video, immagini e audio dell'azienda. Li vede solo chi appartiene alla tua azienda. Usati {0} di {1}.",
+"The company's video clips, images and audio. Only people who belong to your company can see them. Used {0} of {1}."
+],
+[
+"Archivio: lo spazio libero basta per {0} aziende che riempiono tutti i {1} GB del pacchetto più grande.",
+"Archive: the free space is enough for {0} companies filling all {1} GB of the largest plan."
+],
+[
+"Il montaggio sui nostri server non è attivo. Imposta l'Agente %s su «computer» nella scheda Computer.",
+"Editing on our servers is not active. Set the {0:t} Agent to «computer» in the Computers tab."
+],
+[
+"Archivio: lo spazio libero basta per {0} azienda che riempie tutti i {1} GB del pacchetto più grande.",
+"Archive: the free space is enough for {0} company filling all {1} GB of the largest plan."
+],
+[
+"Chat: circa {0} risposte in corso insieme, cioè circa {1} persone che lavorano nello stesso momento.",
+"Chat: about {0} replies in progress at once, that is about {1} people working at the same time."
+],
+[
+"Frasi brevi che ogni agente legge prima di rispondere: orari, regole, nomi, preferenze. {0} di {1}.",
+"Short sentences every agent reads before replying: opening hours, rules, names, preferences. {0} of {1}."
+],
+[
+"Manca il permesso Google «%s». Un amministratore lo aggiunge ricollegando Google nei Collegamenti.",
+"The Google permission «{0:t}» is missing. An administrator adds it by reconnecting Google in Connections."
+],
+[
+"«%s» non è un numero di telefono. Scrivilo in formato internazionale, per esempio +39 333 1234567.",
+"«{0}» is not a phone number. Write it in international format, for example +39 333 1234567."
+],
+[
+"Il pacchetto %s permette al massimo %d lavori automatici attivi: mettine in pausa un altro prima.",
+"The {0:t} plan allows at most {1} active automated jobs: pause another one first."
+],
+[
+"Collegato come {0}. La posta in uscita e gli eventi su Calendar partono solo dopo approvazione.",
+"Connected as {0}. Outgoing mail and Calendar events go out only after approval."
+],
+[
+"L'Agente %s è spento: un amministratore può attivarlo nel Centro di controllo, scheda Agenti.",
+"The {0:t} Agent is switched off: an administrator can switch it on in the Control Centre, Agents tab."
+],
+[
+"{0} su {1} del pacchetto. Si ricaricano il {2}; quelli non usati non si sommano al mese dopo.",
+"{0} out of {1} in the plan. They are topped up on {2}; unused ones do not carry over to the next month."
+],
+[
+"Alvea è fornito da {0}, partita IVA {1}, con sede in {2} (di seguito «noi»). Contatti: {3}.",
+"Alvea is provided by {0}, VAT number {1}, with registered office at {2} (hereinafter «we»). Contact: {3}."
+],
+[
+"Disdetta registrata: la carta non verrà più addebitata e l'abbonamento finisce il {0}.",
+"Cancellation recorded: the card will no longer be charged and the subscription ends on {0}."
+],
+[
+"Le anteprime restano valide {0} minuti: se un video non parte più, riapri la scheda.",
+"Previews stay valid for {0} minutes: if a video no longer plays, reopen the tab."
+],
+[
+"L'Agente %s supera il limite del pacchetto dell'azienda: entra con il pacchetto %s.",
+"The {0:t} Agent exceeds the limit of the company's plan: it comes with the {1:t} plan."
+],
+[
+"Il file n. %d non è una clip o un'immagine dell'Archivio Media di questa azienda.",
+"File no. {0} is not a clip or image from this company's Media Archive."
+],
+[
+"Processore: {0} core. Con un solo core un montaggio video rallenta tutte le chat.",
+"Processor: {0} core. With a single core, a video edit slows down all the chats."
+],
+[
+"{0} crediti comprati o ricevuti. Non scadono e si usano solo dopo quelli inclusi.",
+"{0} credits bought or received. They do not expire and are used only after the included ones."
+],
+[
+"L'Agente %s non ha ancora una versione per il computer: gira sui nostri server.",
+"The {0:t} Agent does not have a version for the computer yet: it runs on our servers."
+],
+[
+"Abbonamento scaduto il {0}: gli agenti lavorano ancora {1}, poi vanno in pausa.",
+"Subscription expired on {0}: the agents keep working {1:t}, then they pause."
+],
+[
+"%d crediti comprati: non scadono e si usano dopo quelli inclusi nel pacchetto.",
+"{0} credits purchased: they do not expire and are used after those included in the plan."
+],
+[
+"Scrivere il file «%s» nella cartella di lavoro sul computer (%d caratteri): %s",
+"Write the file «{0}» to the working folder on the computer ({1} characters): {2}"
+],
+[
+"Ci sono già %d proposte in attesa: un amministratore deve prima esaminarle.",
+"There are already {0} proposals waiting: an administrator must review them first."
+],
+[
+"«%s» non è un indirizzo email. Serve un solo indirizzo, scritto per intero.",
+"«{0}» is not an email address. A single address is needed, written in full."
+],
+[
+"La memoria contiene già %d fatti: toglierne qualcuno prima di aggiungerne.",
+"The memory already holds {0} facts: remove some before adding more."
+],
+[
+"«%s» non è il nome di un server di posta (per esempio imap.tuodominio.it).",
+"«{0}» is not the name of a mail server (for example imap.yourdomain.com)."
+],
+[
+"{0} agenti attivi su {1} · {2} collegamenti · {3} lavori automatici attivi",
+"{0} agents active out of {1} · {2} connections · {3} active automated jobs"
+],
+[
+"Circa {0} persone possono lavorare nello stesso momento su questo server.",
+"About {0} people can work at the same time on this server."
+],
+[
+"L'Agente %s non è nel pacchetto dell'azienda. Entra con il pacchetto %s.",
+"The {0:t} Agent is not in the company's plan. It comes with the {1:t} plan."
+],
+[
+"La carta non verrà più addebitata. Gli agenti restano attivi fino al %s.",
+"The card will no longer be charged. The agents stay active until {0}."
+],
+[
+"Resta meno di un quinto dei crediti. Quelli inclusi si ricaricano il %s.",
+"Less than a fifth of the credits is left. Those included are topped up on {0}."
+],
+[
+"Disco: {0} GB liberi. Foto e video dei clienti lo riempiono in fretta.",
+"Disk: {0} GB free. Customers' photos and videos fill it quickly."
+],
+[
+"Azienda non trovata: «%s». L'elenco è in «python3 manage.py aziende».",
+"Company not found: «{0}». The list is in «python3 manage.py aziende»."
+],
+[
+"Le istruzioni per l'agente sono troppo lunghe (massimo %d caratteri).",
+"The instructions for the agent are too long (maximum {0} characters)."
+],
+[
+"Scaduto il {0}: gli agenti lavorano ancora {1}, poi vanno in pausa.",
+"Expired on {0}: the agents keep working {1:t}, then they pause."
+],
+[
+"Per rinnovare con carta apri la scheda Abbonamento: %s/#abbonamento",
+"To renew with card, open the Subscription tab: {0}/#abbonamento"
+],
+[
+"Il contenuto del file prodotto non corrisponde all'estensione .%s.",
+"The content of the produced file does not match the .{0} extension."
+],
+[
+"Registro manomesso: la catena si interrompe alla riga con id {0}.",
+"Log tampered with: the chain breaks at the line with id {0}."
+],
+[
+"{0} · {1} core · {2} GB di memoria · {3} GB liberi · launcher {4}",
+"{0} · {1} cores · {2} GB of memory · {3} GB free · launcher {4}"
+],
+[
+"Spazio dell'archivio esaurito: il pacchetto %s prevede %d MB.",
+"Archive space used up: the {0:t} plan includes {1} MB."
+],
+[
+"Per gli agenti accesi. Montaggio video sui nostri server: {0}",
+"For the agents switched on. Video editing on our servers: {0:t}"
+],
+[
+"Il pacchetto %s permette al massimo %d documenti in memoria.",
+"The {0:t} plan allows at most {1} documents in memory."
+],
+[
+"{0} La verifica del computer con il launcher resta gratuita.",
+"{0:t} Checking the computer with the launcher remains free."
+],
+[
+"Attiva l'abbonamento prima che finisca la prova (%d giorni)",
+"Activate the subscription before the trial ends ({0} days)"
+],
+[
+"Eseguire sul computer dell'azienda il comando permesso «%s»",
+"Run the allowed command «{0}» on the company's computer"
+],
+[
+"Configurazione dell'agente non valida. Chiavi ammesse: %s.",
+"Invalid agent configuration. Allowed keys: {0}."
+],
+[
+"«%s» deve essere una data e ora ISO, es. 2026-12-01T10:00.",
+"«{0:t}» must be an ISO date and time, e.g. 2026-12-01T10:00."
+],
+[
+"Il contenuto del file non corrisponde all'estensione .%s.",
+"The file's content does not match the .{0} extension."
+],
+[
+"Il pacchetto %s permette al massimo %d lavori automatici.",
+"The {0:t} plan allows at most {1} automated jobs."
+],
+[
+"Registro integro: {0} righe verificate. Ultimo hash: {1}",
+"Log intact: {0} lines verified. Last hash: {1}"
+],
+[
+"Il pacchetto non è stato cambiato: %s Riprova tra poco.",
+"The plan was not changed: {0:t} Try again shortly."
+],
+[
+"L'Agente %s non ha ancora una versione per il computer.",
+"The {0:t} Agent does not have a version for the computer yet."
+],
+[
+"Vale {0} minuti e una volta sola: scrivilo nel launcher",
+"Valid for {0} minutes and only once: type it into the launcher"
+],
+[
+"Creare su Google Calendar l'evento «%s» il %s presso %s",
+"Create the event «{0}» on Google Calendar on {1} at {2}"
+],
+[
+"Serve all'Agente {0}, che entra con il pacchetto {1}.",
+"Needed by the {0:t} Agent, which comes with the {1:t} plan."
+],
+[
+"{0} agenti attivi su {1} disponibili (pacchetto {2}).",
+"{0} agents active out of {1} available ({2:t} plan)."
+],
+[
+"{0} € al mese + {1} € al mese per ogni agente acceso",
+"€{0} per month + €{1} per month for each agent switched on"
+],
+[
+"Hai raggiunto il numero di lavori del pacchetto {0}.",
+"You have reached the number of jobs in the {0:t} plan."
+],
+[
+"Più utenti per azienda entrano con il pacchetto %s.",
+"Several users per company come with the {0:t} plan."
+],
+[
+"Lavoro n. %s non riuscito sul computer dell'azienda",
+"Job no. {0} failed on the company's computer"
+],
+[
+"Ha dato errore %d volte di fila. Ultimo errore: %s",
+"It failed {0} times in a row. Last error: {1:t}"
+],
+[
+"La casella ha rifiutato l'accesso o la lettura: %s",
+"The mailbox refused sign-in or reading: {0:t}"
+],
+[
+"«%s»: scrivi low, high oppure max, o lascia vuoto.",
+"«{0:t}»: write low, high or max, or leave it empty."
+],
+[
+"L'Agente %s non è disponibile alla registrazione.",
+"The {0:t} Agent is not available at sign-up."
+],
+[
+"L'Agente %s gira solo sul computer dell'azienda.",
+"The {0:t} Agent runs only on the company's computer."
+],
+[
+"«%s» deve iniziare con http:// oppure https://.",
+"«{0:t}» must start with http:// or https://."
+],
+[
+"Il file supera la dimensione massima di %d MB.",
+"The file exceeds the maximum size of {0} MB."
+],
+[
+"Stripe non ha aperto la pagina di gestione: %s",
+"Stripe did not open the management page: {0:t}"
+],
+[
+"Ogni agente acceso in più costa {0} € al mese.",
+"Each additional agent switched on costs €{0} per month."
+],
+[
+"Messaggio WhatsApp accettato per il numero %s.",
+"WhatsApp message accepted for the number {0}."
+],
+[
+"Nuovo prezzo dell'abbonamento: {0} € al mese.",
+"New subscription price: €{0} per month."
+],
+[
+"{0} — impostata{1}: scrivi solo per cambiarla",
+"{0:t} — set{1:t}: type only to change it"
+],
+[
+"Lavoro n. %s finito sul computer dell'azienda",
+"Job no. {0} finished on the company's computer"
+],
+[
+"Creare su Google Calendar l'evento «%s» il %s",
+"Create the event «{0}» on Google Calendar on {1}"
+],
+[
+"Evento «%s» creato su Google Calendar per %s.",
+"Event «{0}» created on Google Calendar for {1}."
+],
+[
+"Il file supera la dimensione massima di {0}.",
+"The file exceeds the maximum size of {0}."
+],
+[
+"{0} · {1} · {2} token usati, {3} questo mese",
+"{0:t} · {1:t} · {2} tokens used, {3} this month"
+],
+[
+"Sta montando un video: %d% sui nostri server",
+"Editing a video: {0}% on our servers"
+],
+[
+"Sta montando un video: %d% sul computer «%s»",
+"Editing a video: {0}% on the computer «{1}»"
+],
+[
+"Accesso al server di posta non riuscito: %s",
+"Could not sign in to the mail server: {0:t}"
+],
+[
+"La password deve avere almeno %d caratteri.",
+"The password must be at least {0} characters long."
+],
+[
+"Lavoro n. %s non riuscito sui nostri server",
+"Job no. {0} failed on our servers"
+],
+[
+"%s è obbligatorio (massimo 120 caratteri).",
+"{0:t} is required (maximum 120 characters)."
+],
+[
+"Prova gratuita di {0} giorni, senza carta.",
+"{0}-day free trial, no card needed."
+],
+[
+"Richiesta n. {0} di {1} · {2} · agente {3}",
+"Request no. {0} from {1} · {2} · agent {3:t}"
+],
+[
+"%s è troppo lungo (massimo %d caratteri).",
+"{0:t} is too long (maximum {1} characters)."
+],
+[
+"Scaduto il {0}: gli agenti sono in pausa.",
+"Expired on {0}: the agents are paused."
+],
+[
+"— impostata{0}: scrivi solo per cambiarla",
+"— set{0:t}: type only to change it"
+],
+[
+"Azione in attesa di approvazione (n. %d)",
+"Action awaiting approval (no. {0})"
+],
+[
+"Il modello ha risposto con errore %d: %s",
+"The model replied with error {0}: {1}"
+],
+[
+"nostri server · computer in arrivo ({0})",
+"our servers · computer coming soon ({0})"
+],
+[
+"Inviare una email a %s, oggetto «%s»: %s",
+"Send an email to {0}, subject «{1}»: {2}"
+],
+[
+"Messaggio Telegram inviato alla chat %s.",
+"Telegram message sent to chat {0}."
+],
+[
+"Codici di riserva non ancora usati: {0}",
+"Backup codes not yet used: {0}"
+],
+[
+"Tipo di file non ammesso. Ammessi: %s.",
+"File type not allowed. Allowed: {0}."
+],
+[
+"Oppure ogni quanti minuti (minimo {0})",
+"Or every how many minutes (minimum {0})"
+],
+[
+"Tetto del mese: usati {0} token su {1}",
+"Monthly cap: {0} tokens used out of {1}"
+],
+[
+"Stripe non ha aggiornato il prezzo: %s",
+"Stripe did not update the price: {0:t}"
+],
+[
+"%d lavoro in coda: aspetta il computer",
+"{0} job queued: waiting for the computer"
+],
+[
+"%d lavori in coda: aspetta il computer",
+"{0} jobs queued: waiting for the computer"
+],
+[
+"Lavoro automatico «%s» messo in pausa",
+"Automated job «{0}» paused"
+],
+[
+"Montaggio non riuscito (lavoro n. %d)",
+"Editing failed (job no. {0})"
+],
+[
+"Shopify ha risposto con un errore: %s",
+"Shopify replied with an error: {0:t}"
+],
+[
+"Stripe non ha creato il pagamento: %s",
+"Stripe did not create the payment: {0:t}"
+],
+[
+"{0}: in attesa di approvazione n. {1}",
+"{0:t}: awaiting approval no. {1}"
+],
+[
+"Lavoro n. %s finito sui nostri server",
+"Job no. {0} finished on our servers"
+],
+[
+"{0} € al mese per ogni agente acceso",
+"€{0} per month for each agent switched on"
+],
+[
+"Modello sconosciuto. Scegli tra: %s.",
+"Unknown model. Choose from: {0}."
+],
+[
+"«%s» deve essere un indirizzo email.",
+"«{0:t}» must be an email address."
+],
+[
+"L'abbonamento scade tra {0}, il {1}.",
+"The subscription expires in {0:t}, on {1}."
+],
+[
+"Ha chiesto l'approvazione n. %s (%s)",
+"Asked for approval no. {0} ({1:t})"
+],
+[
+"Inviare su WhatsApp al numero %s: %s",
+"Send on WhatsApp to the number {0}: {1}"
+],
+[
+"Inviare su Telegram alla chat %s: %s",
+"Send on Telegram to chat {0}: {1}"
+],
+[
+"%d lavori automatici messi in pausa",
+"{0} automated jobs paused"
+],
+[
+"Il file «%s» non è più in archivio.",
+"The file «{0}» is no longer in the archive."
+],
+[
+"{0} € del pacchetto + {1} × {2} € =",
+"€{0} for the plan + {1} × €{2} ="
+],
+[
+"%d azione in attesa di approvazione",
+"{0} action awaiting approval"
+],
+[
+"%d azioni in attesa di approvazione",
+"{0} actions awaiting approval"
+],
+[
+"L'email di prova non è partita: %s",
+"The test email was not sent: {0:t}"
+],
+[
+"«%s» deve essere un numero intero.",
+"«{0:t}» must be a whole number."
+],
+[
+"La memoria contiene già %d fatti.",
+"The memory already holds {0} facts."
+],
+[
+"Server IMAP non raggiungibile: %s",
+"IMAP server unreachable: {0:t}"
+],
+[
+"%d lavoro in coda: parte tra poco",
+"{0} job queued: starting shortly"
+],
+[
+"%d lavori in coda: parte tra poco",
+"{0} jobs queued: starting shortly"
+],
+[
+"{0} di archivio per foto e video",
+"{0} of storage for photos and videos"
+],
+[
+"Lavoro n. {0} · Agente {1} · {2}",
+"Job no. {0} · {1:t} Agent · {2:t}"
+],
+[
+"Alvea: l'abbonamento scade il %s",
+"Alvea: the subscription expires on {0}"
+],
+[
+"L'abbonamento di %s scade il %s.",
+"The subscription of {0} expires on {1}."
+],
+[
+"Sta usando: %s sui nostri server",
+"Using: {0:t} on our servers"
+],
+[
+"Sta usando: %s sul computer «%s»",
+"Using: {0:t} on the computer «{1}»"
+],
+[
+"$ {0}   ({1} s, esito {2})\n\n{3}",
+"$ {0}   ({1} s, exit {2})\n\n{3}"
+],
+[
+"Abbonamento attivo fino al %s.",
+"Subscription active until {0}."
+],
+[
+"Il servizio ha risposto %d: %s",
+"The service replied {0}: {1:t}"
+],
+[
+"Servizio non raggiungibile: %s",
+"Service unreachable: {0:t}"
+],
+[
+"Stato non valido. Ammessi: %s.",
+"Invalid status. Allowed: {0}."
+],
+[
+"{0}: in attesa di approvazione",
+"{0:t}: awaiting approval"
+],
+[
+"il fornitore del server: {0};",
+"the server provider: {0};"
+],
+[
+"Impostazione sconosciuta: %s.",
+"Unknown setting: {0}."
+],
+[
+"Modello non raggiungibile: %s",
+"Model unreachable: {0:t}"
+],
+[
+"Email di prova mandata a {0}.",
+"Test email sent to {0}."
+],
+[
+"Richiesta n. {0} di {1} · {2}",
+"Request no. {0} from {1} · {2}"
+],
+[
+"Come nel file .env (ora: {0})",
+"As in the .env file (now: {0:t})"
+],
+[
+"Email inviata a %s con Gmail.",
+"Email sent to {0} with Gmail."
+],
+[
+"{0} giorni di prova gratuita",
+"{0}-day free trial"
+],
+[
+"Invio email non riuscito: %s",
+"Could not send the email: {0:t}"
+],
+[
+"Pagina non raggiungibile: %s",
+"Page unreachable: {0:t}"
+],
+[
+"«%s» deve essere 1 oppure 0.",
+"«{0:t}» must be 1 or 0."
+],
+[
+"Attivo fino al {0} compreso.",
+"Active up to and including {0}."
+],
+[
+"%s deve essere tra %d e %d.",
+"{0:t} must be between {1} and {2}."
+],
+[
+"La porta «%s» non è valida.",
+"The port «{0}» is not valid."
+],
+[
+"Valore non valido per «%s».",
+"Invalid value for «{0:t}»."
+],
+[
+"Video pronto (lavoro n. %d)",
+"Video ready (job no. {0})"
+],
+[
+"Agente {0}, incluso da {1}",
+"{0:t} Agent, included from {1:t}"
+],
+[
+"Ha risposto in chat con %s",
+"Replied in chat with {0}"
+],
+[
+"Lavoro automatico «%s»: %s",
+"Automated job «{0}»: {1:t}"
+],
+[
+"Ultimo aggiornamento: {0}",
+"Last updated: {0}"
+],
+[
+"La pagina ha risposto %d.",
+"The page replied {0}."
+],
+[
+"Valore non valido per %s.",
+"Invalid value for {0:t}."
+],
+[
+"+ {0} € per agente acceso",
+"+ €{0} per agent switched on"
+],
+[
+"Prezzo: {0} € al mese.{1}",
+"Price: €{0} per month.{1:t}"
+],
+[
+"{0} documenti in memoria",
+"{0} documents in memory"
+],
+[
+"Server di posta «%s»: %s",
+"Mail server «{0}»: {1:t}"
+],
+[
+"Agente sconosciuto: %s.",
+"Unknown agent: {0}."
+],
+[
+"Dalla chat di {0} · {1}",
+"From the chat of {0} · {1}"
+],
+[
+"File ({0}; massimo {1})",
+"File ({0}; maximum {1})"
+],
+[
+"Inviare su Telegram: %s",
+"Send on Telegram: {0}"
+],
+[
+"Computer collegato: %s",
+"Computer connected: {0}"
+],
+[
+"Dove gira l'Agente {0}",
+"Where the {0:t} Agent runs"
+],
+[
+"Pacchetto cambiato.{0}",
+"Plan changed.{0:t}"
+],
+[
+"{0} lavori automatici",
+"{0} automated jobs"
+],
+[
+"Processore: {0} core.",
+"Processor: {0} cores."
+],
+[
+"Disco: {0} GB liberi.",
+"Disk: {0} GB free."
+],
+[
+"Manca il campo «%s».",
+"The «{0}» field is missing."
+],
+[
+"Memoria: {0} GB. {1}",
+"Memory: {0} GB. {1:t}"
+],
+[
+"Ultimo giro {0}: {1}",
+"Last run {0}: {1:t}"
+],
+[
+"Tutto {0}, più: {1}",
+"Everything in {0:t}, plus: {1:t}"
+],
+[
+"Modello locale: {0}",
+"Local model: {0}"
+],
+[
+"· prossimo giro {0}",
+"· next run {0}"
+],
+[
+"{0} — non impostata",
+"{0} — not set"
+],
+[
+"Email inviata a %s.",
+"Email sent to {0}."
+],
+[
+"Agente {0}, spento",
+"{0:t} Agent, off"
+],
+[
+"Pacchetto {0}. {1}",
+"{0:t} plan. {1:t}"
+],
+[
+"Caricamento: {0}%",
+"Uploading: {0}%"
+],
+[
+"Dal pacchetto {0}",
+"From the {0:t} plan"
+],
+[
+"Postazione di {0}",
+"{0:t}'s workstation"
+],
+[
+"{0} · {1} crediti",
+"{0:t} · {1} credits"
+],
+[
+"sul computer «%s»",
+"on the computer «{0}»"
+],
+[
+"%s non è valido.",
+"{0:t} is not valid."
+],
+[
+"{0} da leggere ·",
+"{0} unread ·"
+],
+[
+"{0} di {1} fatti",
+"{0} of {1} done"
+],
+[
+"Scrivi a {0}...",
+"Write to {0:t}..."
+],
+[
+"Azione n. %s %s",
+"Action no. {0} {1:t}"
+],
+[
+"Inizia con {0}",
+"Start with {0:t}"
+],
+[
+"%s non valido.",
+"{0:t} is not valid."
+],
+[
+"per {0} giorni",
+"for {0} more days"
+],
+[
+"Richiesta: {0}",
+"Request: {0}"
+],
+[
+"Ufficio di {0}",
+"{0}'s office"
+],
+[
+"{0} (ora: {1})",
+"{0:t} (now: {1:t})"
+],
+[
+"{0} (pannello)",
+"{0:t} (panel)"
+],
+[
+"Sta usando: %s",
+"Using: {0:t}"
+],
+[
+"{0}: rifiutato",
+"{0:t}: refused"
+],
+[
+"ogni %d minuti",
+"every {0} minutes"
+],
+[
+"{0} € al mese",
+"€{0} per month"
+],
+[
+"{0}: eseguito",
+"{0:t}: done"
+],
+[
+"%s alle %d:%d",
+"{0:t} at {1}:{2}"
+],
+[
+"Accesi: {0}.",
+"Switched on: {0:t}."
+],
+[
+"Ha usato: %s",
+"Used: {0:t}"
+],
+[
+"%s è vuoto.",
+"{0:t} is empty."
+],
+[
+"{0}: errore",
+"{0:t}: error"
+],
+[
+"Errore {0}",
+"Error {0}"
+],
+[
+"{0} giorni",
+"{0} days"
+],
+[
+"{0} utenti",
+"{0} users"
+],
+[
+"{0} agenti",
+"{0} agents"
+],
+[
+"Esito: {0}",
+"Outcome: {0:t}"
+],
+[
+"{0} (.env)",
+"{0:t} (.env)"
+],
+[
+"Ora ({0})",
+"Time ({0:t})"
+],
+[
+"Salva {0}",
+"Save {0:t}"
+],
+[
+"Da %s.",
+"By {0}."
+]
+],
+"skip": [
+", incluso da {0}",
+"Agente {0}",
+"Ogni agente acceso costa {0} € al mese in più{1}",
+"per {0}",
+"{0}Accendi solo gli agenti che ti servono: {1} attivi su {2} disponibili con il pacchetto {3}. Un agente spento non risponde, non riceve strumenti e non esegue azioni, nemmeno quelle già in attesa."
+]
+}

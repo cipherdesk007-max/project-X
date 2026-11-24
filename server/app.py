@@ -13,7 +13,7 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import (agents, audit, auth, billing, catalog, config, connectors, console, credits, db, fake_llm, google, legal, llm, local, media, memory, news, office, ops,
+from . import (agents, audit, auth, billing, catalog, config, connectors, console, credits, db, fake_llm, google, i18n, legal, llm, local, media, memory, news, office, ops,
                pricing, registration, scheduler, settings, site, team, twofactor)
 from .errors import ApiError
 
@@ -54,7 +54,9 @@ _dummy_hash = None
 
 
 class Req:
-    def __init__(self, con, query, body, user, tenant, token, args, cookies=None, ip=None, alive=None):
+    def __init__(self, con, query, body, user, tenant, token, args, cookies=None, ip=None, alive=None, lang="it"):
+        self.lang = lang or "it"  # la lingua in cui chi chiede sta usando l'interfaccia
+        self.lang_sent = lang is not None  # chi non la indica (il launcher, uno script) non cambia quella registrata
         self.con, self.query, self.body, self.user, self.tenant, self.token, self.args = con, query, body, user, tenant, token, args
         self.cookies, self.ip = cookies or {}, ip
         self.alive = alive or (lambda: True)  # chi ha fatto la richiesta è ancora in linea? Serve alle richieste che aspettano a lungo
@@ -117,7 +119,9 @@ def r_login(q):
         raise ApiError(401, "Email o password non corretti.")
     if not row["email_verified"]:
         auth.note_success(email, q.ip)
-        raise ApiError(403, "Conferma prima il tuo indirizzo email: apri il collegamento che ti abbiamo mandato.")
+        wait = ApiError(403, "Conferma prima il tuo indirizzo email: apri il collegamento che ti abbiamo mandato.")
+        wait.extra = {"unverified": True}  # l'interfaccia lo riconosce da qui, non dal testo, che cambia con la lingua
+        raise wait
     try:
         twofactor.check_login(q.con, row, q.body.get("code"))  # secondo passaggio, per chi lo ha attivato
     except twofactor.TwoFactorNeeded as e:
@@ -125,6 +129,8 @@ def r_login(q):
             auth.note_failure(email, q.ip)  # un codice sbagliato conta come una password sbagliata
         raise
     auth.note_success(email, q.ip)
+    if q.lang_sent and (row["lang"] or "it") != q.lang:  # l'ultima lingua usata: in quella partono le email e rispondono gli agenti
+        q.con.execute("UPDATE users SET lang=? WHERE id=?", (q.lang, row["id"]))
     token = auth.create_session(q.con, row["id"])
     audit.record(q.con, row["tenant_id"] if row["tenant_id"] is not None else ops.PLATFORM, row["id"], "accesso", {})
     return {"token": token}
@@ -152,6 +158,8 @@ def r_logout(q):
 
 
 def r_me(q):
+    if q.lang_sent and (q.user.get("lang") or "it") != q.lang:  # ha cambiato lingua restando dentro: da adesso email e agenti la seguono
+        q.con.execute("UPDATE users SET lang=? WHERE id=?", (q.lang, q.user["id"]))
     out = {"user": _public_user(q.user), "tenant": None, "catalog": catalog.load(), "entitled": [], "models": [],
            "demo": config.demo_mode(), "secrets_encrypted": connectors.encryption_active()}
     if q.tenant:
@@ -594,7 +602,7 @@ def r_admin_test_email(q):
     if not registration.smtp_cfg():
         raise ApiError(400, "Prima salva il server SMTP nelle impostazioni della posta.")
     try:
-        registration.send_mail(q.user["email"], "Alvea: email di prova", "Se leggi questo messaggio, la posta di servizio funziona.")
+        registration.mail(q.con, q.user["email"], "Alvea: email di prova", "Se leggi questo messaggio, la posta di servizio funziona.")
     except connectors.ConnectorError as e:
         raise ApiError(502, "L'email di prova non è partita: %s" % str(e)[:300])
     return {"ok": True, "to": q.user["email"]}
@@ -785,7 +793,7 @@ def _authorize(level, user, tenant):
         raise ApiError(403, "Riservato agli amministratori dell'azienda.")
 
 
-def handle_api(method, path, query, body, token, cookies=None, ip=None, alive=None):
+def handle_api(method, path, query, body, token, cookies=None, ip=None, alive=None, lang=None):
     """Trova la rotta, controlla i permessi, esegue. Ritorna un dizionario o alza ApiError."""
     known_path = False
     for m, rx, level, fn in ROUTES:
@@ -799,7 +807,7 @@ def handle_api(method, path, query, body, token, cookies=None, ip=None, alive=No
         try:
             user, tenant = auth.user_from_token(con, token) if level != "public" else (None, None)
             _authorize(level, user, tenant)
-            return fn(Req(con, query, body, user, tenant, token, match.groups(), cookies, ip, alive))
+            return fn(Req(con, query, body, user, tenant, token, match.groups(), cookies, ip, alive, lang))
         finally:
             con.close()
     raise ApiError(405 if known_path else 404, "Metodo non ammesso." if known_path else "Risorsa non trovata.")
@@ -950,7 +958,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header(k, v)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
+        if not any(k.lower() == "cache-control" for k, _ in extra or []):  # di norma niente resta in memoria; fa eccezione solo quello che è pubblico e uguale per tutti
+            self.send_header("Cache-Control", "no-store")
         for k, v in security_headers().items():
             self.send_header(k, v)
         self.end_headers()
@@ -967,6 +976,9 @@ class Handler(BaseHTTPRequestHandler):
             pass
 
     def _json(self, status, obj):
+        lang = getattr(self, "_language", "it")
+        if lang != "it":  # i testi nostri (errori, nomi degli agenti, avvisi) escono nella lingua di chi chiede
+            obj = i18n.payload(obj, lang)
         self._send(status, json.dumps(obj, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
 
     def _peer_alive(self):
@@ -978,6 +990,8 @@ class Handler(BaseHTTPRequestHandler):
             return False
 
     def _dispatch(self, method):
+        # La lingua la sceglie chi chiede: l'applicazione la manda con ogni richiesta. Senza indicazione, italiano.
+        self._language = i18n.pick(self.headers.get("X-Lang")) if self.headers.get("X-Lang") else "it"
         try:
             parts = urllib.parse.urlsplit(self.path)
             if parts.path == "/api/files/upload" and method == "POST":
@@ -1002,12 +1016,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self._file_content(int(content.group(1)), urllib.parse.parse_qs(parts.query))
             if not parts.path.startswith("/api/"):
                 entry = STATIC.get(parts.path) if method == "GET" else None
-                if method == "GET" and site.enabled() and parts.path.strip("/") in legal.PAGES and parts.path == "/" + parts.path.strip("/"):
-                    return self._send(200, site.legal_page(parts.path[1:]), "text/html; charset=utf-8")
+                found = site.find(parts.path) if method == "GET" and site.enabled() else None  # il sito pubblico, in italiano o in un'altra lingua
+                if found:
+                    return self._send(200, site.render(*found), "text/html; charset=utf-8")
+                if method == "GET" and re.fullmatch(r"/i18n/[a-z]{2}\.json", parts.path) and parts.path[6:8] in i18n.LANGS and parts.path[6:8] != "it":
+                    return self._send(200, (i18n.FOLDER / parts.path[6:]).read_bytes(), "application/json; charset=utf-8", [("Cache-Control", "public, max-age=300")])
                 if not entry:
                     return self._json(404, {"error": "Pagina non trovata."})
-                if parts.path == "/" and site.enabled():  # il sito pubblico; l'applicazione sta su /app
-                    return self._send(200, site.page(), entry[1])
                 return self._send(200, (config.WEB_DIR / entry[0]).read_bytes(), entry[1])
             body = {}
             try:
@@ -1042,9 +1057,9 @@ class Handler(BaseHTTPRequestHandler):
                 if "=" in piece:
                     k, v = piece.split("=", 1)
                     cookies[k.strip()] = v.strip()
-            result = handle_api(method, parts.path, urllib.parse.parse_qs(parts.query), body, token, cookies, self._ip(), self._peer_alive)
+            result = handle_api(method, parts.path, urllib.parse.parse_qs(parts.query), body, token, cookies, self._ip(), self._peer_alive, self._language if self.headers.get("X-Lang") else None)
             if isinstance(result, Raw):
-                payload = json.dumps(result.obj, ensure_ascii=False).encode("utf-8") if result.obj is not None else b""
+                payload = json.dumps(i18n.payload(result.obj, self._language), ensure_ascii=False).encode("utf-8") if result.obj is not None else b""
                 self._send(result.status, payload, "application/json; charset=utf-8", result.headers)
             else:
                 self._json(200, result)

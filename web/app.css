@@ -477,3 +477,7 @@ a.btn { text-decoration: none; display: inline-block; }
   .field input, .field select, .cap input { min-height: 40px; font-size: 16px; }  /* 16px: l'iPhone non ingrandisce la pagina quando si scrive */
   .field textarea { font-size: 16px; }
 }
+
+/* cambio di lingua */
+.langbtn { min-width: 44px; letter-spacing: 0.06em; font-weight: 600; }
+.login .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

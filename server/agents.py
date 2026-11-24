@@ -5,7 +5,7 @@ import json
 import re
 from datetime import datetime, timezone
 
-from . import audit, catalog, config, connectors, credits, db, live, llm, local, memory, news, ops, team, tools
+from . import audit, catalog, config, connectors, credits, db, i18n, live, llm, local, memory, news, ops, team, tools
 from .errors import ApiError
 
 CENTRAL = "centrale"
@@ -65,13 +65,16 @@ RULES = (
 )
 
 
-def system_prompt(tenant, agent_id, entitled, remembered=""):
+def system_prompt(tenant, agent_id, entitled, remembered="", lang="it"):
     names = ", ".join(sorted(catalog.agent(a)["name"] for a in entitled)) or "nessuno"
     base = "Sei %s, dentro Alvea, per l'azienda «%s». Oggi è il %s.\nAgenti attivi nel team: %s.\n%s" % (
         ROLES[agent_id], tenant["name"], datetime.now(timezone.utc).strftime("%Y-%m-%d"), names, RULES)
     kind = catalog.activity(tenant.get("activity") or "")
     if kind and kind["context"]:  # il testo viene dal catalogo, non da chi scrive: dà agli agenti il contesto giusto senza aprire la porta a istruzioni altrui
         base += "\n\nChi stai aiutando: %s. %s%s" % (kind["name"], kind["context"], " Lavora da solo, non ha colleghi né reparti." if tenant.get("kind") == "persona" else "")
+    if lang == "en":  # chi usa l'interfaccia in inglese si aspetta risposte in inglese, anche se queste istruzioni sono in italiano
+        base += ("\n\nLingua: questa persona usa Alvea in inglese. Rispondi in inglese e scrivi in inglese anche bozze, riepiloghi e messaggi, "
+                 "a meno che lei scriva in un'altra lingua o chieda espressamente un testo in un'altra lingua.")
     return base + ("\n\n" + remembered if remembered else "")
 
 
@@ -200,7 +203,7 @@ def run_chat(con, tenant, user, agent_id, model_id, conversation_id, text, sourc
     toolset = tools.for_agents(allowed)
     messages = [{"role": h["role"], "content": h["content"]} for h in history] + [{"role": "user", "content": text}]
     remembered = "\n\n".join(x for x in (team.notes(con, tenant, allowed), memory.context(con, tenant["id"], text)) if x)
-    system = system_prompt(tenant, agent_id, entitled, remembered)
+    system = system_prompt(tenant, agent_id, entitled, remembered, i18n.pick(user.get("lang")))
     own_keys_only = not tenant.get("platform_keys", 1)
     events, tokens_in, tokens_out, calls_done, reply = [], 0, 0, 0, ""
     run_id = live.begin(tenant["id"], agent_id, source)  # la vista Ufficio mostra chi sta ragionando e chi sta lavorando

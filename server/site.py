@@ -7,7 +7,11 @@ from __future__ import annotations
 
 from html import escape as e
 
-from . import catalog, config, legal, pricing
+from . import catalog, config, i18n, legal, pricing
+
+# Gli indirizzi delle pagine nelle altre lingue: {lingua: {indirizzo italiano: indirizzo in quella lingua}}
+PATHS = {"en": {"/": "/en", "/privacy": "/en/privacy", "/condizioni": "/en/terms", "/cookie": "/en/cookies"}}
+COURTESY = {"en": "This is a courtesy translation. In case of any difference, the Italian version of this page prevails."}
 
 STEPS = [("Scegli il pacchetto", "Tre pacchetti, ognuno contiene il precedente. Dentro il tuo pacchetto accendi solo gli agenti che ti servono."),
          ("Collega i tuoi strumenti", "Posta, calendario, negozio, Telegram, WhatsApp: ogni collegamento si fa una volta, dal Centro di controllo."),
@@ -45,6 +49,34 @@ def _footer(home=""):
             % (home, home, '<p class="company">%s</p>' % e(company) if company else ""))
 
 
+def find(path):
+    """Di quale pagina e in che lingua è questo indirizzo: ("/privacy", "en") per «/en/privacy». None se non è una pagina del sito."""
+    if path == "/" or path.strip("/") in legal.PAGES and path == "/" + path.strip("/"):
+        return path, "it"
+    for lang, table in PATHS.items():
+        for it, other in table.items():
+            if path == other:
+                return it, lang
+    return None
+
+
+def render(path, lang):
+    """La pagina `path` (l'indirizzo italiano) nella lingua chiesta, con i collegamenti all'altra versione."""
+    import re
+    html = (page() if path == "/" else legal_page(path[1:])).decode("utf-8")
+    other = PATHS["en"][path]
+    html = html.replace("</head>", '<link rel="alternate" hreflang="it" href="%s"><link rel="alternate" hreflang="en" href="%s"></head>' % (path, other), 1)
+    if lang == "it":
+        return html.replace('class="lang" href="/en"', 'class="lang" href="%s"' % other).encode("utf-8")
+    links = dict(PATHS[lang], **{"/app": "/app?lang=" + lang})
+    html = re.sub(r'<a class="lang"[^>]*>[^<]*</a>', "\x01", html)  # il cambio di lingua non si traduce: si sostituisce
+    html = i18n.html(html, lang, links)
+    html = html.replace("\x01", '<a class="lang" href="%s" hreflang="it" lang="it" title="Versione italiana">IT</a>' % path)
+    if path != "/" and lang in COURTESY:
+        html = html.replace('<p class="others">', '<p class="courtesy">%s</p><p class="others">' % e(COURTESY[lang]), 1)
+    return html.encode("utf-8")
+
+
 def legal_page(name):
     """Una pagina legale (privacy, condizioni, cookie) con i dati dell'azienda presi dalle impostazioni. None se non esiste."""
     if name not in legal.PAGES:
@@ -73,7 +105,7 @@ def legal_page(name):
 <header class="top"><div class="wrap">
 <a class="brand" href="/" aria-label="Alvea, pagina iniziale"><img src="/logo-alvea.png" alt="alvea" width="626" height="186"></a>
 <nav aria-label="Sezioni"><a href="/#agenti">Agenti</a><a href="/#pacchetti">Pacchetti</a><a href="/#come-funziona">Come funziona</a><a href="/#sicurezza">Sicurezza</a></nav>
-<div class="cta"><a class="btn" href="/app">Accedi</a><a class="btn primary" href="/app#registrati" data-register>Prova Alvea</a></div>
+<div class="cta"><a class="lang" href="/en" hreflang="en" lang="en" title="English version">EN</a><a class="btn" href="/app">Accedi</a><a class="btn primary" href="/app#registrati" data-register>Prova Alvea</a></div>
 </div></header>
 <main id="contenuto" class="legal"><div class="wrap">
 <p class="eyebrow">Ultimo aggiornamento: {day}</p>
@@ -133,7 +165,7 @@ def page():
 <header class="top"><div class="wrap">
 <a class="brand" href="/" aria-label="Alvea, pagina iniziale"><img src="/logo-alvea.png" alt="alvea" width="626" height="186"></a>
 <nav aria-label="Sezioni"><a href="#agenti">Agenti</a><a href="#pacchetti">Pacchetti</a><a href="#come-funziona">Come funziona</a><a href="#sicurezza">Sicurezza</a></nav>
-<div class="cta"><a class="btn" href="/app">Accedi</a><a class="btn primary" href="/app#registrati" data-register>Prova Alvea</a></div>
+<div class="cta"><a class="lang" href="/en" hreflang="en" lang="en" title="English version">EN</a><a class="btn" href="/app">Accedi</a><a class="btn primary" href="/app#registrati" data-register>Prova Alvea</a></div>
 </div></header>
 <main id="contenuto">
 <section class="hero"><div class="wrap">

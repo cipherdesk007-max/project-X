@@ -13,7 +13,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import audit, catalog, config, connectors, credits, db, google, news, ops, pricing, registration
+from . import audit, catalog, config, connectors, credits, db, google, i18n, news, ops, pricing, registration
 from .errors import ApiError
 
 TOLERANCE = 300
@@ -76,13 +76,14 @@ def mail_admins(con, tenant_id, subject, text, wait=False):
     Ritorna gli indirizzi a cui l'email è partita davvero; se parte in un filo a parte, quelli a cui proverà."""
     if registration.smtp_cfg() is None:
         return []
-    to = [r["email"] for r in con.execute("SELECT email FROM users WHERE tenant_id=? AND role='admin' AND active=1 ORDER BY id", (tenant_id,))]
+    people = [(r["email"], i18n.pick(r["lang"])) for r in con.execute("SELECT email, lang FROM users WHERE tenant_id=? AND role='admin' AND active=1 ORDER BY id", (tenant_id,))]
+    to = [email for email, _ in people]
 
     def deliver():
         done = []
-        for address in to:
+        for address, lang in people:  # a ognuno nella sua lingua
             try:
-                registration.send_mail(address, subject, text)
+                registration.send_mail(address, i18n.text(subject, lang, note=False), i18n.lines(text, lang))
                 done.append(address)
             except Exception as e:
                 print("ATTENZIONE: email «%s» non inviata: %s" % (subject, type(e).__name__))

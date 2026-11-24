@@ -39,6 +39,66 @@
   var ROLE = { admin: "amministratore", member: "operatore", superadmin: "gestore" };
 
   var root = document.getElementById("root");
+
+  // ---------- lingua ----------
+  // L'italiano è la lingua in cui l'interfaccia è scritta. Le altre sono un dizionario (/i18n/en.json, lo stesso che usa il server):
+  // ogni testo viene tradotto nel momento in cui finisce nella pagina. Un testo senza traduzione resta in italiano.
+  var LANG = "it", DICT = null, PLACEHOLDER = /%(?:\d+\$)?[-0]?\d*(?:\.\d+)?[sdf]|\{\d+\}/g;
+  (function () {
+    var asked = /[?&]lang=([a-z]{2})\b/.exec(window.location.search || ""), saved = null;
+    try { saved = window.localStorage.getItem("alvea_lang"); } catch (e) { saved = null; }
+    LANG = (asked && asked[1]) || saved || "it";
+    if (LANG !== "en") LANG = "it";
+    if (asked) { try { window.localStorage.setItem("alvea_lang", LANG); } catch (e) { /* vale per questa pagina */ } }
+  })();
+  function langButton() {  // «EN» quando l'interfaccia è in italiano, «IT» quando è in inglese
+    return el("button", { class: "btn small langbtn", type: "button", lang: LANG === "it" ? "en" : "it", raw: LANG === "it" ? "EN" : "IT",
+                          title: LANG === "it" ? "Switch to English" : "Passa all'italiano", onclick: function () { setLang(LANG === "it" ? "en" : "it"); } });
+  }
+  function setLang(lang) {
+    try { window.localStorage.setItem("alvea_lang", lang); } catch (e) { /* senza memoria si passa dall'indirizzo */ }
+    window.location.replace(window.location.pathname + "?lang=" + lang + (window.location.hash || ""));
+  }
+  function useDictionary(raw) {
+    var exact = Object.create(null), k;
+    for (k in raw.exact) exact[k] = raw.exact[k];
+    DICT = { exact: exact, patterns: (raw.patterns || []).map(function (p) {
+      var out = "", last = 0, m, it = p[0];
+      PLACEHOLDER.lastIndex = 0;
+      while ((m = PLACEHOLDER.exec(it))) {
+        out += it.slice(last, m.index).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + (/[df]$/.test(m[0]) ? "(-?\\d+(?:[.,]\\d+)?)" : "([\\s\\S]+?)");
+        last = m.index + m[0].length;
+      }
+      return { rx: new RegExp("^" + out + it.slice(last).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"), to: p[1], start: it.split(PLACEHOLDER)[0] };
+    }) };
+    document.documentElement.lang = LANG;
+  }
+  window.__alveaMissing = {};
+  /* Un testo nella lingua scelta. `exactOnly` per i dati delle persone (celle di una tabella): si traduce solo una frase nostra intera. */
+  function tx(s, exactOnly) {
+    if (!DICT || typeof s !== "string") return s;
+    var core = s.trim(), lead, trail, i, p, m, items;
+    if (!core) return s;
+    lead = s.slice(0, s.indexOf(core)); trail = s.slice(s.indexOf(core) + core.length);
+    if (core in DICT.exact) return lead + DICT.exact[core] + trail;
+    if (!exactOnly) {
+      for (i = 0; i < DICT.patterns.length; i++) {
+        p = DICT.patterns[i];
+        if (p.start && core.lastIndexOf(p.start, 0) !== 0) continue;
+        m = p.rx.exec(core);
+        if (m) return lead + p.to.replace(/\{(\d+)(:t)?\}/g, function (all, n, ours) {  // {0} resta com'è; {0:t} è un testo nostro e si traduce anche lui
+          var piece = m[Number(n) + 1];
+          return piece === undefined ? all : (ours ? tx(piece, false) : piece);
+        }) + trail;
+      }
+      if (core.indexOf(", ") !== -1) {
+        items = core.split(", ");
+        if (items.every(function (x) { return x.trim() in DICT.exact; })) return lead + items.map(function (x) { return DICT.exact[x.trim()]; }).join(", ") + trail;
+      }
+    }
+    if (/[A-Za-zÀ-ú]{2}/.test(core)) window.__alveaMissing[core] = 1;
+    return s;
+  }
   var token = null;
   try { token = window.sessionStorage.getItem("sfb_token"); } catch (e) { token = null; }
   var S = { me: null, view: "agente", agent: null, focus: null, model: null, threads: {}, busy: false, busyFor: null,
@@ -58,14 +118,18 @@
   function append(node, kid) {
     if (kid == null || kid === false) return;
     if (Array.isArray(kid)) { kid.forEach(function (k) { append(node, k); }); return; }
-    node.appendChild(typeof kid === "string" || typeof kid === "number" ? document.createTextNode(String(kid)) : kid);
+    node.appendChild(typeof kid === "string" ? document.createTextNode(tx(kid)) : (typeof kid === "number" ? document.createTextNode(String(kid)) : kid));
   }
+  function asIs(s) { return document.createTextNode(s == null ? "" : String(s)); }  // un dato dentro una riga: entra com'è, senza passare dal dizionario
   function el(tag, attrs) {
     var node = document.createElement(tag), k, i;
     attrs = attrs || {};
     for (k in attrs) {
       if (k === "class") node.className = attrs[k];
-      else if (k === "text") node.textContent = attrs[k];
+      else if (k === "text") node.textContent = tx(attrs[k] == null ? "" : String(attrs[k]));
+      else if (k === "raw") node.textContent = attrs[k];                              // quello che ha scritto una persona: mai tradotto
+      else if (k === "data") node.textContent = tx(attrs[k] == null ? "" : String(attrs[k]), true);  // un dato: tradotto solo se è una frase nostra intera
+      else if (k === "placeholder" || k === "title" || k === "aria-label" || k === "alt" || k === "label") { if (attrs[k] != null && attrs[k] !== false) node.setAttribute(k, tx(String(attrs[k]))); }
       else if (k.slice(0, 2) === "on") node.addEventListener(k.slice(2), attrs[k]);
       else if (attrs[k] === true) node.setAttribute(k, "");
       else if (attrs[k] !== false && attrs[k] != null) node.setAttribute(k, attrs[k]);
@@ -84,12 +148,13 @@
   }
   function api(method, path, body) {
     var headers = { "Content-Type": "application/json" };
+    headers["X-Lang"] = LANG;  // sempre, anche in italiano: il server risponde in quella lingua e la ricorda per le email e per gli agenti
     if (token) headers.Authorization = "Bearer " + token;
     return fetch("/api" + path, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined })
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (j) {
           if (r.status === 401 && path !== "/login") { setToken(null); S.me = null; render(); }
-          if (!r.ok) { var failure = new Error(j.error || ("Errore " + r.status)); failure.data = j; throw failure; }
+          if (!r.ok) { var failure = new Error(j.error || tx("Errore " + r.status)); failure.data = j; throw failure; }
           return j;
         });
       });
@@ -112,7 +177,7 @@
     return el("div", { class: "scroll" }, el("table", {},
       el("thead", {}, el("tr", {}, headers.map(function (h) { return el("th", { text: h }); }))),
       el("tbody", {}, rows.map(function (r) { return el("tr", {}, r.map(function (c, i) { var label = headers[i] || "";  // su telefono la riga diventa una scheda e questa è l'etichetta
-        return c && c.nodeType ? el("td", { "data-label": label }, c) : el("td", { class: "wrapcell", "data-label": label, text: c == null ? "" : String(c) }); })); }))));
+        return c && c.nodeType ? el("td", { "data-label": tx(label) }, c) : el("td", { class: "wrapcell", "data-label": tx(label), raw: c == null ? "" : String(c) }); })); }))));
   }
   function when(iso) {
     if (!iso) return "";
@@ -137,7 +202,7 @@
       if (!on && S.agent === id) { S.agent = null; if (S.osel === id) { S.osel = null; S.odetail = null; } }
       keepDraft();
       return loadMe();
-    }).catch(function (err) { if (errorBox) errorBox.textContent = err.message; else { th().log.push({ role: "err", text: err.message }); render(); } });
+    }).catch(function (err) { if (errorBox) errorBox.textContent = tx(err.message); else { th().log.push({ role: "err", text: err.message }); render(); } });
   }
   function myPackIndex() { var out = 0; cat().packages.forEach(function (p, i) { if (S.me.tenant && p.id === S.me.tenant.package_id) out = i; }); return out; }
 
@@ -160,8 +225,8 @@
     return S.me.entitled.length + " agenti attivi su " + S.me.ceiling.length + " · " + S.sum.connections + " collegamenti · " + S.sum.automations + " lavori automatici attivi";
   }
   function tickerText() {
-    if (!S.sum.latest) return "Nessuna novità";
-    return (S.sum.unread ? S.sum.unread + " da leggere · " : "") + S.sum.latest.title;
+    if (!S.sum.latest) return tx("Nessuna novità");
+    return (S.sum.unread ? tx(S.sum.unread + " da leggere ·") + " " : "") + S.sum.latest.title;  // il titolo arriva dal server già nella lingua giusta
   }
   /* Primi passi: per chi è appena arrivato, cosa fare adesso e cosa ha già fatto. Sparisce quando è tutto fatto o quando lo si chiude. */
   function stepsKey() { return "alvea_primi_passi_" + (S.me && S.me.user ? S.me.user.id : 0); }
@@ -233,9 +298,9 @@
       S.sum = out;
       if (S.me && S.me.tenant && S.me.tenant.stopped !== out.stopped) { S.me.tenant.stopped = out.stopped; keepDraft(); render(); return; }
       paintFirstSteps();
-      var set = function (id, text) { var n = document.getElementById(id); if (n) n.textContent = text; };
+      var set = function (id, text) { var n = document.getElementById(id); if (n) n.textContent = tx(text); };
       set("pendingCount", String(S.pending));
-      set("tickerText", tickerText());
+      var ticker = document.getElementById("tickerText"); if (ticker) ticker.textContent = tickerText();  // già nella lingua giusta
       set("stripText", stripText());
     }).catch(function () {});
   }
@@ -259,8 +324,8 @@
   function viewLogin() {
     if (S.auth === "register" && S.reg && S.reg.open) return viewRegister();
     if (S.auth === "forgot" || S.auth === "reset") return viewPassword();
-    var resend = /Conferma prima/.test(S.loginError) ? el("button", { class: "btn small", type: "button", text: "Rimanda il collegamento", onclick: function () {
-      api("POST", "/register/resend", { email: S.lastEmail }).then(function () { S.loginError = ""; S.notice = "Se l'indirizzo è in attesa di conferma, ti abbiamo mandato un nuovo collegamento."; S.noticeBad = false; render(); })
+    var resend = S.loginUnverified ? el("button", { class: "btn small", type: "button", text: "Rimanda il collegamento", onclick: function () {
+      api("POST", "/register/resend", { email: S.lastEmail }).then(function () { S.loginError = ""; S.loginUnverified = false; S.notice = "Se l'indirizzo è in attesa di conferma, ti abbiamo mandato un nuovo collegamento."; S.noticeBad = false; render(); })
         .catch(function (err) { S.loginError = err.message; render(); });
     } }) : null;
     if (S.pendingLogin) {  // password giusta, account con i due passaggi: manca il codice dell'app
@@ -272,7 +337,7 @@
           .then(function (out) { S.pendingLogin = null; setToken(out.token); return loadMe(); })
           .catch(function (err) { if (!(err.data && err.data.two_factor)) S.pendingLogin = null; S.loginError = err.message; render(); });
       } },
-        el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
+        el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" }), langButton()),
         el("p", { text: "Apri la tua app di autenticazione e scrivi il codice a 6 cifre di Alvea." }),
         el("div", { class: "panel form" },
           field("Codice", "loginCode", { type: "text", inputmode: "numeric", autocomplete: "one-time-code", required: true, maxlength: "12", autofocus: true }),
@@ -288,11 +353,12 @@
       api("POST", "/login", sent)
         .then(function (out) { setToken(out.token); return loadMe(); })
         .catch(function (err) {
+          S.loginUnverified = !!(err.data && err.data.unverified);  // l'indirizzo non è ancora confermato: si offre di rimandare il collegamento
           if (err.data && err.data.two_factor) { S.pendingLogin = sent; S.loginError = ""; } else S.loginError = err.message;
           render();
         });
     } },
-      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
+      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" }), langButton()),
       el("p", { text: "Entra con l'email e la password della tua azienda." }),
       S.notice ? el("p", { class: S.noticeBad ? "error" : "okmsg", role: "status", text: S.notice }) : null,
       el("div", { class: "panel form" },
@@ -316,9 +382,9 @@
       (reset ? api("POST", "/password/reset", { token: S.resetToken, password: val("new_password") })
              : api("POST", "/password/forgot", { email: val("forgot_email") }))
         .then(function () { back(reset ? "Password cambiata: ora puoi entrare." : "Se l'indirizzo è registrato, tra poco ricevi un'email con il collegamento. Vale un'ora."); })
-        .catch(function (e2) { send.disabled = false; err.textContent = e2.message; });
+        .catch(function (e2) { send.disabled = false; err.textContent = tx(e2.message); });
     } },
-      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
+      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" }), langButton()),
       el("p", { text: reset ? "Scegli una nuova password di almeno 10 caratteri." : "Scrivi l'email con cui entri: ti mandiamo un collegamento per scegliere una nuova password." }),
       el("div", { class: "panel form" },
         reset ? field("Nuova password", "new_password", { type: "password", required: true, minlength: "10", autocomplete: "new-password" })
@@ -339,7 +405,7 @@
       S.regActivity = actSel.value;
       if (!a) { actNote.textContent = ""; return; }
       S.reg.agents.forEach(function (g) { var box = document.getElementById("reg_a_" + g.id); if (box) box.checked = a.agents.indexOf(g.id) !== -1; });
-      actNote.textContent = "Abbiamo acceso gli agenti più utili per questa attività: puoi cambiarli qui sotto.";
+      actNote.textContent = tx("Abbiamo acceso gli agenti più utili per questa attività: puoi cambiarli qui sotto.");
     } });
     function fillActivities() {  // l'elenco dipende da «Per chi è»
       var who = S.regKind || "azienda";
@@ -357,7 +423,7 @@
       var agents = S.reg.agents.filter(function (a) { return document.getElementById("reg_a_" + a.id).checked; }).map(function (a) { return a.id; });
       S.lastEmail = val("reg_email");
       api("POST", "/register", { kind: S.regKind || "azienda", activity: val("reg_activity"), company: S.regKind === "persona" ? "" : val("reg_company"), name: val("reg_name"), email: val("reg_email"), password: val("reg_password"),
-                                 website: val("reg_website"), agents: agents, accept: !S.reg.terms || document.getElementById("reg_accept").checked })
+                                 website: val("reg_website"), agents: agents, lang: LANG, accept: !S.reg.terms || document.getElementById("reg_accept").checked })
         .then(function (out) {
           if (out.token) { setToken(out.token); S.auth = "login"; return loadMe(); }
           S.auth = "login";
@@ -366,9 +432,9 @@
                               : "Account creato, ma l'email di conferma non è partita. Prova a entrare e usa «Rimanda il collegamento».";
           render();
         })
-        .catch(function (e2) { send.disabled = false; err.textContent = e2.message; });
+        .catch(function (e2) { send.disabled = false; err.textContent = tx(e2.message); });
     } },
-      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
+      el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" }), langButton()),
       el("p", { text: "Registrati e scegli gli agenti del tuo team. Potrai accenderli e spegnerli quando vuoi." }),
       el("div", { class: "panel form" },
         el("div", { class: "field" }, el("label", { text: "Per chi è" }),
@@ -379,7 +445,7 @@
               box.hidden = solo; input.required = !solo;
               document.getElementById("reg_kind_azienda").setAttribute("aria-pressed", String(!solo));
               document.getElementById("reg_kind_persona").setAttribute("aria-pressed", String(solo));
-              send.textContent = solo ? "Crea il mio spazio" : "Crea l'azienda";
+              send.textContent = tx(solo ? "Crea il mio spazio" : "Crea l'azienda");
               fillActivities();
             } });
           }))),
@@ -418,7 +484,7 @@
     if (me.tenant) {
       ticker = el("button", { class: "ticker", type: "button", title: "Apri le novità", onclick: function () { keepDraft(); S.view = "centro"; S.tab = "novita"; render(); } },
         el("span", { class: "tag" }, el("span", { class: "dot" }), "Ultime novità"),
-        el("p", { id: "tickerText", text: tickerText() }));
+        el("p", { id: "tickerText", raw: tickerText() }));
     } else {
       ticker = el("div", { class: "ticker" }, el("span", { class: "tag" }, el("span", { class: "dot" }), "Gestore"),
         el("p", { text: "Gestione della piattaforma: aziende e pacchetti" }));
@@ -427,9 +493,9 @@
       el("div", { class: "brand" }, el("img", { class: "lockup", src: "/logo-alvea.png", alt: "alvea", width: "626", height: "186" })),
       ticker,
       el("div", { class: "who" }, me.demo ? el("span", { class: "chip wait", title: "Risponde un modello finto a regole fisse", text: "Demo" }) : null,
-        me.tenant ? el("span", { text: (me.tenant.kind === "persona" ? "Spazio personale" : me.tenant.name) + " · " + me.tenant.package_name }) : null,
-        el("span", {}, el("strong", { text: me.user.name }), " · " + ROLE[me.user.role]),
-        el("button", { class: "btn small", type: "button", onclick: logout, text: "Esci" })));
+        me.tenant ? el("span", { raw: (me.tenant.kind === "persona" ? tx("Spazio personale") : me.tenant.name) + " · " + me.tenant.package_name }) : null,
+        el("span", {}, el("strong", { raw: me.user.name }), asIs(" · " + tx(ROLE[me.user.role]))),
+        langButton(), el("button", { class: "btn small", type: "button", onclick: logout, text: "Esci" })));
   }
 
   // ---------- vista Agente ----------
@@ -455,15 +521,15 @@
     return b;
   }
   function messageNode(m) {
-    if (m.role === "me") return el("div", { class: "msg me" }, el("span", { class: "text", text: m.text }));
+    if (m.role === "me") return el("div", { class: "msg me" }, el("span", { class: "text", raw: m.text }));  // quello che ha scritto la persona non si traduce
     if (m.role === "err") return el("div", { class: "msg err", role: "alert" }, el("span", { class: "text", text: m.text }));
-    var who = m.agent === "centrale" ? "Centrale" : "Agente " + (agentById(m.agent) || { name: m.agent }).name;
+    var who = tx(m.agent === "centrale" ? "Centrale" : "Agente " + (agentById(m.agent) || { name: m.agent }).name);
     var chips = (m.events || []).map(function (e) {
       var kind = e.status === "eseguito" ? "done" : (e.status === "in attesa di approvazione" ? "wait" : "bad");
       return el("span", { class: "chip " + kind, text: e.tool + ": " + e.status + (e.approval_id ? " n. " + e.approval_id : "") });
     });
-    return el("div", { class: "msg bot" }, el("span", { class: "meta", text: who + " · " + m.model }),
-      el("span", { class: "text", text: m.text }), chips.length ? el("div", { class: "chips" }, chips) : null);
+    return el("div", { class: "msg bot" }, el("span", { class: "meta", raw: who + " · " + m.model }),
+      el("span", { class: "text", raw: m.text }), chips.length ? el("div", { class: "chips" }, chips) : null);
   }
   function keepDraft() { var n = document.getElementById("chatInput"); if (n) S.draft = n.value; }
   function sendChat(e) {
@@ -593,11 +659,11 @@
     if (!list.length) return null;
     var admin = S.me.user.role === "admin", err = el("p", { class: "error", role: "alert" });
     function decide(id, verb) {
-      return function () { api("POST", "/approvals/" + id + "/" + verb, {}).then(function () { refreshPending(); pollOffice(); }).catch(function (e) { err.textContent = e.message; }); };
+      return function () { api("POST", "/approvals/" + id + "/" + verb, {}).then(function () { refreshPending(); pollOffice(); }).catch(function (e) { err.textContent = tx(e.message); }); };
     }
     return [el("h3", { text: "In attesa di approvazione" }), err, list.map(function (a) {
       return el("div", { class: "item" },
-        el("div", { class: "body" }, a.summary, el("small", { text: "Richiesta n. " + a.id + " di " + a.requested_by_name + " · " + when(a.created_at) })),
+        el("div", { class: "body" }, asIs(a.summary), el("small", { text: "Richiesta n. " + a.id + " di " + a.requested_by_name + " · " + when(a.created_at) })),
         admin ? el("div", { class: "acts" },
           el("button", { class: "btn small primary", type: "button", text: "Approva ed esegui", onclick: decide(a.id, "approve") }),
           el("button", { class: "btn small danger", type: "button", text: "Rifiuta", onclick: decide(a.id, "reject") })) : null);
@@ -607,8 +673,8 @@
   function bLog(x) {
     if (!x.log) return el("p", { class: "empty", text: "Carico le attività..." });
     if (!x.log.length && !x.now) return el("p", { class: "empty", text: "Nessuna attività registrata finora." });
-    return el("ul", { class: "olog" }, x.now ? el("li", { class: "now" }, el("time", { text: "adesso" }), el("span", { text: x.now })) : null,
-      x.log.map(function (r) { return el("li", {}, el("time", { text: when(r.when) }), el("span", { text: r.text })); }));
+    return el("ul", { class: "olog" }, x.now ? el("li", { class: "now" }, el("time", { text: "adesso" }), el("span", { raw: x.now })) : null,
+      x.log.map(function (r) { return el("li", {}, el("time", { text: when(r.when) }), el("span", { raw: r.text })); }));
   }
   var OUTURL = {};  // i collegamenti ai file cambiano firma a ogni richiesta: tenerli fuori dal confronto evita di ricaricare il video mentre lo si guarda
   function outData(id, d) {
@@ -631,8 +697,8 @@
     if (!x.out.length) return el("p", { class: "empty", text: "Nessun elaborato finora. Bozze, lead, appuntamenti e video creati da questo agente compaiono qui." });
     return x.out.map(function (o) {
       return el("article", { class: "oout" },
-        el("header", {}, el("span", { class: "chip", text: o.kind }), el("strong", { text: o.title }), o.label ? el("small", { text: o.label }) : null),
-        preview(o), o.text ? el("div", { class: "pre", text: o.text }) : null, el("small", { text: when(o.when) }));
+        el("header", {}, el("span", { class: "chip", text: o.kind }), el("strong", { raw: o.title }), o.label ? el("small", { text: o.label }) : null),
+        preview(o), o.text ? el("div", { class: "pre", raw: o.text }) : null, el("small", { text: when(o.when) }));
     });
   }
   function rowsData(snap) { return [{ id: "centrale", name: "Centrale", state: snap.central.state, tone: "" }].concat(snap.agents.map(function (a) { return { id: a.id, name: a.name, state: a.state, tone: a.tone }; })); }
@@ -703,11 +769,12 @@
         S.opoll = false;
         if (!S.me || !S.me.tenant) return;
         S.pending = out.pending; S.sum = out; S.osnap = out.office; paintFirstSteps();
-        var ids = out.office.agents.map(function (a) { return a.id; }).sort().join(","), set = function (n, text) { var x = document.getElementById(n); if (x) x.textContent = text; };
+        var ids = out.office.agents.map(function (a) { return a.id; }).sort().join(","), set = function (n, text) { var x = document.getElementById(n); if (x) x.textContent = tx(text); };
         if (S.me.tenant.stopped !== out.stopped) { S.me.tenant.stopped = out.stopped; keepDraft(); render(); return; }
         if (ids !== S.me.entitled.slice().sort().join(",") && S.oreload !== ids) { S.oreload = ids; keepDraft(); loadMe(); return; }  // il team è cambiato altrove
         if (S.view === "ufficio" && OFFICE) OFFICE.update(out.office, officeName());
-        set("tickerText", tickerText()); set("stripText", stripText());
+        var ticker = document.getElementById("tickerText"); if (ticker) ticker.textContent = tickerText();
+        set("stripText", stripText());
         paintOfficeLive();
       }).catch(function () { S.opoll = false; });
     }
@@ -752,7 +819,7 @@
   }
   function reloadTab() { if (S.me) { refreshPending(); render(); } }
   function act(promise, errorBox) {
-    return promise.then(reloadTab).catch(function (err) { if (errorBox) errorBox.textContent = err.message; });
+    return promise.then(reloadTab).catch(function (err) { if (errorBox) errorBox.textContent = tx(err.message); });
   }
 
   function tabApprovazioni() {
@@ -762,9 +829,9 @@
       var items = out.approvals.map(function (a) {
         var st = STATUS[a.status] || [a.status, ""];
         return el("div", { class: "item" },
-          el("div", { class: "body" }, a.summary,
+          el("div", { class: "body" }, asIs(a.summary),
             el("small", { text: "Richiesta n. " + a.id + " di " + a.requested_by_name + " · " + when(a.created_at) + " · agente " + (agentById(a.agent_id) || { name: a.agent_id }).name }),
-            a.result ? el("small", { text: "Esito: " + a.result }) : null),
+            a.result ? el("small", { raw: tx("Esito:") + " " + a.result }) : null),
           el("div", { class: "acts" }, el("span", { class: "chip " + st[1], text: st[0] }),
             admin && a.status === "pending" ? [
               el("button", { class: "btn small primary", type: "button", text: "Approva ed esegui", onclick: function () { act(api("POST", "/approvals/" + a.id + "/approve", {}), err); } }),
@@ -785,7 +852,7 @@
         el("div", { class: "panel" }, el("h2", { text: "Registro delle azioni" }),
           el("p", { text: "Ogni riga contiene l'hash della precedente: una modifica o una cancellazione rompe la catena. Qui non compare il testo dei messaggi." }),
           table(["Quando", "Utente", "Azione", "Dettaglio"], res[0].entries.map(function (e) {
-            return [when(e.created_at), e.user_email || "sistema", e.action, JSON.stringify(e.detail)];
+            return [when(e.created_at), e.user_email || tx("sistema"), e.action, JSON.stringify(e.detail)];
           })))];
     });
   }
@@ -826,7 +893,7 @@
       var err = el("p", { class: "error", role: "alert" });
       var rows = out.users.map(function (u) {
         var self = u.id === S.me.user.id;
-        return [u.name, u.email, ROLE[u.role], (u.active ? "attivo" : "disattivato") + (u.two_factor ? " · due passaggi" : ""), el("div", { class: "acts" },
+        return [u.name, u.email, tx(ROLE[u.role]), tx(u.active ? "attivo" : "disattivato") + (u.two_factor ? " · " + tx("due passaggi") : ""), el("div", { class: "acts" },
           el("button", { class: "btn small", type: "button", text: u.role === "admin" ? "Rendi operatore" : "Rendi amministratore",
             onclick: function () { act(api("POST", "/users/" + u.id, { role: u.role === "admin" ? "member" : "admin" }), err); } }),
           self ? null : el("button", { class: "btn small danger", type: "button", text: u.active ? "Disattiva" : "Riattiva",
@@ -876,7 +943,7 @@
       var buy = el("button", { class: "btn primary", type: "button", id: "creditBuy", text: "Compra con carta", onclick: function () {
         buy.disabled = true; err.textContent = "";
         api("POST", "/credits/checkout", { quantity: Number(qty.value) }).then(function (out) { window.location.href = out.url; })  // il pagamento si fa sulla pagina di Stripe
-          .catch(function (e) { buy.disabled = false; err.textContent = e.message; });
+          .catch(function (e) { buy.disabled = false; err.textContent = tx(e.message); });
       } });
       return [el("div", { class: "panel" }, el("h2", { text: "Crediti" }),
         msg ? el("p", { class: "okmsg", role: "status", text: msg }) : null,
@@ -892,10 +959,10 @@
         el("p", { text: "Il costo dipende dal modello che scegli nella chat. Il modello «Locale» e le chiavi proprie dell'azienda non consumano crediti." }),
         table(["Modello", "Crediti ogni 1.000 token", "Usati questo mese"], c.rates.map(function (r) {
           var used = c.month.filter(function (m) { return m.model === r.model; })[0];
-          return [r.name, r.per_1000 ? n(r.per_1000) : "gratis", n(used ? used.credits : 0)];
+          return [r.name, r.per_1000 ? n(r.per_1000) : tx("gratis"), n(used ? used.credits : 0)];
         }))),
       c.moves.length ? el("div", { class: "panel" }, el("h2", { text: "Ricariche" }),
-        table(["Quando", "Tipo", "Crediti"], c.moves.map(function (m) { return [when(m.created_at), m.kind === "acquisto" ? "Comprati con carta" : "Dal gestore", (m.amount > 0 ? "+" : "") + n(m.amount)]; }))) : null];
+        table(["Quando", "Tipo", "Crediti"], c.moves.map(function (m) { return [when(m.created_at), tx(m.kind === "acquisto" ? "Comprati con carta" : "Dal gestore"), (m.amount > 0 ? "+" : "") + n(m.amount)]; }))) : null];
     });
   }
   function tabAbbonamento() {
@@ -906,7 +973,7 @@
       function go(path, btn) {  // sia il pagamento sia la gestione si fanno sulle pagine di Stripe: qui la carta non si scrive mai
         return function () {
           btn.disabled = true; err.textContent = "";
-          api("POST", path, {}).then(function (out) { window.location.href = out.url; }).catch(function (e) { btn.disabled = false; err.textContent = e.message; });
+          api("POST", path, {}).then(function (out) { window.location.href = out.url; }).catch(function (e) { btn.disabled = false; err.textContent = tx(e.message); });
         };
       }
       var pay = el("button", { class: "btn primary", type: "button", text: sub.paid_until ? "Rinnova con carta" : "Paga con carta" });
@@ -926,7 +993,7 @@
           e.preventDefault(); err.textContent = "";
           api("POST", "/billing/package", { package_id: val("newPack") }).then(function () { return api("GET", "/me"); })
             .then(function (me) { S.me = me; S.payMsg = "Pacchetto cambiato." + (b.subscribed ? " Il prezzo dell'abbonamento è stato aggiornato." : ""); render(); })
-            .catch(function (x) { err.textContent = x.message; });
+            .catch(function (x) { err.textContent = tx(x.message); });
         } },
           el("div", { class: "field" }, el("label", { for: "newPack", text: "Cambia pacchetto" }), el("select", { id: "newPack" }, b.change.packages.map(function (p) {
             return el("option", { value: p.id, selected: p.current, text: p.name + (p.price ? " · " + p.price + " € al mese" : "") + (b.change.per_agent ? " + " + b.change.per_agent + " € per agente acceso" : "") + (p.current ? " (attuale)" : "") });
@@ -957,7 +1024,7 @@
     packs.forEach(function (p, pi) {
       p.adds.forEach(function (id) {
         var a = agentById(id);
-        rows.push([a.name].concat(packs.map(function (_, i) { return pi <= i ? "sì" : "–"; }), [a.acts, a.ext]));
+        rows.push([a.name].concat(packs.map(function (_, i) { return pi <= i ? tx("sì") : "–"; }), [a.acts, a.ext]));
       });
     });
     return el("div", { class: "panel" }, el("h2", { text: "Pacchetti" }),
@@ -984,7 +1051,7 @@
     if (!g.configured) {
       return el("div", { class: "panel" }, head, flash,
         el("p", { text: "L'accesso Google non è ancora configurato sulla piattaforma. Il gestore crea un client OAuth di tipo «Applicazione web» nella console Google Cloud, scrive ID client e segreto nel pannello (Impostazioni della piattaforma, gruppo «Google») e registra questo indirizzo di ritorno:" }),
-        el("p", { class: "mono", text: g.redirect_uri }));
+        el("p", { class: "mono", raw: g.redirect_uri }));
     }
     var boxes = el("div", { class: "checks" }, g.services.map(function (sv) {
       var on = g.connected ? g.granted.indexOf(sv.id) !== -1 : true;
@@ -994,7 +1061,7 @@
       var wanted = g.services.filter(function (sv) { return document.getElementById("g_" + sv.id).checked; }).map(function (sv) { return sv.id; });
       go.disabled = true;
       api("POST", "/google/start", { services: wanted }).then(function (out) { window.location.href = out.url; })
-        .catch(function (e) { go.disabled = false; err.textContent = e.message; });
+        .catch(function (e) { go.disabled = false; err.textContent = tx(e.message); });
     } });
     return el("div", { class: "panel" }, head, flash,
       g.connected ? el("p", { text: "Collegato come " + (g.email || "account Google") + ". La posta in uscita e gli eventi su Calendar partono solo dopo approvazione." })
@@ -1010,7 +1077,7 @@
       var kinds = { automazione: "lavoro automatico", approvazione: "da approvare", avviso: "avviso" };
       var items = out.news.map(function (n) {
         return el("div", { class: "item" + (n.is_read ? "" : " unread") },
-          el("div", { class: "body" }, el("strong", { text: n.title }), n.body ? el("div", { class: "pre", text: n.body }) : null,
+          el("div", { class: "body" }, el("strong", { raw: n.title }), n.body ? el("div", { class: "pre", raw: n.body }) : null,
             el("small", { text: when(n.created_at) })),
           el("div", { class: "acts" }, el("span", { class: "chip" + (n.kind === "avviso" ? " bad" : (n.kind === "approvazione" ? " wait" : " done")), text: kinds[n.kind] || n.kind })));
       });
@@ -1024,14 +1091,14 @@
   function tabAutomazioni() {
     return api("GET", "/automations").then(function (out) {
       var err = el("p", { class: "error", role: "alert" });
-      var agentName = function (id) { return id === "centrale" ? "Centrale" : (agentById(id) || { name: id }).name; };
+      var agentName = function (id) { return id === "centrale" ? tx("Centrale") : (agentById(id) || { name: id }).name; };
       var items = out.automations.map(function (a) {
         return el("div", { class: "item" },
-          el("div", { class: "body" }, el("strong", { text: a.name }),
-            el("small", { text: agentName(a.agent_id) + " · " + a.model + " · " + a.schedule + (a.active ? " · prossimo giro " + a.next_run : "") }),
+          el("div", { class: "body" }, el("strong", { raw: a.name }),
+            el("small", { raw: agentName(a.agent_id) + " · " + a.model + " · " + a.schedule + (a.active ? " " + tx("· prossimo giro " + a.next_run) : "") }),
             el("div", { class: "pre", text: "Richiesta: " + a.prompt }),
             a.last_run_at ? el("small", { text: "Ultimo giro " + when(a.last_run_at) + ": " + (a.last_status === "ok" ? "fatto" : "errore") }) : el("small", { text: "Mai eseguito" }),
-            a.last_output ? el("div", { class: "pre dim", text: a.last_output }) : null),
+            a.last_output ? el("div", { class: "pre dim", raw: a.last_output }) : null),
           el("div", { class: "acts" }, el("span", { class: "chip " + (a.active ? "done" : "wait"), text: a.active ? "attivo" : "in pausa" }),
             el("button", { class: "btn small", type: "button", text: "Esegui ora", onclick: function (e) { e.target.disabled = true; act(api("POST", "/automations/" + a.id + "/run", {}), err); } }),
             el("button", { class: "btn small", type: "button", text: a.active ? "Metti in pausa" : "Riattiva", onclick: function () { act(api("POST", "/automations/" + a.id, { active: !a.active }), err); } }),
@@ -1076,14 +1143,14 @@
         nodes.push(el("div", { class: "panel" }, el("h2", { text: "Proposte degli agenti" }),
           el("p", { text: "Un agente non scrive mai in memoria da solo: propone, e decidi tu. Conferma solo ciò che è vero e che vuoi venga ricordato in ogni conversazione." }),
           out.proposals.map(function (p) {
-            return el("div", { class: "item" }, el("div", { class: "body" }, p.body, el("small", { text: "Dalla chat di " + (p.proposed_in_chat_of || "?") + " · " + when(p.created_at) })),
+            return el("div", { class: "item" }, el("div", { class: "body" }, asIs(p.body), el("small", { text: "Dalla chat di " + (p.proposed_in_chat_of || "?") + " · " + when(p.created_at) })),
               el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "button", text: "Conferma", onclick: function () { act(api("POST", "/memory/" + p.id + "/confirm", {}), err); } }),
                 el("button", { class: "btn small danger", type: "button", text: "Scarta", onclick: function () { act(api("DELETE", "/memory/" + p.id), err); } })));
           })));
       }
       nodes.push(el("div", { class: "panel" }, el("h2", { text: "Fatti sull'azienda" }),
         el("p", { text: "Frasi brevi che ogni agente legge prima di rispondere: orari, regole, nomi, preferenze. " + out.facts.length + " di " + out.limits.facts + "." }),
-        out.facts.length ? out.facts.map(function (f) { return el("div", { class: "item" }, el("div", { class: "body", text: f.body }), el("div", { class: "acts" }, remove(f.id))); })
+        out.facts.length ? out.facts.map(function (f) { return el("div", { class: "item" }, el("div", { class: "body", raw: f.body }), el("div", { class: "acts" }, remove(f.id))); })
                          : el("p", { class: "empty", text: "Ancora nessun fatto." }),
         admin ? el("form", { class: "form row", autocomplete: "off", onsubmit: function (e) { e.preventDefault(); act(api("POST", "/memory/facts", { text: val("mem_fact") }), err); } },
           field("Nuovo fatto", "mem_fact", { required: true, maxlength: "600", placeholder: "Il sabato siamo aperti solo la mattina." }),
@@ -1110,9 +1177,9 @@
           e.preventDefault();
           api("GET", "/memory/search?q=" + encodeURIComponent(val("mem_q"))).then(function (res) {
             found.textContent = "";
-            append(found, res.hits.length ? res.hits.map(function (h) { return el("div", { class: "item" }, el("div", { class: "body" }, el("strong", { text: h.kind === "fatto" ? "Fatto" : h.title }), el("div", { class: "pre", text: h.text }))); })
+            append(found, res.hits.length ? res.hits.map(function (h) { return el("div", { class: "item" }, el("div", { class: "body" }, el("strong", { raw: h.kind === "fatto" ? tx("Fatto") : h.title }), el("div", { class: "pre", raw: h.text }))); })
                                           : el("p", { class: "empty", text: "Niente di pertinente." }));
-          }).catch(function (e2) { found.textContent = e2.message; });
+          }).catch(function (e2) { found.textContent = tx(e2.message); });
         } }, field("Domanda", "mem_q", { required: true, maxlength: "300" }), el("button", { class: "btn", type: "submit", text: "Cerca" })), found));
       return nodes;
     });
@@ -1149,7 +1216,7 @@
             S.me.tenant.activity = r.activity;
             var msg = "Salvato." + (r.turned_on.length ? " Accesi: " + r.turned_on.join(", ") + "." : "") + (typeof r.price === "number" ? " Nuovo prezzo dell'abbonamento: " + r.price + " € al mese." : "");
             return (r.turned_on.length ? api("GET", "/me").then(function (me) { S.me = me; }) : Promise.resolve()).then(function () { S.actMsg = msg; refreshPending(); render(); });
-          }).catch(function (x) { err.textContent = x.message; });
+          }).catch(function (x) { err.textContent = tx(x.message); });
         } },
           el("div", { class: "field" }, el("label", { for: "activitySel", text: "Di cosa ti occupi" }), el("select", { id: "activitySel" },
             el("option", { value: "", text: "Non indicato" }), choices.map(function (a) { return el("option", { value: a.id, selected: a.id === S.me.tenant.activity, text: a.name }); }))),
@@ -1167,12 +1234,12 @@
   function tabComputer() {
     return api("GET", "/devices").then(function (out) {
       var admin = S.me.user.role === "admin", err = el("p", { class: "error", role: "alert" }), codeBox = el("p", { class: "codebox", "aria-live": "polite" });
-      if (out.blocked) err.textContent = out.blocked + " La verifica del computer con il launcher resta gratuita.";
+      if (out.blocked) err.textContent = tx(out.blocked + " La verifica del computer con il launcher resta gratuita.");
       var VERD = { gira: ["gira", "done"], non_gira: ["non gira", "bad"], in_arrivo: ["in arrivo", "wait"] };
       var devices = out.devices.map(function (d) {
         var sp = d.specs, shown = cat().agents.filter(function (a) { var c = d.checks["agent:" + a.id]; return c && VERD[c.verdict]; });
         return el("div", { class: "item" },
-          el("div", { class: "body" }, el("strong", { text: d.name }),
+          el("div", { class: "body" }, el("strong", { raw: d.name }),
             el("small", { text: (sp.os_version || sp.os || "") + " · " + (sp.cores || "?") + " core · " + (sp.ram_gb || "?") + " GB di memoria · " + (sp.disk_free_gb || "?") + " GB liberi · launcher " + (d.launcher_version || "?") }),
             el("div", { class: "chips" }, shown.map(function (a) {
               var c = d.checks["agent:" + a.id];
@@ -1200,7 +1267,7 @@
         return el("div", { class: "item" },
           el("div", { class: "body" }, "Lavoro n. " + j.id + " · Agente " + (agentById(j.agent_id) || { name: j.agent_id }).name + " · " + j.tool.replace(/_/g, " "),
             el("small", { text: (j.place === "locale" ? "sul computer" + (j.device ? " «" + j.device + "»" : "") : "sui nostri server") + " · " + when(j.created_at) }),
-            j.result ? el("small", { text: j.result }) : null),
+            j.result ? el("small", { raw: j.result }) : null),
           el("div", { class: "acts" }, el("span", { class: "chip " + st[1], text: st[0] + (j.status === "in_corso" ? " " + j.progress + "%" : "") })));
       });
       return [el("div", { class: "panel" }, el("h2", { text: "Computer dell'azienda" }),
@@ -1208,8 +1275,8 @@
           el("div", { class: "acts" },
             el("a", { class: "btn primary", href: "/api/launcher/download", download: "alvea-launcher.zip", text: "Scarica il launcher" }),
             admin ? el("button", { class: "btn", type: "button", text: "Crea codice di collegamento", onclick: function () {
-              api("POST", "/devices/code", {}).then(function (c) { codeBox.textContent = c.code; codeBox.title = "Vale " + Math.round(c.expires_in / 60) + " minuti e una volta sola: scrivilo nel launcher"; })
-                .catch(function (e) { err.textContent = e.message; });
+              api("POST", "/devices/code", {}).then(function (c) { codeBox.textContent = tx(c.code); codeBox.title = "Vale " + Math.round(c.expires_in / 60) + " minuti e una volta sola: scrivilo nel launcher"; })
+                .catch(function (e) { err.textContent = tx(e.message); });
             } }) : null),
           codeBox, err,
           out.packages_signed ? null : el("div", { class: "banner", role: "alert", text: "I pacchetti locali non sono firmati su questo server: i launcher non potranno installarli. Il gestore deve eseguire «manage.py firma-pacchetti»." }),
@@ -1235,22 +1302,23 @@
         err.textContent = "";
         if (!f) return;
         var ext = f.name.indexOf(".") === -1 ? "" : f.name.split(".").pop().toLowerCase();
-        if (out.types.indexOf(ext) === -1) { err.textContent = "Tipo di file non ammesso. Ammessi: " + out.types.join(", ") + "."; return; }
-        if (f.size > out.max_file_bytes) { err.textContent = "Il file supera la dimensione massima di " + bytes(out.max_file_bytes) + "."; return; }
-        if (out.used_bytes + f.size > out.quota_bytes) { err.textContent = "Non c'è abbastanza spazio nell'archivio."; return; }
+        if (out.types.indexOf(ext) === -1) { err.textContent = tx("Tipo di file non ammesso. Ammessi: " + out.types.join(", ") + "."); return; }
+        if (f.size > out.max_file_bytes) { err.textContent = tx("Il file supera la dimensione massima di " + bytes(out.max_file_bytes) + "."); return; }
+        if (out.used_bytes + f.size > out.quota_bytes) { err.textContent = tx("Non c'è abbastanza spazio nell'archivio."); return; }
         var data = new FormData(), xhr = new XMLHttpRequest();
         data.append("file", f, f.name);
         send.disabled = true;
         xhr.open("POST", "/api/files/upload");
         xhr.setRequestHeader("Authorization", "Bearer " + token);
-        xhr.upload.onprogress = function (ev) { if (ev.lengthComputable) progress.textContent = "Caricamento: " + Math.round(100 * ev.loaded / ev.total) + "%"; };
-        xhr.onerror = function () { send.disabled = false; progress.textContent = ""; err.textContent = "Caricamento interrotto: controlla la connessione e la dimensione del file."; };
+        xhr.setRequestHeader("X-Lang", LANG);
+        xhr.upload.onprogress = function (ev) { if (ev.lengthComputable) progress.textContent = tx("Caricamento: " + Math.round(100 * ev.loaded / ev.total) + "%"); };
+        xhr.onerror = function () { send.disabled = false; progress.textContent = ""; err.textContent = tx("Caricamento interrotto: controlla la connessione e la dimensione del file."); };
         xhr.onload = function () {
           var res = {};
           try { res = JSON.parse(xhr.responseText); } catch (e2) { /* risposta non leggibile */ }
           if (xhr.status === 200) { reloadTab(); return; }
           send.disabled = false; progress.textContent = "";
-          err.textContent = res.error || ("Errore " + xhr.status);
+          err.textContent = tx(res.error || ("Errore " + xhr.status));
         };
         xhr.send(data);
       } }, el("div", { class: "field" }, el("label", { for: "up_file", text: "File (" + out.types.join(", ") + "; massimo " + bytes(out.max_file_bytes) + ")" }), file), send);
@@ -1258,7 +1326,7 @@
         var view = a.kind === "immagine" ? el("img", { src: a.url, alt: a.name, loading: "lazy" })
           : (a.kind === "video" ? el("video", { src: a.url, controls: true, preload: "metadata" }) : el("audio", { src: a.url, controls: true, preload: "none" }));
         return el("figure", { class: "asset" }, el("div", { class: "frame " + a.kind }, view),
-          el("figcaption", {}, el("strong", { text: a.name }), el("small", { text: a.kind + " · " + bytes(a.size_bytes) + " · " + when(a.created_at) }),
+          el("figcaption", {}, el("strong", { raw: a.name }), el("small", { raw: tx(a.kind) + " · " + bytes(a.size_bytes) + " · " + when(a.created_at) }),
             admin || a.uploaded_by === S.me.user.id ? el("button", { class: "btn small danger", type: "button", text: "Rimuovi", onclick: function () { act(api("DELETE", "/files/" + a.id), err); } }) : null));
       });
       return [el("div", { class: "panel" }, el("h2", { text: "Archivio Media" }),
@@ -1281,7 +1349,7 @@
         var post = function (body) { return function () { act(api("POST", "/admin/tenants/" + t.id, body()), err); }; };
         var select = el("select", { id: "pkg_" + t.id, onchange: function () { act(api("POST", "/admin/tenants/" + t.id, { package_id: select.value }), err); } }, options(t.package_id));
         return el("article", { class: "company" },
-          el("header", {}, el("strong", { text: t.name }), el("span", { class: "pill " + (t.active ? "ok" : "no"), text: t.active ? "attiva" : "sospesa" }),
+          el("header", {}, el("strong", { raw: t.name }), el("span", { class: "pill " + (t.active ? "ok" : "no"), text: t.active ? "attiva" : "sospesa" }),
             el("span", { class: "meta", text: (t.origin === "registrazione" ? "Registrata da sola" : "Creata da te") + " · " + num(t.users) + (t.users === 1 ? " utente" : " utenti") + " · " + num(t.tokens) + " token usati, " + num(t.tokens_month) + " questo mese" })),
           el("div", { class: "company-grid" },
             el("div", { class: "field" }, el("label", { for: "pkg_" + t.id, text: "Pacchetto (tetto degli agenti)" }), select),
@@ -1332,7 +1400,7 @@
             el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
               e.preventDefault(); err.textContent = "";
               api("POST", "/2fa/disable", { password: val("tfaOffPassword"), code: val("tfaOffCode") }).then(function () { S.me.user.two_factor = false; load(); })
-                .catch(function (x) { err.textContent = x.message; });
+                .catch(function (x) { err.textContent = tx(x.message); });
             } },
               el("p", { class: "empty", text: "Per disattivarlo, o per passare a un telefono nuovo, servono password e codice." }),
               field("Password", "tfaOffPassword", { type: "password", required: true, autocomplete: "current-password" }),
@@ -1343,7 +1411,7 @@
         show([el("p", { text: "Oggi entri con la sola password. Con i due passaggi, chi la scopre non entra lo stesso: serve anche il codice a 6 cifre che cambia ogni 30 secondi sulla tua app (Google Authenticator, Microsoft Authenticator, le Password dell'iPhone e simili)." }),
           el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
             e.preventDefault(); err.textContent = "";
-            api("POST", "/2fa/setup", { password: val("tfaPassword") }).then(confirmStep).catch(function (x) { err.textContent = x.message; });
+            api("POST", "/2fa/setup", { password: val("tfaPassword") }).then(confirmStep).catch(function (x) { err.textContent = tx(x.message); });
           } },
             field("Per cominciare, la tua password", "tfaPassword", { type: "password", required: true, autocomplete: "current-password" }),
             err, el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", id: "tfaStartBtn", text: "Attiva i due passaggi" })))]);
@@ -1355,11 +1423,11 @@
       show([el("ol", { class: "steps2fa" },
           el("li", {}, "Sul telefono apri la tua app di autenticazione e aggiungi un account. ",
             el("a", { class: "btn small", id: "tfaOpen", href: setup.uri, text: "Apri nell'app di questo telefono" })),
-          el("li", {}, "Oppure scegli «Inserisci una chiave di configurazione» e scrivi: account ", el("strong", { text: S.me.user.email }), ", chiave ",
-            el("code", { class: "secret", id: "tfaSecret", text: key }), " ",
+          el("li", {}, "Oppure scegli «Inserisci una chiave di configurazione» e scrivi: account ", el("strong", { raw: S.me.user.email }), ", chiave ",
+            el("code", { class: "secret", id: "tfaSecret", raw: key }), " ",
             el("button", { class: "btn small", type: "button", text: "Copia la chiave", onclick: function () {
-              if (navigator.clipboard) navigator.clipboard.writeText(setup.secret).then(function () { ok.textContent = "Copiata."; }, function () { ok.textContent = "Selezionala e copiala a mano."; });
-              else ok.textContent = "Selezionala e copiala a mano.";
+              if (navigator.clipboard) navigator.clipboard.writeText(setup.secret).then(function () { ok.textContent = tx("Copiata."); }, function () { ok.textContent = tx("Selezionala e copiala a mano."); });
+              else ok.textContent = tx("Selezionala e copiala a mano.");
             } }), " ", ok, el("small", { class: "plain", text: " Tipo di chiave: basata sull'ora." })),
           el("li", { text: "Scrivi qui sotto il codice a 6 cifre che l'app mostra adesso." })),
         el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
@@ -1368,10 +1436,10 @@
             S.me.user.two_factor = true;
             show([el("p", {}, el("span", { class: "pill ok", text: "attivo" }), " Da adesso a ogni accesso serve anche il codice dell'app."),
               el("div", { class: "banner", role: "alert", text: "Segna subito questi codici di riserva in un posto sicuro: si vedono solo adesso. Ognuno vale una volta, se il telefono non c'è." }),
-              el("ul", { class: "recovery", id: "tfaRecovery" }, out.recovery.map(function (c) { return el("li", {}, el("code", { text: c })); })),
+              el("ul", { class: "recovery", id: "tfaRecovery" }, out.recovery.map(function (c) { return el("li", {}, el("code", { raw: c })); })),
               el("div", { class: "acts" }, el("button", { class: "btn small", type: "button", text: "Copia i codici", onclick: function () { if (navigator.clipboard) navigator.clipboard.writeText(out.recovery.join("\n")); } }),
                 el("button", { class: "btn small primary", type: "button", id: "tfaDone", text: "Li ho segnati", onclick: load }))]);
-          }).catch(function (x) { err.textContent = x.message; });
+          }).catch(function (x) { err.textContent = tx(x.message); });
         } },
           field("Codice a 6 cifre", "tfaCode", { type: "text", inputmode: "numeric", required: true, maxlength: "8", autocomplete: "one-time-code" }),
           err, el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", id: "tfaConfirmBtn", text: "Conferma e attiva" }),
@@ -1396,11 +1464,11 @@
         el("p", { text: "Comandi di manutenzione pronti, senza scrivere niente. Non è un terminale libero: così chi rubasse la tua password non avrebbe in mano il server. Ogni comando lanciato finisce nel registro." }),
         el("div", { class: "acts" }, out.commands.map(function (c) {
           var b = el("button", { class: "btn small", type: "button", title: c.does, text: c.label, onclick: function () {
-            err.textContent = ""; screen.textContent = "$ " + c.label + "\n…";
+            err.textContent = ""; screen.textContent = tx("$ " + c.label + "\n…");
             buttons.forEach(function (x) { x.disabled = true; });
             api("POST", "/admin/console", { command: c.id }).then(function (r) {
-              screen.textContent = "$ " + c.label + "   (" + r.seconds + " s, esito " + r.code + ")\n\n" + r.output;
-            }).catch(function (e) { screen.textContent = ""; err.textContent = e.message; })
+              screen.textContent = tx("$ " + c.label + "   (" + r.seconds + " s, esito " + r.code + ")\n\n" + r.output);
+            }).catch(function (e) { screen.textContent = ""; err.textContent = tx(e.message); })
               .then(function () { buttons.forEach(function (x) { x.disabled = false; }); });
           } });
           buttons.push(b);
@@ -1423,8 +1491,8 @@
         var err = el("p", { class: "error", role: "alert" }), ok = el("p", { class: "okmsg", role: "status" });
         function send(values, done) {
           err.textContent = ""; ok.textContent = "";
-          api("POST", "/admin/settings", { values: values }).then(function (r) { ok.textContent = r.changed.length ? "Salvato: vale da subito." : "Nessuna modifica."; if (done) done(); })
-            .catch(function (e) { err.textContent = e.message; });
+          api("POST", "/admin/settings", { values: values }).then(function (r) { ok.textContent = tx(r.changed.length ? "Salvato: vale da subito." : "Nessuna modifica."); if (done) done(); })
+            .catch(function (e) { err.textContent = tx(e.message); });
         }
         var form = el("form", { class: "form", autocomplete: "off", onsubmit: function (e) {
           e.preventDefault();
@@ -1445,14 +1513,14 @@
                 onclick: function () { var v = {}; v[f.key] = ""; send(v, render); } }) : null];
           }),
           g === "Modelli" ? el("p", { class: "empty", text: "Dopo aver salvato una chiave, nella Console del gestore premi «Prova dei modelli»: manda una domanda vera a ogni modello e gli fa usare uno strumento, come fanno gli agenti. Costa pochi token e dice subito se la chiave o il nome del modello sono sbagliati." }) : null,
-          g === "Ricerca" || g === "Google" || g === "Pagamenti" ? el("p", { class: "empty", text: "Dopo aver salvato, nella Console del gestore premi «Prova dei servizi»: controlla con una chiamata vera, che non costa e non spedisce niente, che la chiave sia accettata." }) : null,
+          g === "Ricerca web" || g === "Google" || g === "Pagamenti" ? el("p", { class: "empty", text: "Dopo aver salvato, nella Console del gestore premi «Prova dei servizi»: controlla con una chiamata vera, che non costa e non spedisce niente, che la chiave sia accettata." }) : null,
           g === "Pagamenti" ? el("p", { class: "empty", text: "In Stripe crea un webhook verso " + out.webhook_url + " con gli eventi checkout.session.completed, invoice.paid, invoice.payment_failed, customer.subscription.updated e customer.subscription.deleted, e copia qui il suo segreto. Per la disdetta e il cambio carta attiva in Stripe il portale clienti. I prezzi sono abbonamenti mensili creati in Stripe, uno per pacchetto." }) : null,
           err, ok,
           el("div", { class: "acts" }, el("button", { class: "btn small primary", type: "submit", text: "Salva " + g.toLowerCase() }),
             g === "Posta" ? el("button", { class: "btn small", type: "button", text: "Manda un'email di prova", onclick: function () {
-              err.textContent = ""; ok.textContent = "Invio...";
-              api("POST", "/admin/settings/test-email", {}).then(function (r) { ok.textContent = "Email di prova mandata a " + r.to + "."; })
-                .catch(function (e) { ok.textContent = ""; err.textContent = e.message; });
+              err.textContent = ""; ok.textContent = tx("Invio...");
+              api("POST", "/admin/settings/test-email", {}).then(function (r) { ok.textContent = tx("Email di prova mandata a " + r.to + "."); })
+                .catch(function (e) { ok.textContent = ""; err.textContent = tx(e.message); });
             } }) : null));
         append(box, el("div", { class: "panel" }, el("h2", { text: g }), form));
       });
@@ -1519,9 +1587,13 @@
     S.notice = S.noticeBad ? "Collegamento di conferma non valido o scaduto. Entra e chiedi di rimandarlo." : "Indirizzo confermato: ora puoi entrare.";
     try { window.history.replaceState(null, "", window.location.pathname); } catch (e) { /* resta l'ancora */ }
   }
-  loadRegInfo();
-  if (token) loadMe().catch(function () { setToken(null); S.me = null; render(); });
-  else render();
+  function start() {
+    loadRegInfo();
+    if (token) loadMe().catch(function () { setToken(null); S.me = null; render(); });
+    else render();
+  }
+  if (LANG === "it") start();
+  else fetch("/i18n/" + LANG + ".json").then(function (r) { return r.json(); }).then(useDictionary).catch(function () { LANG = "it"; }).then(start);
   setInterval(function () { if (S.me && S.me.tenant && document.visibilityState !== "hidden") refreshPending(); }, 30000);
   var officeTick = 0;  // ufficio aperto: stati ogni secondo e mezzo, ogni mezzo secondo mentre una richiesta è in corso
   setInterval(function () { if (S.view !== "ufficio") return; officeTick += 1; if (S.busy || officeTick % 3 === 0) pollOffice(); }, 500);

@@ -78,7 +78,7 @@ class TestAutomazioni(Base):
         self.assertEqual((auto["last_status"], auto["active"]), ("ok", 1))
         self.assertGreater(auto["next_run_at"], time.time() + 800)
         news = self.call("GET", "/api/news", token=admin)[1]["news"]
-        self.assertIn("Lead del mattino: fatto", [n["title"] for n in news])
+        self.assertIn("Lavoro automatico «Lead del mattino»: fatto", [n["title"] for n in news])
         summary = self.call("GET", "/api/summary", token=admin)[1]
         self.assertEqual((summary["unread"] >= 1, summary["automations"]), (True, 1))
         self.call("POST", "/api/news/read", {}, admin)

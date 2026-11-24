@@ -197,7 +197,7 @@ def run_one(con, row, manual=False):
     paused = status != "ok" and fails >= MAX_FAILS and not manual
     con.execute("UPDATE automations SET last_run_at=?, last_status=?, last_output=?, fail_count=?, active=CASE WHEN ? THEN 0 ELSE active END "
                 "WHERE id=? AND tenant_id=?", (db.now(), status, output[:2000], fails, 1 if paused else 0, row["id"], tid))
-    news.add(con, tid, "automazione", "%s: %s" % (row["name"], "fatto" if status == "ok" else "errore"), output[:2000])
+    news.add(con, tid, "automazione", "Lavoro automatico «%s»: %s" % (row["name"], "fatto" if status == "ok" else "errore"), output[:2000])
     if paused:
         news.add(con, tid, "avviso", "Lavoro automatico «%s» messo in pausa" % row["name"],
                  "Ha dato errore %d volte di fila. Ultimo errore: %s" % (MAX_FAILS, output[:500]))

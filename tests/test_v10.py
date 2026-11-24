@@ -79,7 +79,7 @@ class Aspetto(Base):
         self.assertIn(".form:not(.row) > .field { flex: 0 0 auto; }", css, "senza questa regola i campi dei moduli in colonna diventano alti 180px")
         for old in ("#4a9bff", "rgba(120, 180, 255", "rgba(150, 190, 255", "#8fa39d", "rgba(160, 190, 180"):
             self.assertNotIn(old, css, "colore di una tavolozza vecchia: %s" % old)
-        self.assertIn('"data-label": label', js, "su telefono le tabelle diventano schede e serve l'etichetta di ogni cella")
+        self.assertIn('"data-label": tx(label)', js, "su telefono le tabelle diventano schede e serve l'etichetta di ogni cella")
         self.assertIn("min-height: 38px", css, "pulsanti comodi per il dito su telefono")
         self.assertNotIn('table(["Azienda", "Origine"', js, "l'elenco delle aziende è a schede, non una tabella più larga dello schermo")
 
