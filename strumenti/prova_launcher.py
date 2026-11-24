@@ -41,7 +41,8 @@ def main():
     env = dict(os.environ, SFB_PORT=PORT, SFB_PUBLIC_URL=BASE, SFB_DEMO="1", SFB_DEMO_DELAY_MS="0", PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
     demo = subprocess.run([sys.executable, "manage.py", "demo"], cwd=str(ROOT), env=env, capture_output=True, text=True, encoding="utf-8").stdout
     password = dict(re.findall(r"email: (\S+)\s+password: (\S+)", demo))["completo@demo.local"]
-    server = subprocess.Popen([sys.executable, "-m", "server"], cwd=str(ROOT), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    log = open(os.path.join(tempfile.mkdtemp(prefix="alvea-server-"), "server.log"), "w+", encoding="utf-8", errors="replace")
+    server = subprocess.Popen([sys.executable, "-m", "server"], cwd=str(ROOT), env=env, stdout=log, stderr=subprocess.STDOUT)
     home = tempfile.mkdtemp(prefix="alvea-casa-")
     work = tempfile.mkdtemp(prefix="alvea-lavoro-")
     lenv = dict(os.environ, ALVEA_HOME=home, PYTHONIOENCODING="utf-8")
@@ -57,12 +58,20 @@ def main():
         return r.returncode, (r.stdout or "") + (r.stderr or "")
 
     try:
-        for _ in range(60):
+        up = False
+        for _ in range(120):
             try:
                 call("GET", "/api/health")
+                up = True
                 break
             except Exception:
+                if server.poll() is not None:
+                    break
                 time.sleep(0.5)
+        if not up:  # il server non è partito: si mostra perché, invece di un errore di connessione più avanti
+            log.seek(0)
+            print("ERRORE   il server di prova non è partito (uscita %s). Ultime righe:\n%s" % (server.poll(), log.read()[-3000:]), flush=True)
+            return 1
         z = zipfile.ZipFile(io.BytesIO(call("GET", "/api/launcher/download")))
         info = json.loads(z.read("alvea-launcher/server.json"))
         (folder / "server.json").write_text(json.dumps(info), encoding="utf-8")
