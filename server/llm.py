@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import socket
+import time
 import urllib.error
 import urllib.request
 
@@ -62,22 +63,45 @@ def timeout():
     return max(2, min(900, config.get_int("SFB_LLM_TIMEOUT", 120)))
 
 
-def _post(url, headers, body):
-    req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), method="POST",
-                                 headers=dict({"Content-Type": "application/json"}, **headers))
+# I fornitori dei modelli ogni tanto rispondono «sono sovraccarico, riprova» oppure la connessione cade prima della risposta.
+# Sono guasti di un attimo: si riprova due volte, con una piccola pausa, prima di dirlo a chi sta lavorando. Una chiave sbagliata
+# o una richiesta rifiutata non si riprovano (darebbero lo stesso errore), e nemmeno un'attesa scaduta (si è già aspettato abbastanza).
+RETRY_STATUS = (429, 500, 502, 503, 504, 529)
+PAUSES = (1.0, 3.0)
+
+
+def _pause(attempt, retry_after=None):
     try:
-        with urllib.request.urlopen(req, timeout=timeout()) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        detail = e.read(800).decode("utf-8", "replace")
-        raise LLMError("Il modello ha risposto con errore %d: %s" % (e.code, detail[:400]))
-    except (urllib.error.URLError, socket.timeout, OSError) as e:
-        if isinstance(e, socket.timeout) or isinstance(getattr(e, "reason", None), socket.timeout) or "timed out" in str(e):
-            raise LLMError("Il modello non ha risposto entro %d secondi. Riprova; se succede spesso con un modello che ragiona a lungo, il gestore può "
-                           "alzare l'attesa o abbassare il ragionamento nel pannello, Impostazioni della piattaforma, gruppo «Modelli»." % timeout())
-        raise LLMError("Modello non raggiungibile: %s" % getattr(e, "reason", e))
-    except ValueError:
-        raise LLMError("Risposta del modello non leggibile.")
+        asked = float(retry_after)
+    except (TypeError, ValueError):
+        asked = 0
+    return asked if 0 < asked <= 10 else PAUSES[attempt]
+
+
+def _post(url, headers, body):
+    data = json.dumps(body).encode("utf-8")
+    for attempt in range(len(PAUSES) + 1):
+        last = attempt == len(PAUSES)
+        req = urllib.request.Request(url, data=data, method="POST", headers=dict({"Content-Type": "application/json"}, **headers))
+        try:
+            with urllib.request.urlopen(req, timeout=timeout()) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            detail = e.read(800).decode("utf-8", "replace")
+            if e.code in RETRY_STATUS and not last:
+                time.sleep(_pause(attempt, e.headers.get("Retry-After")))
+                continue
+            raise LLMError("Il modello ha risposto con errore %d: %s" % (e.code, detail[:400]))
+        except (urllib.error.URLError, socket.timeout, OSError) as e:
+            if isinstance(e, socket.timeout) or isinstance(getattr(e, "reason", None), socket.timeout) or "timed out" in str(e):
+                raise LLMError("Il modello non ha risposto entro %d secondi. Riprova; se succede spesso con un modello che ragiona a lungo, il gestore può "
+                               "alzare l'attesa o abbassare il ragionamento nel pannello, Impostazioni della piattaforma, gruppo «Modelli»." % timeout())
+            if not last:
+                time.sleep(_pause(attempt))
+                continue
+            raise LLMError("Modello non raggiungibile: %s" % getattr(e, "reason", e))
+        except ValueError:
+            raise LLMError("Risposta del modello non leggibile.")
 
 
 # ---------- Anthropic Messages ----------

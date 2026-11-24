@@ -277,52 +277,59 @@ def webhook(con, raw, header):
         obj, kind, event_id = event["data"]["object"], str(event["type"]), str(event["id"])[:120]
     except (ValueError, KeyError, TypeError):
         raise ApiError(400, "Evento non leggibile.")
-    if con.execute("INSERT OR IGNORE INTO billing_events(id,type,created_at) VALUES(?,?,?)", (event_id, kind[:80], db.now())).rowcount != 1:
-        return {"ok": True, "duplicate": True}
-    tenant = _tenant_for(con, obj)
-    if not tenant:
-        return {"ok": True, "ignored": True}
-    tid = tenant["id"]
-    if kind == "checkout.session.completed" and obj.get("mode") == "payment":
-        # pagamento singolo: una ricarica di crediti. Non tocca l'abbonamento. Conta solo se Stripe dice che è pagato.
-        meta = obj.get("metadata") or {}
-        if meta.get("kind") == "crediti" and obj.get("payment_status") == "paid" and str(meta.get("credits") or "").isdigit():
-            amount = credits.grant(con, tid, int(meta["credits"]), "acquisto", "Ricarica pagata con carta")
-            if obj.get("customer") and not tenant["stripe_customer"]:
-                con.execute("UPDATE tenants SET stripe_customer=? WHERE id=?", (str(obj["customer"])[:120], tid))
-            news.add(con, tid, "pagamento", "Crediti aggiunti", "%d crediti comprati: non scadono e si usano dopo quelli inclusi nel pacchetto." % amount)
-    elif kind == "checkout.session.completed":
-        con.execute("UPDATE tenants SET stripe_customer=?, stripe_subscription=? WHERE id=?",
-                    (str(obj.get("customer") or "")[:120], str(obj.get("subscription") or "")[:120], tid))
-        audit.record(con, tid, None, "pagamento_collegato", {})
-    elif kind in ("invoice.paid", "invoice.payment_succeeded"):
-        ends = [l.get("period", {}).get("end") for l in ((obj.get("lines") or {}).get("data") or []) if isinstance(l, dict)]
-        end = max([e for e in ends if isinstance(e, int)] or [0])
-        if end:
-            until = max(datetime.fromtimestamp(end, timezone.utc).date().isoformat(), tenant["paid_until"] or "")
-            con.execute("UPDATE tenants SET paid_until=?, payment_failed_at='', on_trial=0 WHERE id=?", (until, tid))
-            audit.record(con, tid, None, "pagamento_ricevuto", {"fino_al": until, "importo": obj.get("amount_paid"), "valuta": obj.get("currency")})
-            news.add(con, tid, "pagamento", "Pagamento ricevuto", "Abbonamento attivo fino al %s." % "/".join(reversed(until.split("-"))))
-    elif kind == "invoice.payment_failed":
-        con.execute("UPDATE tenants SET payment_failed_at=? WHERE id=?", (db.now(), tid))
-        audit.record(con, tid, None, "pagamento_non_riuscito", {"importo": obj.get("amount_due"), "valuta": obj.get("currency")})
-        text = "L'addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta dalla scheda Abbonamento."
-        news.add(con, tid, "pagamento", "Pagamento non riuscito", text)
-        mail_admins(con, tid, "Alvea: pagamento non riuscito", "%s\n\n%s/#abbonamento\n\nSe la scadenza passa senza un pagamento, gli agenti vanno in pausa; i dati restano al loro posto.\n"
-                    % (text, google.public_url()))
-    elif kind == "customer.subscription.updated":
-        ends = [obj.get("cancel_at")] if isinstance(obj.get("cancel_at"), int) else []
-        if not ends and obj.get("cancel_at_period_end"):
-            ends = [e for e in [obj.get("current_period_end")] + [i.get("current_period_end") for i in ((obj.get("items") or {}).get("data") or []) if isinstance(i, dict)]
-                    if isinstance(e, int)]
-        day = datetime.fromtimestamp(max(ends), timezone.utc).date().isoformat() if ends else ""
-        if day != (tenant["stripe_cancel_at"] or ""):
-            con.execute("UPDATE tenants SET stripe_cancel_at=? WHERE id=?", (day, tid))
-            audit.record(con, tid, None, "disdetta_registrata" if day else "disdetta_ritirata", {"dal": day} if day else {})
-            news.add(con, tid, "pagamento", "Disdetta registrata" if day else "Disdetta ritirata",
-                     "La carta non verrà più addebitata. Gli agenti restano attivi fino al %s." % _day(day) if day else "L'abbonamento con carta continua a rinnovarsi.")
-    elif kind == "customer.subscription.deleted":
-        con.execute("UPDATE tenants SET stripe_subscription='', stripe_cancel_at='', payment_failed_at='' WHERE id=?", (tid,))
-        audit.record(con, tid, None, "abbonamento_disdetto", {})
-        news.add(con, tid, "pagamento", "Abbonamento con carta disdetto", "Gli agenti restano attivi fino alla scadenza già pagata.")
+    # L'avviso «già visto» e i suoi effetti (scadenza spostata, crediti aggiunti) si scrivono insieme o per niente. Se il server inciampa a metà,
+    # non resta segnato come visto: Stripe lo rimanda e viene applicato. Prima restava segnato, e un pagamento fatto poteva non contare mai.
+    db.durable(con)  # a Stripe si risponde «ricevuto» solo quando l'avviso è davvero sul disco: dopo, non lo rimanda più
+    after = []  # quello che esce dal server (le email) parte solo dopo, a scritture chiuse: non si tiene fermo il database aspettando la rete
+    with db.transaction(con):
+        if con.execute("INSERT OR IGNORE INTO billing_events(id,type,created_at) VALUES(?,?,?)", (event_id, kind[:80], db.now())).rowcount != 1:
+            return {"ok": True, "duplicate": True}
+        tenant = _tenant_for(con, obj)
+        if not tenant:
+            return {"ok": True, "ignored": True}
+        tid = tenant["id"]
+        if kind == "checkout.session.completed" and obj.get("mode") == "payment":
+            # pagamento singolo: una ricarica di crediti. Non tocca l'abbonamento. Conta solo se Stripe dice che è pagato.
+            meta = obj.get("metadata") or {}
+            if meta.get("kind") == "crediti" and obj.get("payment_status") == "paid" and str(meta.get("credits") or "").isdigit():
+                amount = credits.grant(con, tid, int(meta["credits"]), "acquisto", "Ricarica pagata con carta")
+                if obj.get("customer") and not tenant["stripe_customer"]:
+                    con.execute("UPDATE tenants SET stripe_customer=? WHERE id=?", (str(obj["customer"])[:120], tid))
+                news.add(con, tid, "pagamento", "Crediti aggiunti", "%d crediti comprati: non scadono e si usano dopo quelli inclusi nel pacchetto." % amount)
+        elif kind == "checkout.session.completed":
+            con.execute("UPDATE tenants SET stripe_customer=?, stripe_subscription=? WHERE id=?",
+                        (str(obj.get("customer") or "")[:120], str(obj.get("subscription") or "")[:120], tid))
+            audit.record(con, tid, None, "pagamento_collegato", {})
+        elif kind in ("invoice.paid", "invoice.payment_succeeded"):
+            ends = [l.get("period", {}).get("end") for l in ((obj.get("lines") or {}).get("data") or []) if isinstance(l, dict)]
+            end = max([e for e in ends if isinstance(e, int)] or [0])
+            if end:
+                until = max(datetime.fromtimestamp(end, timezone.utc).date().isoformat(), tenant["paid_until"] or "")
+                con.execute("UPDATE tenants SET paid_until=?, payment_failed_at='', on_trial=0 WHERE id=?", (until, tid))
+                audit.record(con, tid, None, "pagamento_ricevuto", {"fino_al": until, "importo": obj.get("amount_paid"), "valuta": obj.get("currency")})
+                news.add(con, tid, "pagamento", "Pagamento ricevuto", "Abbonamento attivo fino al %s." % "/".join(reversed(until.split("-"))))
+        elif kind == "invoice.payment_failed":
+            con.execute("UPDATE tenants SET payment_failed_at=? WHERE id=?", (db.now(), tid))
+            audit.record(con, tid, None, "pagamento_non_riuscito", {"importo": obj.get("amount_due"), "valuta": obj.get("currency")})
+            text = "L'addebito sulla carta non è riuscito. Stripe riproverà nei prossimi giorni: intanto controlla o cambia la carta dalla scheda Abbonamento."
+            news.add(con, tid, "pagamento", "Pagamento non riuscito", text)
+            after.append(lambda: mail_admins(con, tid, "Alvea: pagamento non riuscito", "%s\n\n%s/#abbonamento\n\nSe la scadenza passa senza un pagamento, gli agenti vanno in pausa; "
+                                             "i dati restano al loro posto.\n" % (text, google.public_url())))
+        elif kind == "customer.subscription.updated":
+            ends = [obj.get("cancel_at")] if isinstance(obj.get("cancel_at"), int) else []
+            if not ends and obj.get("cancel_at_period_end"):
+                ends = [e for e in [obj.get("current_period_end")] + [i.get("current_period_end") for i in ((obj.get("items") or {}).get("data") or []) if isinstance(i, dict)]
+                        if isinstance(e, int)]
+            day = datetime.fromtimestamp(max(ends), timezone.utc).date().isoformat() if ends else ""
+            if day != (tenant["stripe_cancel_at"] or ""):
+                con.execute("UPDATE tenants SET stripe_cancel_at=? WHERE id=?", (day, tid))
+                audit.record(con, tid, None, "disdetta_registrata" if day else "disdetta_ritirata", {"dal": day} if day else {})
+                news.add(con, tid, "pagamento", "Disdetta registrata" if day else "Disdetta ritirata",
+                         "La carta non verrà più addebitata. Gli agenti restano attivi fino al %s." % _day(day) if day else "L'abbonamento con carta continua a rinnovarsi.")
+        elif kind == "customer.subscription.deleted":
+            con.execute("UPDATE tenants SET stripe_subscription='', stripe_cancel_at='', payment_failed_at='' WHERE id=?", (tid,))
+            audit.record(con, tid, None, "abbonamento_disdetto", {})
+            news.add(con, tid, "pagamento", "Abbonamento con carta disdetto", "Gli agenti restano attivi fino alla scadenza già pagata.")
+    for send in after:
+        send()
     return {"ok": True}

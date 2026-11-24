@@ -32,6 +32,27 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 29: il server sotto carico, come al lancio
+
+Due prove nuove e le correzioni di quello che hanno fatto cedere.
+
+- **`strumenti/prova_carico.py`** (giro `Carico` su GitHub: a mano e ogni lunedì, non a ogni modifica): un server installato da zero con molte aziende che lavorano insieme (due persone e un computer collegato a testa, più visitatori e password sbagliate), poi trecento connessioni ferme, poi lo spegnimento brusco a metà lavoro e il riavvio. Alla fine controlla errori, tempi, che ogni azienda veda solo i suoi dati, il registro, l'integrità del database, i lavori appesi, memoria e fili. Misurato su una macchina a 2 core divisa con chi genera il carico: **100 aziende insieme, circa 220 richieste al secondo, nessun errore**; oltre (220 aziende) rallenta e risponde «riprova», senza rompersi.
+- **`tests/test_v22.py`**: le stesse cose fatte nello stesso istante da venti richieste.
+
+Che cosa ha ceduto, e ora non più:
+
+- **Pagamenti**: un avviso di Stripe veniva segnato «già visto» prima di essere applicato. Se il server inciampava in mezzo, Stripe lo rimandava ma veniva scartato come doppione: un pagamento fatto poteva non spostare mai la scadenza o non dare i crediti. Ora avviso ed effetti si scrivono insieme o per niente, e sul disco prima di rispondere a Stripe.
+- **Limiti del pacchetto**: venti richieste insieme creavano 5 lavori automatici dove il limite era 2, e 20 documenti dove era 5. Lo stesso valeva per lo spazio dell'archivio. Ora contare e scrivere sono una cosa sola (`db.transaction`).
+- **Crediti**: venti risposte insieme scalavano tutte dai crediti inclusi nel mese invece che da quelli comprati (600 «inclusi» dove erano 100).
+- **Database occupato**: con cento aziende il launcher che prendeva un lavoro dava «database is locked», perché scriveva con una lettura ancora aperta.
+- **Launcher in attesa**: ogni launcher fermo scriveva nel database cinque volte al secondo. Con cento computer erano cinquecento scritture al secondo a vuoto. Ora chi aspetta dorme e viene svegliato quando arriva un lavoro; «visto adesso» si scrive ogni cinque secondi.
+- **Scrittura su disco**: il database ora usa il modo consigliato da SQLite con il registro WAL (circa dieci volte più svelto a scrivere). Uno spegnimento del programma non perde niente; solo una mancanza di corrente può perdere le ultimissime scritture, tranne i pagamenti, che vanno sempre sul disco.
+- **Un ufficio, un solo indirizzo**: il limite di 30 collegamenti l'ora contava anche quelli riusciti, e un'azienda con più di trenta computer si fermava. Ora contano solo i codici sbagliati.
+- **Fornitore del modello sovraccarico**: un errore passeggero (429, 5xx, connessione caduta) arrivava subito a chi stava lavorando. Ora si riprova due volte con una piccola pausa.
+- **Registro del server pulito**: un cliente che chiude la connessione a metà lasciava una pagina di errori; ora una riga. Un server oltre il limite risponde «riprova tra qualche secondo» (503), non «errore interno».
+- **Modello locale**: ogni domanda passata dal computer del cliente lasciava nel database una copia della conversazione, per sempre. Ora viene tolta a giro finito.
+- La registrazione crea azienda, amministratore e agenti insieme o per niente.
+
 ## Novità della versione 28: quello che si configura dopo, provato
 
 - **Prova nuova** `strumenti/prova_configurazione.py` (gira anche nelle prove di ogni modifica): installa un server da zero in una cartella a parte, lo avvia **senza nessuna chiave** e scrive ogni impostazione **dal pannello, a server acceso**. Per ogni gruppo controlla com'è prima (un messaggio chiaro) e dopo (la funzione lavora con il valore del pannello), poi riavvia e ricontrolla. 93 controlli; tutti i campi del pannello sono scritti almeno una volta, e se ne aggiungi uno senza provarlo la prova fallisce. I servizi esterni sono finti e locali: la posta però passa dalla cifratura vera (STARTTLS, e porta 465 dove si può aprire).
@@ -389,7 +410,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 232 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 255 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

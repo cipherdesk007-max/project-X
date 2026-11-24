@@ -231,21 +231,22 @@ def upload(con, tenant, user, body, content_type):
         kind, mime, family = TYPES[ext]
         if sniff(head) != family:
             raise UploadError(415, "Il contenuto del file non corrisponde all'estensione .%s." % ext)
-        if used_bytes(con, tid) + size > quota:
-            raise UploadError(413, "Spazio dell'archivio esaurito: il pacchetto %s prevede %d MB." % (
-                catalog.package(tenant["package_id"])["name"], quota // MB))
-        same = con.execute("SELECT * FROM media_assets WHERE tenant_id=? AND sha256=?", (tid, sha)).fetchone()
-        if same:  # stesso identico file già in archivio: non lo salvo due volte
-            return dict(_public(same), duplicate=True)
-        stored = secrets.token_hex(16) + "." + ext
-        os.replace(str(tmp), str(folder / stored))
-        try:
-            os.chmod(str(folder / stored), 0o600)
-        except OSError:
-            pass
-        cur = con.execute("INSERT INTO media_assets(tenant_id,kind,original_name,stored_name,mime,size_bytes,sha256,uploaded_by,created_at) "
-                          "VALUES(?,?,?,?,?,?,?,?,?)", (tid, kind, name, stored, mime, size, sha, user["id"], db.now()))
-        audit.record(con, tid, user["id"], "file_caricato", {"id": cur.lastrowid, "tipo": kind, "byte": size})
+        with db.transaction(con):  # lo spazio rimasto si controlla e si occupa in un colpo solo: caricamenti contemporanei non sfondano l'archivio
+            if used_bytes(con, tid) + size > quota:
+                raise UploadError(413, "Spazio dell'archivio esaurito: il pacchetto %s prevede %d MB." % (
+                    catalog.package(tenant["package_id"])["name"], quota // MB))
+            same = con.execute("SELECT * FROM media_assets WHERE tenant_id=? AND sha256=?", (tid, sha)).fetchone()
+            if same:  # stesso identico file già in archivio: non lo salvo due volte
+                return dict(_public(same), duplicate=True)
+            stored = secrets.token_hex(16) + "." + ext
+            os.replace(str(tmp), str(folder / stored))
+            try:
+                os.chmod(str(folder / stored), 0o600)
+            except OSError:
+                pass
+            cur = con.execute("INSERT INTO media_assets(tenant_id,kind,original_name,stored_name,mime,size_bytes,sha256,uploaded_by,created_at) "
+                              "VALUES(?,?,?,?,?,?,?,?,?)", (tid, kind, name, stored, mime, size, sha, user["id"], db.now()))
+            audit.record(con, tid, user["id"], "file_caricato", {"id": cur.lastrowid, "tipo": kind, "byte": size})
         row = con.execute("SELECT * FROM media_assets WHERE id=? AND tenant_id=?", (cur.lastrowid, tid)).fetchone()
         return dict(_public(row), duplicate=False)
     except OSError:
@@ -273,16 +274,28 @@ def store_path(con, tenant, user_id, path, filename):
             sha.update(chunk)
     if sniff(head) != family:
         raise UploadError(415, "Il contenuto del file prodotto non corrisponde all'estensione .%s." % ext)
-    if size > max_file_bytes() or used_bytes(con, tid) + size > quota_bytes(tenant):
+    if size > max_file_bytes():
         raise UploadError(413, "Spazio dell'archivio esaurito o file troppo grande.")
-    same = con.execute("SELECT * FROM media_assets WHERE tenant_id=? AND sha256=?", (tid, sha.hexdigest())).fetchone()
-    if same:
-        return dict(_public(same), duplicate=True)
-    stored = secrets.token_hex(16) + "." + ext
-    shutil.copyfile(path, str(tenant_dir(tid, create=True) / stored))
-    cur = con.execute("INSERT INTO media_assets(tenant_id,kind,original_name,stored_name,mime,size_bytes,sha256,uploaded_by,created_at) "
-                      "VALUES(?,?,?,?,?,?,?,?,?)", (tid, kind, name, stored, mime, size, sha.hexdigest(), user_id, db.now()))
-    audit.record(con, tid, user_id, "file_caricato", {"id": cur.lastrowid, "tipo": kind, "byte": size, "origine": "lavoro"})
+    folder = tenant_dir(tid, create=True)
+    tmp = folder / (".tmp-" + secrets.token_hex(8))
+    try:
+        shutil.copyfile(path, str(tmp))  # la copia, che può durare, si fa prima: dentro la transazione resta solo uno spostamento
+        with db.transaction(con):
+            if used_bytes(con, tid) + size > quota_bytes(tenant):
+                raise UploadError(413, "Spazio dell'archivio esaurito o file troppo grande.")
+            same = con.execute("SELECT * FROM media_assets WHERE tenant_id=? AND sha256=?", (tid, sha.hexdigest())).fetchone()
+            if same:
+                return dict(_public(same), duplicate=True)
+            stored = secrets.token_hex(16) + "." + ext
+            os.replace(str(tmp), str(folder / stored))
+            cur = con.execute("INSERT INTO media_assets(tenant_id,kind,original_name,stored_name,mime,size_bytes,sha256,uploaded_by,created_at) "
+                              "VALUES(?,?,?,?,?,?,?,?,?)", (tid, kind, name, stored, mime, size, sha.hexdigest(), user_id, db.now()))
+            audit.record(con, tid, user_id, "file_caricato", {"id": cur.lastrowid, "tipo": kind, "byte": size, "origine": "lavoro"})
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
     return dict(_public(con.execute("SELECT * FROM media_assets WHERE id=? AND tenant_id=?", (cur.lastrowid, tid)).fetchone()), duplicate=False)
 
 

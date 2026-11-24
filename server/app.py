@@ -5,6 +5,7 @@ import json
 import re
 import select
 import socket
+import sqlite3
 import sys
 import threading
 import time
@@ -399,8 +400,16 @@ def r_launcher_catalog(q):
 
 
 def r_launcher_pair(q):
-    registration.throttle(q.ip, "collega", 30)
-    return local.pair(q.con, q.body)
+    # Contano solo i codici sbagliati: un'azienda che collega cinquanta computer dallo stesso ufficio (un solo indirizzo) non deve fermarsi al trentesimo.
+    registration.throttle(q.ip, "collega", 30, count=False)
+    try:
+        return local.pair(q.con, q.body)
+    except ApiError:
+        try:
+            registration.throttle(q.ip, "collega", 30)
+        except ApiError:
+            pass
+        raise
 
 
 def r_launcher_report(q):
@@ -414,7 +423,7 @@ def r_launcher_sync(q):
 
 
 def r_launcher_package(q):
-    registration.throttle(q.ip, "pacchetto", 600)
+    registration.throttle(q.ip, "pacchetto", 3000)  # i pacchetti sono pubblici e firmati: il limite serve solo contro chi li scarica a raffica
     return local.package_signed(q.args[0])
 
 
@@ -1045,10 +1054,19 @@ class Handler(BaseHTTPRequestHandler):
             pass
         except OverflowError:  # un numero più grande di quelli che il database sa tenere
             self._json(400, {"error": "Numero troppo grande."})
-        except Exception:
+        except Exception as e:
+            if isinstance(e, sqlite3.OperationalError) and ("locked" in str(e) or "busy" in str(e)):
+                # Troppe scritture insieme: il database ha fatto aspettare questa richiesta fino al limite. Non è un guasto: è il segno che
+                # il server è oltre quello che regge. A chi chiede si dice di riprovare, e nel registro resta una riga, non una pagina.
+                sys.stderr.write("server sovraccarico: una richiesta ha aspettato il database oltre il limite (%s %s)\n" % (method, self.path.split("?")[0]))
+                try:
+                    self._json(503, {"error": "Il server è molto carico in questo momento. Riprova tra qualche secondo."})
+                except Exception:
+                    pass
+                return
             traceback.print_exc()
             try:
-                self._json(500, {"error": "Errore interno del server. Il dettaglio è nel terminale del server."})
+                self._json(500, {"error": "Errore interno del server. Riprova; se continua, avvisa il gestore (il dettaglio è nel registro del server)."})
             except Exception:
                 pass
 
@@ -1081,6 +1099,16 @@ class Server(ThreadingHTTPServer):
     Con 256 le richieste aspettano il loro turno invece di cadere (misurato con 240 chat contemporanee)."""
     request_queue_size = 256
     daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        """Un cliente che chiude la connessione a metà (telefono senza rete, scheda chiusa) non è un errore del server: una riga, non una
+        pagina di codice. Così nel registro gli errori veri si vedono, invece di perdersi tra centinaia di questi."""
+        kind, error = sys.exc_info()[:2]
+        if kind is not None and issubclass(kind, (ConnectionError, TimeoutError)):
+            if config.get("SFB_QUIET") != "1":
+                sys.stderr.write("connessione chiusa dal cliente (%s)\n" % kind.__name__)
+            return
+        super().handle_error(request, client_address)
 
 
 def make_server(host, port):

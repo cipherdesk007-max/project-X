@@ -75,33 +75,35 @@ def _index(con, tenant_id, memory_id, pieces):
 def add_fact(con, tenant, user, text, proposed=False):
     text = re.sub(r"\s+", " ", _clean(text, MAX_FACT_CHARS, "Il fatto"))
     tid = tenant["id"]
-    if proposed:
-        pending = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND status='proposed'", (tid,)).fetchone()[0]
-        if pending >= MAX_PROPOSALS:
-            raise ApiError(409, "Ci sono già %d proposte in attesa: un amministratore deve prima esaminarle." % MAX_PROPOSALS)
-    else:
-        active = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND kind='fatto' AND status='active'", (tid,)).fetchone()[0]
-        if active >= MAX_FACTS:
-            raise ApiError(409, "La memoria contiene già %d fatti: toglierne qualcuno prima di aggiungerne." % MAX_FACTS)
-    cur = con.execute("INSERT INTO memory(tenant_id,kind,title,body,status,created_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)",
-                      (tid, "fatto", text[:80], text, "proposed" if proposed else "active", user["id"], db.now(), db.now()))
-    if not proposed:
-        _index(con, tid, cur.lastrowid, [text])
-    audit.record(con, tid, user["id"], "memoria_proposta" if proposed else "memoria_fatto_aggiunto", {"id": cur.lastrowid})
+    with db.transaction(con):  # contare e aggiungere insieme, così il limite tiene anche con richieste contemporanee
+        if proposed:
+            pending = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND status='proposed'", (tid,)).fetchone()[0]
+            if pending >= MAX_PROPOSALS:
+                raise ApiError(409, "Ci sono già %d proposte in attesa: un amministratore deve prima esaminarle." % MAX_PROPOSALS)
+        else:
+            active = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND kind='fatto' AND status='active'", (tid,)).fetchone()[0]
+            if active >= MAX_FACTS:
+                raise ApiError(409, "La memoria contiene già %d fatti: toglierne qualcuno prima di aggiungerne." % MAX_FACTS)
+        cur = con.execute("INSERT INTO memory(tenant_id,kind,title,body,status,created_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)",
+                          (tid, "fatto", text[:80], text, "proposed" if proposed else "active", user["id"], db.now(), db.now()))
+        if not proposed:
+            _index(con, tid, cur.lastrowid, [text])
+        audit.record(con, tid, user["id"], "memoria_proposta" if proposed else "memoria_fatto_aggiunto", {"id": cur.lastrowid})
     return cur.lastrowid
 
 
 def confirm(con, tenant, user, memory_id):
     tid = tenant["id"]
-    row = con.execute("SELECT * FROM memory WHERE id=? AND tenant_id=? AND status='proposed'", (memory_id, tid)).fetchone()
-    if not row:
-        raise ApiError(404, "Proposta non trovata.")
-    active = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND kind='fatto' AND status='active'", (tid,)).fetchone()[0]
-    if active >= MAX_FACTS:
-        raise ApiError(409, "La memoria contiene già %d fatti." % MAX_FACTS)
-    con.execute("UPDATE memory SET status='active', updated_at=? WHERE id=? AND tenant_id=?", (db.now(), memory_id, tid))
-    _index(con, tid, memory_id, [row["body"]])
-    audit.record(con, tid, user["id"], "memoria_proposta_confermata", {"id": memory_id})
+    with db.transaction(con):
+        row = con.execute("SELECT * FROM memory WHERE id=? AND tenant_id=? AND status='proposed'", (memory_id, tid)).fetchone()
+        if not row:
+            raise ApiError(404, "Proposta non trovata.")
+        active = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND kind='fatto' AND status='active'", (tid,)).fetchone()[0]
+        if active >= MAX_FACTS:
+            raise ApiError(409, "La memoria contiene già %d fatti." % MAX_FACTS)
+        con.execute("UPDATE memory SET status='active', updated_at=? WHERE id=? AND tenant_id=?", (db.now(), memory_id, tid))
+        _index(con, tid, memory_id, [row["body"]])
+        audit.record(con, tid, user["id"], "memoria_proposta_confermata", {"id": memory_id})
 
 
 def add_document(con, tenant, user, title, text):
@@ -109,15 +111,16 @@ def add_document(con, tenant, user, title, text):
     title = re.sub(r"\s+", " ", _clean(title, 150, "Il titolo"))
     text = _clean(text, MAX_DOC_CHARS, "Il documento")
     limit = catalog.limit(tenant["package_id"], "documenti")
-    have = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND kind='documento'", (tid,)).fetchone()[0]
-    if have >= limit:
-        raise ApiError(403, "Il pacchetto %s permette al massimo %d documenti in memoria." % (
-            catalog.package(tenant["package_id"])["name"], limit))
     pieces = split_chunks(text)
-    cur = con.execute("INSERT INTO memory(tenant_id,kind,title,body,status,created_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)",
-                      (tid, "documento", title, text, "active", user["id"], db.now(), db.now()))
-    _index(con, tid, cur.lastrowid, pieces)
-    audit.record(con, tid, user["id"], "memoria_documento_aggiunto", {"id": cur.lastrowid, "titolo": title, "pezzi": len(pieces)})
+    with db.transaction(con):  # contare e aggiungere insieme: il limite di documenti del pacchetto tiene anche con venti caricamenti nello stesso istante
+        have = con.execute("SELECT COUNT(*) FROM memory WHERE tenant_id=? AND kind='documento'", (tid,)).fetchone()[0]
+        if have >= limit:
+            raise ApiError(403, "Il pacchetto %s permette al massimo %d documenti in memoria." % (
+                catalog.package(tenant["package_id"])["name"], limit))
+        cur = con.execute("INSERT INTO memory(tenant_id,kind,title,body,status,created_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)",
+                          (tid, "documento", title, text, "active", user["id"], db.now(), db.now()))
+        _index(con, tid, cur.lastrowid, pieces)
+        audit.record(con, tid, user["id"], "memoria_documento_aggiunto", {"id": cur.lastrowid, "titolo": title, "pezzi": len(pieces)})
     return cur.lastrowid
 
 

@@ -76,16 +76,17 @@ def charge(con, tenant, user_id, model_id, tokens, tenant_keys=None):
     amount = cost(model_id, tokens)
     if amount <= 0:
         return 0
-    before = balance(con, tenant)
-    from_included = min(amount, before["included_left"])
-    con.execute("INSERT INTO credit_ledger(tenant_id,kind,amount,from_included,from_extra,model,note,period,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                (tenant["id"], "consumo", amount, from_included, amount - from_included, model_id, "", period(), user_id, db.now()))
-    after = before["available"] - amount
-    total = before["included"] + max(0, before["extra"])
-    if total and before["available"] > 0.2 * total >= after and after > 0:
-        news.add(con, tenant["id"], "consumi", "Crediti quasi finiti", "Resta meno di un quinto dei crediti. Quelli inclusi si ricaricano il %s." % "/".join(reversed(before["resets_on"].split("-"))))
-    elif before["available"] > 0 >= after:
-        news.add(con, tenant["id"], "consumi", "Crediti finiti", "Gli agenti che usano i modelli della piattaforma si fermano finché i crediti non si ricaricano o non ne compri altri.")
+    with db.transaction(con):  # leggere il saldo e scalare sono una cosa sola: due risposte insieme non usano due volte gli stessi crediti inclusi
+        before = balance(con, tenant)
+        from_included = min(amount, before["included_left"])
+        con.execute("INSERT INTO credit_ledger(tenant_id,kind,amount,from_included,from_extra,model,note,period,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                    (tenant["id"], "consumo", amount, from_included, amount - from_included, model_id, "", period(), user_id, db.now()))
+        after = before["available"] - amount
+        total = before["included"] + max(0, before["extra"])
+        if total and before["available"] > 0.2 * total >= after and after > 0:
+            news.add(con, tenant["id"], "consumi", "Crediti quasi finiti", "Resta meno di un quinto dei crediti. Quelli inclusi si ricaricano il %s." % "/".join(reversed(before["resets_on"].split("-"))))
+        elif before["available"] > 0 >= after:
+            news.add(con, tenant["id"], "consumi", "Crediti finiti", "Gli agenti che usano i modelli della piattaforma si fermano finché i crediti non si ricaricano o non ne compri altri.")
     return amount
 
 

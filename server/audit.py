@@ -22,8 +22,7 @@ def _hash(prev, tenant_id, user_id, action, detail_json, created_at):
 def record(con, tenant_id, user_id, action, detail=None):
     detail_json = json.dumps(detail or {}, ensure_ascii=False, sort_keys=True)
     created_at = db.now()
-    con.execute("BEGIN IMMEDIATE")
-    try:
+    with db.transaction(con):  # leggere l'ultima riga e scrivere la successiva devono essere una cosa sola, anche dentro un'operazione più grande
         row = con.execute(
             "SELECT hash FROM audit WHERE tenant_id=? ORDER BY id DESC LIMIT 1", (tenant_id,)
         ).fetchone()
@@ -33,10 +32,6 @@ def record(con, tenant_id, user_id, action, detail=None):
             "INSERT INTO audit(tenant_id,user_id,action,detail,created_at,prev_hash,hash) VALUES(?,?,?,?,?,?,?)",
             (tenant_id, user_id, action, detail_json, created_at, prev, h),
         )
-        con.execute("COMMIT")
-    except Exception:
-        con.execute("ROLLBACK")
-        raise
     return h
 
 

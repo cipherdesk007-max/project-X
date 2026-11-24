@@ -357,6 +357,7 @@ def dispatch(ctx, spec, args, place):
     cur = ctx.con.execute("INSERT INTO jobs(tenant_id,agent_id,tool,package,place,args,requested_by,created_at) VALUES(?,?,?,?,?,?,?,?)",
                           (ctx.tenant_id, spec["agent"], spec["name"], job["package"], place, json.dumps(payload, ensure_ascii=False), ctx.user["id"], db.now()))
     job_id = cur.lastrowid
+    ring(ctx.tenant_id)
     if job["kind"] == "sync":
         return wait(ctx.con, ctx.tenant_id, job_id, SYNC_WAIT)
     where = "sul computer dell'azienda" if place == "locale" else "sui nostri server"
@@ -364,15 +365,44 @@ def dispatch(ctx, spec, args, place):
     return "Lavoro n. %d messo in coda %s.%s Il risultato comparirà nell'Archivio Media e alla postazione dell'agente." % (job_id, where, hint)
 
 
+# ---------- campanello: chi aspetta viene svegliato, invece di chiedere al database cinque volte al secondo ----------
+# Con cento launcher in attesa, il vecchio giro (una lettura e una scrittura ogni 0,2 secondi a testa) erano cinquecento scritture
+# al secondo a vuoto. Ora chi aspetta dorme finché arriva qualcosa per la sua azienda; ricontrolla comunque ogni mezzo secondo.
+_bells, _bells_lock = {}, threading.Lock()
+NAP = 0.5
+
+
+def _bell(tenant_id):
+    with _bells_lock:
+        bell = _bells.get(tenant_id)
+        if bell is None:
+            bell = _bells[tenant_id] = threading.Condition()
+        return bell
+
+
+def ring(tenant_id):
+    """Sveglia chi aspetta per questa azienda: un launcher in attesa di lavoro, una chat in attesa del risultato."""
+    bell = _bell(tenant_id)
+    with bell:
+        bell.notify_all()
+
+
+def _doze(tenant_id, seconds=NAP):
+    bell = _bell(tenant_id)
+    with bell:
+        bell.wait(seconds)
+
+
 def wait(con, tenant_id, job_id, seconds):
     end = time.time() + seconds
+    ring(tenant_id)  # c'è un lavoro nuovo: il launcher in attesa lo prende subito
     while time.time() < end:
         row = con.execute("SELECT status, result FROM jobs WHERE id=? AND tenant_id=?", (job_id, tenant_id)).fetchone()
         if row["status"] == "fatto":
             return row["result"]
         if row["status"] == "errore":
             raise JobError(row["result"] or "Il lavoro sul computer non è riuscito.")
-        time.sleep(0.15)
+        _doze(tenant_id, min(NAP, max(0.01, end - time.time())))
     con.execute("UPDATE jobs SET status='errore', result=?, done_at=? WHERE id=? AND tenant_id=? AND status IN ('in_coda','in_corso')",
                 ("Il computer non ha risposto in tempo.", db.now(), job_id, tenant_id))
     raise JobError("Il computer dell'azienda non ha risposto in tempo.")
@@ -388,6 +418,12 @@ def llm_via_device(con, tenant, user, body):
         return json.loads(wait(con, tenant["id"], cur.lastrowid, MODEL_WAIT))
     except ValueError:
         raise JobError("Il modello locale ha dato una risposta non leggibile.")
+    finally:
+        # Questo lavoro è solo un trasporto: dentro ci sono la conversazione intera e la risposta. Finito il giro non serve più a nessuno,
+        # e lasciarlo farebbe crescere il database di decine di megabyte al giorno (oltre a tenere una seconda copia dei messaggi).
+        # Insieme si tolgono quelli rimasti da un'ora per uno spegnimento a metà.
+        con.execute("DELETE FROM jobs WHERE tool='llm_chat' AND (id=? OR (tenant_id=? AND created_at<?))",
+                    (cur.lastrowid, tenant["id"], time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 3600))))
 
 
 def _with_links(tenant_id, payload):
@@ -414,15 +450,20 @@ def claim(con, device, tenant, wait_seconds=0, alive=None):
     con.execute("UPDATE jobs SET status=CASE WHEN attempts>=? THEN 'errore' ELSE 'in_coda' END, device_id=NULL, "
                 "result=CASE WHEN attempts>=? THEN 'Il computer ha smesso di rispondere durante il lavoro.' ELSE result END "
                 "WHERE tenant_id=? AND place='locale' AND status='in_corso' AND claimed_at<?", (MAX_ATTEMPTS, MAX_ATTEMPTS, tid, int(time.time()) - STALE_JOB_SECONDS))
+    seen = 0
     while True:
         if con.execute("SELECT revoked FROM devices WHERE id=?", (device["id"],)).fetchone()["revoked"]:
             raise ApiError(401, "Questo computer non è collegato: serve un codice nuovo.")
         if alive and not alive():
             return None  # il launcher è stato chiuso mentre aspettava: il lavoro resta in coda per chi c'è
-        con.execute("UPDATE devices SET last_seen=? WHERE id=?", (int(time.time()), device["id"]))
+        if time.time() - seen >= 5:  # «visto adesso» si scrive ogni cinque secondi, non a ogni giro
+            seen = time.time()
+            con.execute("UPDATE devices SET last_seen=? WHERE id=?", (int(seen), device["id"]))
         if tenant.get("stopped") or con.execute("SELECT stopped FROM tenants WHERE id=?", (tid,)).fetchone()["stopped"]:
             return None  # arresto d'emergenza: i lavori restano in coda
-        for row in con.execute("SELECT * FROM jobs WHERE tenant_id=? AND place='locale' AND status='in_coda' ORDER BY id LIMIT 20", (tid,)):
+        # L'elenco va letto tutto PRIMA di scrivere: con la lettura ancora aperta, una scrittura fatta da un altro nel frattempo
+        # fa fallire questa all'istante («database is locked», senza attesa). Visto con cento aziende che lavorano insieme.
+        for row in con.execute("SELECT * FROM jobs WHERE tenant_id=? AND place='locale' AND status='in_coda' ORDER BY id LIMIT 20", (tid,)).fetchall():
             if row["package"] not in ok:
                 continue
             if con.execute("UPDATE jobs SET status='in_corso', device_id=?, claimed_at=?, attempts=attempts+1 WHERE id=? AND tenant_id=? AND status='in_coda' "
@@ -431,7 +472,7 @@ def claim(con, device, tenant, wait_seconds=0, alive=None):
                 return {"id": row["id"], "tool": row["tool"], "package": row["package"], "args": _with_links(tid, json.loads(row["args"]))}
         if time.time() >= end:
             return None
-        time.sleep(0.2)
+        _doze(tid, min(NAP, max(0.01, end - time.time())))
 
 
 def _mine(con, device, job_id):
@@ -469,6 +510,7 @@ def _finish(con, row, ok, text, asset_id=None):
     if done and row["tool"] != "llm_chat":
         audit.record(con, row["tenant_id"], row["requested_by"], "lavoro_finito",
                      {"id": row["id"], "strumento": row["tool"], "dove": row["place"], "esito": "ok" if ok else "errore"})
+    ring(row["tenant_id"])  # chi aspettava questo risultato lo legge subito
     if done and row["tool"] == "video_monta":
         news.add(con, row["tenant_id"], "video", "Video pronto (lavoro n. %d)" % row["id"] if ok else "Montaggio non riuscito (lavoro n. %d)" % row["id"],
                  str(text or "")[:400])

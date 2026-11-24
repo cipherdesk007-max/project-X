@@ -50,13 +50,16 @@ def send_mail(to, subject, text):
     connectors.smtp_send(smtp_cfg(), to, subject, text)
 
 
-def throttle(ip, what, per_hour):
-    """Conta ogni tentativo, riuscito o no. Oltre il limite: 429."""
+def throttle(ip, what, per_hour, count=True):
+    """Conta ogni tentativo, riuscito o no. Oltre il limite: 429. Con count=False controlla soltanto, senza contare:
+    serve dove devono pesare solo i tentativi sbagliati (un ufficio intero esce su Internet con lo stesso indirizzo)."""
     now, key = time.time(), (what, ip or "?")
     with _lock:
         recent = [t for t in _hits.get(key, []) if t > now - 3600]
         if len(recent) >= per_hour:
             raise ApiError(429, "Troppe richieste da questo indirizzo. Riprova tra un'ora.")
+        if not count:
+            return
         recent.append(now)
         _hits[key] = recent
         if len(_hits) > 5000:  # non crescere senza fine sotto attacco
@@ -145,28 +148,31 @@ def register(con, body, ip):
             raise ApiError(400, "Agente sconosciuto: %s." % a[:40])
         if a not in top:
             raise ApiError(403, "L'Agente %s non è disponibile alla registrazione." % catalog.agent(a)["name"])
-    since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 3600))
-    recent = con.execute("SELECT COUNT(*) FROM tenants WHERE origin='registrazione' AND created_at>=?", (since,)).fetchone()[0]
-    if recent >= config.get_int("SFB_REGISTER_PER_HOUR", 30):
-        raise ApiError(429, "Troppe registrazioni in questo momento. Riprova più tardi.")
-    existing = con.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
-    if existing:
-        _release_stale(con, dict(existing))
-    name = company
-    while name and con.execute("SELECT 1 FROM tenants WHERE name=?", (name,)).fetchone():
-        name = "%s (%s)" % (company, secrets.token_hex(2))  # i nomi uguali sono ammessi: non si rivela chi è già cliente
-    tenant_id = ops.create_tenant(con, name, pid, email, body.get("name"), body.get("password"), actor_id=None,
-                                  origin="registrazione", platform_keys=1 if config.get("SFB_REGISTER_PLATFORM_KEYS") == "1" else 0,
-                                  email_verified=0 if verify else 1, agents=set(agents))
-    con.execute("UPDATE tenants SET kind=?, activity=? WHERE id=?", (kind, activity, tenant_id))
-    trial = config.get_int("SFB_TRIAL_DAYS", 0)
-    if trial > 0:  # prova gratuita: l'azienda nasce con una scadenza, che il gestore sposta quando il cliente paga
-        con.execute("UPDATE tenants SET paid_until=?, on_trial=1 WHERE id=?",
-                    ((datetime.now(timezone.utc).date() + timedelta(days=min(trial, 3650))).isoformat(), tenant_id))
-    user = con.execute("SELECT * FROM users WHERE tenant_id=? ORDER BY id LIMIT 1", (tenant_id,)).fetchone()
-    audit.record(con, tenant_id, user["id"], "registrazione", {"agenti": sorted(agents), "verifica_email": verify})
-    if site.enabled():  # resta nel registro quale versione delle condizioni è stata accettata, e quando
-        audit.record(con, tenant_id, user["id"], "condizioni_accettate", {"versione": legal.VERSION})
+    # Azienda, amministratore, agenti e registro nascono insieme o per niente: uno spegnimento a metà non lascia un'azienda senza nessuno dentro,
+    # e il limite orario di registrazioni tiene anche se arrivano nello stesso istante.
+    with db.transaction(con):
+        since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 3600))
+        recent = con.execute("SELECT COUNT(*) FROM tenants WHERE origin='registrazione' AND created_at>=?", (since,)).fetchone()[0]
+        if recent >= config.get_int("SFB_REGISTER_PER_HOUR", 30):
+            raise ApiError(429, "Troppe registrazioni in questo momento. Riprova più tardi.")
+        existing = con.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+        if existing:
+            _release_stale(con, dict(existing))
+        name = company
+        while name and con.execute("SELECT 1 FROM tenants WHERE name=?", (name,)).fetchone():
+            name = "%s (%s)" % (company, secrets.token_hex(2))  # i nomi uguali sono ammessi: non si rivela chi è già cliente
+        tenant_id = ops.create_tenant(con, name, pid, email, body.get("name"), body.get("password"), actor_id=None,
+                                      origin="registrazione", platform_keys=1 if config.get("SFB_REGISTER_PLATFORM_KEYS") == "1" else 0,
+                                      email_verified=0 if verify else 1, agents=set(agents))
+        con.execute("UPDATE tenants SET kind=?, activity=? WHERE id=?", (kind, activity, tenant_id))
+        trial = config.get_int("SFB_TRIAL_DAYS", 0)
+        if trial > 0:  # prova gratuita: l'azienda nasce con una scadenza, che il gestore sposta quando il cliente paga
+            con.execute("UPDATE tenants SET paid_until=?, on_trial=1 WHERE id=?",
+                        ((datetime.now(timezone.utc).date() + timedelta(days=min(trial, 3650))).isoformat(), tenant_id))
+        user = con.execute("SELECT * FROM users WHERE tenant_id=? ORDER BY id LIMIT 1", (tenant_id,)).fetchone()
+        audit.record(con, tenant_id, user["id"], "registrazione", {"agenti": sorted(agents), "verifica_email": verify})
+        if site.enabled():  # resta nel registro quale versione delle condizioni è stata accettata, e quando
+            audit.record(con, tenant_id, user["id"], "condizioni_accettate", {"versione": legal.VERSION})
     if verify:
         return {"ok": True, "verify": True, "sent": _send_verification(con, user["id"], email)}
     return {"ok": True, "verify": False, "token": auth.create_session(con, user["id"])}

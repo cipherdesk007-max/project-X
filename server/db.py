@@ -1,6 +1,7 @@
 """Database SQLite. Ogni riga di dati aziendali porta tenant_id e ogni query lo filtra."""
 from __future__ import annotations
 
+import contextlib
 import os
 import sqlite3
 from datetime import datetime, timezone
@@ -116,6 +117,29 @@ def now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def durable(con):
+    """Per questa connessione ogni scrittura va sul disco prima di essere data per fatta. Più lento: solo dove serve (i pagamenti)."""
+    con.execute("PRAGMA synchronous=FULL")
+
+
+@contextlib.contextmanager
+def transaction(con):
+    """Tutto o niente. Dentro il blocco le scritture valgono solo se si arriva in fondo; se qualcosa si rompe (o il server viene
+    spento a metà) non ne resta nessuna. Serve dove si conta e poi si scrive (i limiti del pacchetto) e dove più scritture
+    stanno in piedi solo insieme (un pagamento ricevuto). Tiene fermo chi vuole scrivere: dentro niente rete e niente attese.
+    Se una transazione è già aperta su questa connessione, il blocco ne fa parte."""
+    if con.in_transaction:
+        yield con
+        return
+    con.execute("BEGIN IMMEDIATE")
+    try:
+        yield con
+    except BaseException:
+        con.execute("ROLLBACK")
+        raise
+    con.execute("COMMIT")
+
+
 def connect(path=None):
     """Una connessione per richiesta. Autocommit: le transazioni esplicite sono solo nel registro."""
     p = Path(path) if path else config.db_path()
@@ -126,6 +150,10 @@ def connect(path=None):
     con.execute("PRAGMA journal_mode=WAL")
     con.execute("PRAGMA foreign_keys=ON")
     con.execute("PRAGMA busy_timeout=15000")
+    # Con il registro WAL, «NORMAL» è la scelta consigliata da SQLite: il disco viene sincronizzato ai punti di controllo e non a ogni
+    # scrittura. Uno spegnimento del programma non perde niente e il database resta sempre integro; solo una mancanza di corrente può
+    # perdere le ultimissime scritture. Dove nemmeno quelle si possono perdere (un pagamento confermato a Stripe) si usa durable().
+    con.execute("PRAGMA synchronous=NORMAL")
     if new:
         try:
             os.chmod(str(p), 0o600)

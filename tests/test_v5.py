@@ -506,9 +506,9 @@ class V5(Base):
         self.assertTrue(seen and all(r["model"] == "llama3.1" for r in seen), "la richiesta è passata dal computer, con il suo modello")
         self.assertEqual([j for j in self.jobs(a) if j["tool"] == "llm_chat"], [], "le chiamate al modello non affollano l'elenco dei lavori")
         con = db.connect()
-        passed = con.execute("SELECT COUNT(*) FROM jobs j JOIN tenants t ON t.id=j.tenant_id WHERE t.name='Modello Locale' AND j.tool='llm_chat' AND j.status='fatto'").fetchone()[0]
+        left = con.execute("SELECT COUNT(*) FROM jobs j JOIN tenants t ON t.id=j.tenant_id WHERE t.name='Modello Locale' AND j.tool='llm_chat'").fetchone()[0]
         con.close()
-        self.assertEqual(passed, len(seen), "ogni richiesta al modello è stata un lavoro eseguito dal computer del cliente")
+        self.assertEqual(left, 0, "finito il giro, nel database non resta una seconda copia della conversazione passata dal computer del cliente")
         self.assertFalse(models(b)["locale"] and not config.demo_mode(), "l'altra azienda non usa il computer di questa")
         with self.assertRaises(Exception) as e:  # il pacchetto parla solo con questo stesso computer
             L.load_package("modello").llm_chat({"body": {}}, type("E", (), {"config": {"indirizzo": "http://esempio.it/v1"}})())

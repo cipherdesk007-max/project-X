@@ -103,17 +103,18 @@ def listing(con, tenant):
 
 def create(con, tenant, user, body):
     limit = catalog.limit(tenant["package_id"], "automazioni")
-    have = con.execute("SELECT COUNT(*) FROM automations WHERE tenant_id=?", (tenant["id"],)).fetchone()[0]
-    if have >= limit:
-        raise ApiError(403, "Il pacchetto %s permette al massimo %d lavori automatici." % (
-            catalog.package(tenant["package_id"])["name"], limit))
     c = _clean(con, tenant, body)
-    cur = con.execute(
-        "INSERT INTO automations(tenant_id,name,agent_id,model,prompt,kind,hour,minute,weekdays,every_minutes,next_run_at,created_by,created_at) "
-        "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        (tenant["id"], c["name"], c["agent_id"], c["model"], c["prompt"], c["kind"], c["hour"], c["minute"], c["weekdays"],
-         c["every_minutes"], next_run(c["kind"], c["hour"], c["minute"], c["weekdays"], c["every_minutes"]), user["id"], db.now()))
-    audit.record(con, tenant["id"], user["id"], "automazione_creata", {"id": cur.lastrowid, "nome": c["name"]})
+    with db.transaction(con):  # contare e aggiungere insieme: venti richieste nello stesso istante non superano il limite del pacchetto
+        have = con.execute("SELECT COUNT(*) FROM automations WHERE tenant_id=?", (tenant["id"],)).fetchone()[0]
+        if have >= limit:
+            raise ApiError(403, "Il pacchetto %s permette al massimo %d lavori automatici." % (
+                catalog.package(tenant["package_id"])["name"], limit))
+        cur = con.execute(
+            "INSERT INTO automations(tenant_id,name,agent_id,model,prompt,kind,hour,minute,weekdays,every_minutes,next_run_at,created_by,created_at) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (tenant["id"], c["name"], c["agent_id"], c["model"], c["prompt"], c["kind"], c["hour"], c["minute"], c["weekdays"],
+             c["every_minutes"], next_run(c["kind"], c["hour"], c["minute"], c["weekdays"], c["every_minutes"]), user["id"], db.now()))
+        audit.record(con, tenant["id"], user["id"], "automazione_creata", {"id": cur.lastrowid, "nome": c["name"]})
     return cur.lastrowid
 
 
@@ -143,20 +144,21 @@ def _get(con, tenant, automation_id):
 
 
 def update(con, tenant, user, automation_id, body):
-    row = _get(con, tenant, automation_id)
-    c = _clean(con, tenant, body, row)
-    active = int(bool(body["active"])) if "active" in body else row["active"]
-    limit = catalog.limit(tenant["package_id"], "automazioni")
-    if active and not row["active"] and _active(con, tenant["id"], automation_id) >= limit:
-        raise ApiError(403, "Il pacchetto %s permette al massimo %d lavori automatici attivi: mettine in pausa un altro prima." % (
-            catalog.package(tenant["package_id"])["name"], limit))
-    fail_count = 0 if (active and not row["active"]) else row["fail_count"]
-    con.execute(
-        "UPDATE automations SET name=?, agent_id=?, model=?, prompt=?, kind=?, hour=?, minute=?, weekdays=?, every_minutes=?, "
-        "active=?, fail_count=?, next_run_at=? WHERE id=? AND tenant_id=?",
-        (c["name"], c["agent_id"], c["model"], c["prompt"], c["kind"], c["hour"], c["minute"], c["weekdays"], c["every_minutes"],
-         active, fail_count, next_run(c["kind"], c["hour"], c["minute"], c["weekdays"], c["every_minutes"]), automation_id, tenant["id"]))
-    audit.record(con, tenant["id"], user["id"], "automazione_modificata", {"id": automation_id, "attiva": bool(active)})
+    with db.transaction(con):  # il conto dei lavori attivi e la riattivazione sono una cosa sola
+        row = _get(con, tenant, automation_id)
+        c = _clean(con, tenant, body, row)
+        active = int(bool(body["active"])) if "active" in body else row["active"]
+        limit = catalog.limit(tenant["package_id"], "automazioni")
+        if active and not row["active"] and _active(con, tenant["id"], automation_id) >= limit:
+            raise ApiError(403, "Il pacchetto %s permette al massimo %d lavori automatici attivi: mettine in pausa un altro prima." % (
+                catalog.package(tenant["package_id"])["name"], limit))
+        fail_count = 0 if (active and not row["active"]) else row["fail_count"]
+        con.execute(
+            "UPDATE automations SET name=?, agent_id=?, model=?, prompt=?, kind=?, hour=?, minute=?, weekdays=?, every_minutes=?, "
+            "active=?, fail_count=?, next_run_at=? WHERE id=? AND tenant_id=?",
+            (c["name"], c["agent_id"], c["model"], c["prompt"], c["kind"], c["hour"], c["minute"], c["weekdays"], c["every_minutes"],
+             active, fail_count, next_run(c["kind"], c["hour"], c["minute"], c["weekdays"], c["every_minutes"]), automation_id, tenant["id"]))
+        audit.record(con, tenant["id"], user["id"], "automazione_modificata", {"id": automation_id, "attiva": bool(active)})
 
 
 def delete(con, tenant, user, automation_id):
