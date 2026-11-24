@@ -243,10 +243,12 @@ def team_elenca_utenti(ctx, a):
 # ----- Collegamenti esterni -----
 def _mailbox(ctx):
     try:
-        return connectors.require(ctx.con, ctx.tenant_id, "email")
+        cfg = connectors.require(ctx.con, ctx.tenant_id, "email")
     except connectors.ConnectorError:
         raise ToolError("La posta non è collegata. Un amministratore collega Google (Gmail) oppure una casella "
                         "IMAP/SMTP nel Centro di controllo, scheda Collegamenti.")
+    connectors.check_mail_hosts("email", cfg)  # anche al momento dell'uso: il nome potrebbe puntare altrove rispetto a quando è stato salvato
+    return cfg
 
 
 def email_leggi_recenti(ctx, a):

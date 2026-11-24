@@ -32,6 +32,16 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 22: il sistema attaccato come farebbe un intruso
+
+- **Giro d'attacco** in `tests/test_v16.py`: le 73 rotte chiamate senza accesso, da operatore e da amministratore; la tabella di chi può fare cosa fissata nelle prove; ogni rotta che prende un numero provata con i dati di un'altra azienda; salita di grado; sessioni; forza bruta; intestazioni; richieste scritte male; richieste verso la rete interna. Permessi e separazione tra aziende hanno retto; quello che non reggeva è corretto qui sotto.
+- **Accessi**: prima cinque errori su una email chiudevano fuori anche il vero proprietario (chiunque poteva tenere bloccato il gestore) e non c'era limite per indirizzo. Ora tre conti: stessa email dallo stesso indirizzo (5 in 5 minuti), un indirizzo su qualunque email (30 in 10 minuti), una email da qualunque indirizzo (50 in 15 minuti).
+- **Richieste verso la rete interna**: la lettura delle pagine web si collega all'indirizzo già controllato (prima il nome veniva risolto due volte: un DNS malevolo poteva rispondere prima con un indirizzo pubblico e poi con uno interno); i server di posta scritti da un'azienda devono essere nomi pubblici.
+- **Intestazioni**: HTTPS ricordato al browser (HSTS) quando l'indirizzo pubblico è in HTTPS, niente fotocamera, microfono o posizione, pagina non apribile né caricabile da altri siti.
+- **Richieste scritte male**: JSON annidato, lunghezze e numeri impossibili davano un errore interno con traccia nel registro; ora un rifiuto ordinato. Niente più pagina d'errore predefinita di Python. Chi chiede solo le intestazioni (i servizi che controllano se il sito è su) riceve risposta.
+- **Servizio nel recinto**: `deploy/alvea.service` toglie privilegi, dispositivi, impostazioni del sistema e chiamate non necessarie; l'installazione attiva gli aggiornamenti di sicurezza automatici.
+- **Dati di un'azienda**: `manage.py esporta-azienda` e `cancella-azienda` (`server/tenantdata.py`), solo dal server.
+
 ## Novità della versione 21: installazione provata su macchine vere
 
 - `deploy/installa.sh` viene provato da zero su cinque sistemi (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13) dal giro «Installazione» di GitHub, su macchine minime con systemd, utente root, senza sudo e senza Python: servizio, HTTPS passando da Caddy, arresto brusco, copia di sicurezza, ripristino, seconda installazione, aggiornamento, riavvio della macchina. La prova è in `strumenti/prova_installazione.sh` e `.py`.
@@ -333,7 +343,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 191 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 203 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

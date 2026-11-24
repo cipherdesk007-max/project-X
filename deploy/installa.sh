@@ -48,6 +48,13 @@ if [ "$PROVA" = 0 ]; then
     for extra in ffmpeg git; do   # utili ma non indispensabili: se uno manca nel sistema lo dico e vado avanti
       apt-get install -y -qq "$extra" >/dev/null 2>&1 || echo "ATTENZIONE: non sono riuscito a installare «$extra» con apt."
     done
+    # Aggiornamenti di sicurezza del sistema, da soli ogni notte: un server lasciato senza resta scoperto alla prima falla nota.
+    if apt-get install -y -qq unattended-upgrades >/dev/null 2>&1; then
+      [ -f /etc/apt/apt.conf.d/20auto-upgrades ] || printf 'APT::Periodic::Update-Package-Lists "1";\nAPT::Periodic::Unattended-Upgrade "1";\n' > /etc/apt/apt.conf.d/20auto-upgrades
+      echo "Aggiornamenti di sicurezza del sistema: automatici."
+    else
+      echo "ATTENZIONE: non sono riuscito ad attivare gli aggiornamenti automatici di sicurezza (unattended-upgrades)."
+    fi
     if ! command -v caddy >/dev/null && ! apt-get install -y -qq caddy >/dev/null 2>&1; then
       # Su alcuni sistemi (per esempio Ubuntu 22.04) Caddy non è tra i programmi del sistema: lo prendo dall'archivio ufficiale di Caddy.
       echo "Caddy non è tra i programmi di questo sistema: lo installo dall'archivio ufficiale di Caddy."

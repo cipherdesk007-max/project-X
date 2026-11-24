@@ -82,6 +82,53 @@ def cmd_aziende(args):
     return 0
 
 
+def cmd_esporta(args):
+    from server import tenantdata
+    from server.errors import ApiError
+    con = _con()
+    try:
+        tenant = tenantdata.find(con, args.azienda)
+    except ApiError as e:
+        print(e.message)
+        return 1
+    out = tenantdata.export(con, tenant, args.file)
+    print("Esportata «%s» in %s: %d righe in %d tabelle, %d file." % (tenant["name"], args.file, sum(out["tabelle"].values()), len(out["tabelle"]), out["file"]))
+    print("L'archivio contiene dati dei clienti: consegnalo in modo sicuro e poi cancellalo dal server.")
+    return 0
+
+
+def cmd_cancella(args):
+    from server import tenantdata
+    from server.errors import ApiError
+    con = _con()
+    try:
+        tenant = tenantdata.find(con, args.azienda)
+    except ApiError as e:
+        print(e.message)
+        return 1
+    if args.conferma != tenant["name"]:
+        print("Per cancellare «%s» (numero %d) serve il suo nome esatto: --conferma \"%s\"" % (tenant["name"], tenant["id"], tenant["name"]))
+        return 1
+    if tenant.get("stripe_subscription"):
+        print("«%s» ha un abbonamento con carta ancora attivo: disdicilo prima su Stripe, altrimenti continuerebbe a pagare." % tenant["name"])
+        return 1
+    if not args.copia and not args.senza_copia:
+        print("Indica dove salvare una copia dei dati prima di cancellarli (--copia archivio.zip), oppure --senza-copia se non serve.")
+        return 1
+    if args.copia:
+        out = tenantdata.export(con, tenant, args.copia)
+        print("Copia dei dati in %s: %d righe, %d file." % (args.copia, sum(out["tabelle"].values()), out["file"]))
+    users = [r[0] for r in con.execute("SELECT id FROM users WHERE tenant_id=?", (tenant["id"],))]
+    removed = tenantdata.erase(con, tenant)
+    left = tenantdata.leftovers(con, tenant["id"], users)
+    print("Cancellata «%s»: %d righe tolte (%s) e i suoi file." % (tenant["name"], sum(removed.values()), ", ".join("%s %d" % kv for kv in sorted(removed.items()))))
+    if left:
+        print("ATTENZIONE: è rimasto qualcosa: %s" % left)
+        return 1
+    print("Nel database e tra i file non è rimasto niente. Le copie di sicurezza delle ultime notti la contengono ancora: spariscono da sole entro 14 giorni.")
+    return 0
+
+
 def cmd_pacchetto(args):
     ops.update_tenant(_con(), args.id, package_id=args.pacchetto)
     print("Pacchetto aggiornato.")
@@ -330,6 +377,16 @@ def main():
     s.add_argument("id", type=int)
     s.add_argument("pacchetto", choices=catalog.package_ids())
     s.set_defaults(fn=cmd_pacchetto)
+    s = sub.add_parser("esporta-azienda", help="scrive in un archivio .zip tutti i dati di un'azienda")
+    s.add_argument("azienda", help="numero o nome esatto (vedi «aziende»)")
+    s.add_argument("file", help="archivio .zip da creare")
+    s.set_defaults(fn=cmd_esporta)
+    s = sub.add_parser("cancella-azienda", help="cancella un'azienda e tutti i suoi dati: non si torna indietro")
+    s.add_argument("azienda", help="numero o nome esatto (vedi «aziende»)")
+    s.add_argument("--conferma", default="", help="il nome esatto dell'azienda, per non sbagliare")
+    s.add_argument("--copia", help="archivio .zip dove salvare i dati prima di cancellarli")
+    s.add_argument("--senza-copia", action="store_true", help="cancella senza salvare una copia")
+    s.set_defaults(fn=cmd_cancella)
     sub.add_parser("verifica-registro").set_defaults(fn=cmd_verifica)
     sub.add_parser("controlla-produzione", help="dice cosa manca prima di aprire il server ai clienti").set_defaults(fn=cmd_produzione)
     sub.add_parser("prova-modelli", help="manda una domanda vera a ogni modello configurato e dice se risponde").set_defaults(fn=cmd_modelli)

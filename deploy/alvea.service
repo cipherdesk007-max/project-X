@@ -17,6 +17,29 @@ ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
 ReadWritePaths=/opt/alvea/data /opt/alvea/storage
+# Se qualcuno riuscisse a far eseguire codice al servizio, da lì non deve poter toccare il resto del server:
+# niente privilegi, niente dispositivi, niente impostazioni del sistema, solo la rete che serve.
+# («systemd-analyze security alvea» dà il punteggio; la prova di installazione controlla che resti basso.)
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+RemoveIPC=true
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target

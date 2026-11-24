@@ -13,6 +13,8 @@ SESSION_SECONDS = 12 * 3600
 MIN_PASSWORD = 10
 MAX_FAILS = 5
 LOCK_SECONDS = 300
+IP_WINDOW = 600
+EMAIL_WINDOW = 900
 
 _fails = {}
 _fails_lock = threading.Lock()
@@ -46,25 +48,53 @@ def _token_hash(token):
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def locked(email):
+def _limit(name, default):
+    return max(1, config.get_int(name, default))
+
+
+def _recent(key, window, now):
+    kept = [t for t in _fails.get(key, ()) if t > now - window]
+    if kept:
+        _fails[key] = kept
+    else:
+        _fails.pop(key, None)
+    return len(kept)
+
+
+def locked(email, ip=None):
+    """Perché questo accesso è fermo per qualche minuto, oppure "" se può provare.
+    Tre conti separati, così chi sbaglia apposta la password di un altro non lo chiude fuori dal suo computer:
+    stessa email dallo stesso indirizzo (5 in 5 minuti), un indirizzo su qualunque email (30 in 10 minuti),
+    una email da qualunque indirizzo (50 in 15 minuti)."""
+    now = time.time()
     with _fails_lock:
-        count, until = _fails.get(email, (0, 0))
-        return until > time.time()
+        if _recent((email, ip), LOCK_SECONDS, now) >= MAX_FAILS or _recent(("email", email), EMAIL_WINDOW, now) >= _limit("SFB_LOGIN_PER_EMAIL", 50):
+            return "Troppi tentativi sbagliati. Riprova tra qualche minuto."
+        if _recent(("ip", ip), IP_WINDOW, now) >= _limit("SFB_LOGIN_PER_IP", 30):
+            return "Troppi tentativi sbagliati da questo indirizzo. Riprova tra qualche minuto."
+    return ""
 
 
-def note_failure(email):
+def note_failure(email, ip=None):
+    now = time.time()
     with _fails_lock:
-        count, until = _fails.get(email, (0, 0))
-        count += 1
-        if count >= MAX_FAILS:
-            _fails[email] = (0, time.time() + LOCK_SECONDS)
-        else:
-            _fails[email] = (count, until)
+        if len(_fails) > 50000:  # un'ondata di tentativi non deve riempire la memoria: si buttano i conti scaduti
+            for key in [k for k, v in _fails.items() if not v or v[-1] < now - EMAIL_WINDOW]:
+                del _fails[key]
+            if len(_fails) > 50000:
+                _fails.clear()
+        for key in ((email, ip), ("ip", ip), ("email", email)):
+            _fails.setdefault(key, []).append(now)
 
 
-def note_success(email):
+def note_success(email, ip=None):
     with _fails_lock:
-        _fails.pop(email, None)
+        _fails.pop((email, ip), None)
+
+
+def reset_fails():
+    with _fails_lock:
+        _fails.clear()
 
 
 def create_session(con, user_id):

@@ -141,6 +141,7 @@ def installa():
     atteso("Collaudo superato" in out, "Il collaudo finale passa")
     atteso("non sono riuscito a installare" not in out, "FFmpeg, git e Caddy installati%s" % (" (Caddy dal suo archivio ufficiale)" if "archivio ufficiale" in out else ""), [l for l in out.splitlines() if "non sono riuscito" in l])
     atteso("non punta ancora a nessun indirizzo" in out, "Avvisa che il nome del dominio non punta ancora al server")
+    atteso("Aggiornamenti di sicurezza del sistema: automatici." in out and os.path.isfile("/etc/apt/apt.conf.d/20auto-upgrades"), "Gli aggiornamenti di sicurezza del sistema sono automatici")
     atteso("manca il modulo «cryptography»" not in out and "manca ffmpeg" not in out, "Cifratura e FFmpeg presenti")
     atteso("Sul sito e nelle pagine legali mancano" in out, "Il controllo di produzione elenca quello che resta da fare")
 
@@ -157,6 +158,13 @@ def installa():
     env = open(".env").read()
     atteso("SFB_PUBLIC_URL=https://%s\n" % DOMINIO in env and "SFB_DEMO=0\n" in env and "SFB_TRUST_PROXY=1\n" in env and "SFB_SECRET_KEY=\n" not in env,
            "Il file .env ha indirizzo pubblico, proxy e chiave di cifratura")
+
+    code, out = sh("systemd-analyze security alvea --no-pager | tail -n 1")
+    words = out.replace("→", " ").split()
+    score = next((float(w) for w in words if w.replace(".", "", 1).isdigit()), 10.0)
+    atteso(score <= 3.5, "Il servizio è chiuso nel suo recinto: esposizione %.1f su 10 secondo systemd (senza protezioni sarebbe sopra 9)" % score, out)
+    status, heads, _ = http("GET", LOCALE + "/api/health")
+    atteso(heads.get("Strict-Transport-Security") == "max-age=31536000" and "camera=()" in heads.get("Permissions-Policy", ""), "Le risposte dicono al browser di usare sempre HTTPS", heads)
 
     passo("Uso: gestore, impostazioni cifrate, un'azienda, un file caricato")
     g = login(EMAIL)
@@ -180,6 +188,11 @@ def installa():
     payload = ("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"punto.png\"\r\nContent-Type: image/png\r\n\r\n" % boundary).encode() + png + ("\r\n--%s--\r\n" % boundary).encode()
     status, _, out = http("POST", LOCALE + "/api/files/upload", token=a, raw=payload, headers={"Content-Type": "multipart/form-data; boundary=" + boundary})
     atteso(status == 200, "Un file si carica nell'Archivio Media (il servizio può scrivere in storage/)", out)
+    status, _, out = http("POST", LOCALE + "/api/admin/console", {"command": "capacita"}, g)
+    atteso(status == 200 and "Memoria" in json.dumps(out, ensure_ascii=False), "La console del gestore lancia i suoi comandi anche dentro il recinto", out)
+    wrong = [http("POST", LOCALE + "/api/login", {"email": "qualcuno%d@esempio.it" % i, "password": "sbagliata"}, headers={"X-Forwarded-For": "203.0.113.77"})[0] for i in range(34)]
+    atteso(wrong[:30] == [401] * 30 and wrong[30:] == [429] * 4, "Dopo 30 password sbagliate da un indirizzo, quell'indirizzo viene fermato", wrong)
+    atteso(bool(login(EMAIL)), "Il gestore, dal suo indirizzo, entra lo stesso")
     status, _, page = http("GET", LOCALE + "/privacy")
     atteso(status == 200 and b"Alvea Prova S.r.l." in page, "Le pagine legali mostrano i dati scritti dal pannello")
 
@@ -240,6 +253,11 @@ def installa():
     atteso("riga della versione nuova" in open("LEGGIMI.md").read() and pid() != before, "La versione nuova è al suo posto e il servizio è ripartito")
     atteso(bool(login(EMAIL)) and bool(login(AZIENDA["admin_email"])) and hashlib.sha256(open(".env", "rb").read()).hexdigest() == digest, "Dati e impostazioni non sono stati toccati")
     atteso(len([c for c in os.listdir("/var/backups/alvea") if c.endswith(".db")]) == 2, "Prima di aggiornare ha fatto un'altra copia di sicurezza")
+    passo("Dati di un'azienda: esportazione e cancellazione")
+    code, out = sh("runuser -u alvea -- python3 manage.py esporta-azienda 'Prima Azienda' /tmp/prima-azienda.zip")
+    atteso(code == 0 and os.path.getsize("/tmp/prima-azienda.zip") > 500 and stat.S_IMODE(os.stat("/tmp/prima-azienda.zip").st_mode) == 0o600, "L'esportazione scrive un archivio che legge solo chi l'ha fatto", out)
+    code, out = sh("runuser -u alvea -- python3 manage.py cancella-azienda 'Prima Azienda' --conferma 'Prima Azienda' --senza-copia")
+    atteso(code == 0 and "non è rimasto niente" in out and login(AZIENDA["admin_email"]) is None and bool(login(EMAIL)), "La cancellazione toglie tutto e il resto continua a funzionare", out)
     code, out = sh("runuser -u alvea -- python3 manage.py verifica-registro")
     atteso(code == 0, "Il registro delle azioni è integro", out)
     return finale()
@@ -252,7 +270,7 @@ def riavvio():
     atteso(aspetta(lambda: attivo("caddy"), 60), "Caddy è ripartito da solo", sh("systemctl status caddy --no-pager")[1])
     certificato_di_prova()
     atteso(attivo("alvea-backup.timer"), "La copia di ogni notte è ancora programmata")
-    atteso(bool(login(EMAIL)) and bool(login(AZIENDA["admin_email"])), "Gestore e azienda entrano: i dati ci sono")
+    atteso(bool(login(EMAIL)), "Il gestore entra: i dati ci sono")
     atteso(aspetta(lambda: http("GET", "https://%s/api/health" % DOMINIO, insecure=True)[0] == 200, 40), "Passando da Caddy in HTTPS il server risponde")
     return finale()
 

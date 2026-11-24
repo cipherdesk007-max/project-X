@@ -194,7 +194,40 @@ sudo bash deploy/ripristina.sh /var/backups/alvea/alvea-20261124-033000.db    # 
 
 Una copia che resta sullo stesso server non ti salva se si rompe il server: una volta alla settimana **portala anche altrove** (un altro server, il tuo computer, uno spazio cloud). Contiene dati dei clienti e chiavi: tienila cifrata. Per metterla in un'altra cartella: `sudo -u alvea deploy/backup.sh /percorso/delle/copie`.
 
-## 10. Aggiornare
+### Dati di un'azienda: esportare e cancellare
+
+Quando un cliente chiede una copia dei suoi dati, o chiude il contratto e vuole che vengano cancellati (lo promettono le pagine legali):
+
+```sh
+cd /opt/alvea
+sudo -u alvea python3 manage.py aziende                                          # l'elenco, con i numeri
+sudo -u alvea python3 manage.py esporta-azienda "Nome Azienda" /tmp/nome-azienda.zip
+sudo -u alvea python3 manage.py cancella-azienda "Nome Azienda" --conferma "Nome Azienda" --copia /tmp/nome-azienda.zip
+```
+
+L'archivio contiene un file per tabella e i file caricati, senza password né chiavi dei collegamenti. La cancellazione toglie tutto: righe in ogni tabella, accessi aperti, file. Chiede il nome esatto, si rifiuta se c'è ancora un abbonamento con carta attivo (va disdetto prima su Stripe) e alla fine controlla che non sia rimasto niente. Le copie di sicurezza delle ultime notti contengono ancora quei dati: spariscono da sole entro 14 giorni. Questi due comandi esistono solo sul server, di proposito: nel pannello non c'è un pulsante per portare via o distruggere un'azienda.
+
+## 10. Sicurezza del server
+
+Quello che l'installazione fa da sola:
+
+- Alvea gira come utente senza privilegi (`alvea`), chiuso da systemd in un recinto: non vede le cartelle personali, non scrive fuori da `data/` e `storage/`, non ha accesso a dispositivi e impostazioni del sistema. `systemd-analyze security alvea` ne dà il punteggio.
+- Il programma ascolta solo in locale: da Internet si entra soltanto da Caddy, in HTTPS, e il browser viene istruito a non usare mai HTTP.
+- Gli aggiornamenti di sicurezza del sistema si installano da soli ogni notte.
+- Chiavi e password scritte dal pannello sono cifrate nel database; il file `.env` e le copie di sicurezza li legge solo `alvea`.
+- Troppi tentativi di accesso sbagliati fermano per qualche minuto quell'indirizzo, senza chiudere fuori il vero proprietario.
+
+Quello che devi fare tu, perché lo script non può deciderlo al posto tuo:
+
+- **Entra sulla VPS con una chiave SSH e spegni l'accesso con password** (`PasswordAuthentication no` in `/etc/ssh/sshd_config`, poi `systemctl restart ssh`). Prima controlla di riuscire a entrare con la chiave, altrimenti resti chiuso fuori. È la porta da cui entrano più spesso.
+- Nel pannello del fornitore della VPS apri solo le porte 22, 80 e 443.
+- Usa per il gestore una password lunga che non usi altrove: chi entra come gestore vede le impostazioni di tutta la piattaforma.
+- Sposta la chiave che firma i pacchetti fuori dal server (`controlla-produzione` te lo ricorda).
+- Porta le copie di sicurezza anche fuori dal server.
+
+Le prove automatiche attaccano il sistema a ogni modifica (`tests/test_v16.py`): ogni rotta con ogni grado di utente, i dati di un'azienda chiesti da un'altra, la salita di grado, le sessioni, la forza bruta, le richieste scritte male, le richieste verso la rete interna.
+
+## 11. Aggiornare
 
 ```sh
 cd /opt/alvea && sudo bash deploy/aggiorna.sh

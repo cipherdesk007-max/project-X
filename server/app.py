@@ -30,7 +30,18 @@ CSP = "; ".join([
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer",
     "Content-Security-Policy": CSP,
+    # la pagina non usa fotocamera, microfono, posizione né altro del dispositivo, e non si lascia aprire o caricare da altri siti
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+    "Cross-Origin-Opener-Policy": "same-origin", "Cross-Origin-Resource-Policy": "same-origin",
 }
+
+
+def security_headers():
+    """Con un indirizzo pubblico in HTTPS il browser deve ricordarsi di non usare mai più HTTP per questo sito."""
+    out = dict(SECURITY_HEADERS)
+    if config.get("SFB_PUBLIC_URL", "").startswith("https://"):
+        out["Strict-Transport-Security"] = "max-age=31536000"
+    return out
 
 _chat_times = {}
 _chat_lock = threading.Lock()
@@ -81,8 +92,10 @@ def r_login(q):
     global _dummy_hash
     email = str(q.body.get("email") or "").strip().lower()
     password = str(q.body.get("password") or "")
-    if auth.locked(email):
-        raise ApiError(429, "Troppi tentativi sbagliati. Riprova tra qualche minuto.")
+    email = email[:254]
+    stop = auth.locked(email, q.ip)
+    if stop:
+        raise ApiError(429, stop)
     row = q.con.execute("SELECT * FROM users WHERE email=? AND active=1", (email,)).fetchone()
     if row is None:
         if _dummy_hash is None:
@@ -94,9 +107,9 @@ def r_login(q):
         if ok and row["tenant_id"] is not None:
             ok = bool(q.con.execute("SELECT 1 FROM tenants WHERE id=? AND active=1", (row["tenant_id"],)).fetchone())
     if not ok:
-        auth.note_failure(email)
+        auth.note_failure(email, q.ip)
         raise ApiError(401, "Email o password non corretti.")
-    auth.note_success(email)
+    auth.note_success(email, q.ip)
     if not row["email_verified"]:
         raise ApiError(403, "Conferma prima il tuo indirizzo email: apri il collegamento che ti abbiamo mandato.")
     token = auth.create_session(q.con, row["id"])
@@ -835,7 +848,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Range", "bytes %d-%d/%d" % (start, end, size))
         self.send_header("Content-Disposition", "inline; filename*=UTF-8''" + urllib.parse.quote(row["original_name"]))
         self.send_header("Cache-Control", "private, max-age=600")
-        for k, v in SECURITY_HEADERS.items():
+        for k, v in security_headers().items():
             self.send_header(k, v)
         self.end_headers()
         left = end - start + 1
@@ -855,10 +868,20 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
-        for k, v in SECURITY_HEADERS.items():
+        for k, v in security_headers().items():
             self.send_header(k, v)
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != "HEAD":
+            self.wfile.write(body)
+
+    def send_error(self, code, message=None, explain=None):
+        """Gli errori che nascono prima delle nostre rotte (richiesta scritta male, metodo sconosciuto) escono come tutti gli altri:
+        JSON, con le intestazioni di sicurezza, senza la pagina predefinita di Python."""
+        try:
+            self.close_connection = True
+            self._json(code if isinstance(code, int) and 400 <= code < 600 else 400, {"error": "Richiesta non valida."})
+        except Exception:
+            pass
 
     def _json(self, status, obj):
         self._send(status, json.dumps(obj, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
@@ -896,7 +919,13 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, site.page(), entry[1])
                 return self._send(200, (config.WEB_DIR / entry[0]).read_bytes(), entry[1])
             body = {}
-            length = int(self.headers.get("Content-Length") or 0)
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                length = -1
+            if length < 0:
+                self.close_connection = True
+                return self._json(400, {"error": "Richiesta non valida."})
             if length > MAX_BODY:
                 # Se il corpo è poco oltre il limite lo si legge e lo si butta, così chi l'ha mandato riceve la risposta
                 # invece di una connessione interrotta. Oltre, si risponde e si chiude: quel che resta non viene mai interpretato.
@@ -912,7 +941,7 @@ class Handler(BaseHTTPRequestHandler):
             if length:
                 try:
                     body = json.loads(self.rfile.read(length).decode("utf-8"))
-                except ValueError:
+                except (ValueError, RecursionError):
                     return self._json(400, {"error": "Il corpo della richiesta non è JSON valido."})
                 if not isinstance(body, dict):
                     return self._json(400, {"error": "Il corpo della richiesta deve essere un oggetto JSON."})
@@ -932,6 +961,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json(e.status, {"error": e.message})
         except (BrokenPipeError, ConnectionResetError):
             pass
+        except OverflowError:  # un numero più grande di quelli che il database sa tenere
+            self._json(400, {"error": "Numero troppo grande."})
         except Exception:
             traceback.print_exc()
             try:
@@ -950,6 +981,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         self._dispatch("DELETE")
+
+    def do_HEAD(self):
+        """I controlli di raggiungibilità chiedono spesso solo le intestazioni: valgono per le pagine e per /api/health."""
+        if self.path.startswith("/api/") and self.path.split("?")[0] != "/api/health":
+            return self._json(405, {"error": "Metodo non ammesso."})
+        self._dispatch("GET")
+
+    def _refuse(self):
+        self._json(405, {"error": "Metodo non ammesso."})
+
+    do_OPTIONS = do_PATCH = do_TRACE = do_CONNECT = _refuse
 
 
 class Server(ThreadingHTTPServer):

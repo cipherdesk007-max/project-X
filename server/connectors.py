@@ -9,6 +9,7 @@ import email as email_lib
 import email.policy
 import html
 import imaplib
+import http.client
 import ipaddress
 import json
 import re
@@ -129,6 +130,7 @@ def save(con, tenant_id, name, values):
                 cfg.pop(key, None)
             continue  # un segreto lasciato vuoto resta quello salvato
         cfg[key] = v
+    check_mail_hosts(name, cfg)
     blob = json.dumps(cfg, ensure_ascii=False)
     f = _fernet()
     stored, enc = (f.encrypt(blob.encode("utf-8")).decode("ascii"), 1) if f else (blob, 0)
@@ -216,47 +218,97 @@ def http_json(method, url, headers=None, body=None, timeout=30, form=None):
         raise ConnectorError("Il servizio ha dato una risposta non leggibile.")
 
 
-def _check_public_host(host):
+def check_mail_hosts(name, cfg):
+    """I server di posta li scrive l'azienda: devono essere nomi veri su Internet, non indirizzi interni di questo server
+    o della sua rete (altrimenti il collegamento di posta diventerebbe un modo per esplorarla)."""
+    if name != "email":
+        return
+    for key in ("imap_host", "smtp_host"):
+        host = str(cfg.get(key) or "")
+        if host:
+            if not re.fullmatch(r"[A-Za-z0-9]([A-Za-z0-9.-]{0,251}[A-Za-z0-9])?", host):
+                raise ConnectorError("«%s» non è il nome di un server di posta (per esempio imap.tuodominio.it)." % host[:80])
+            try:
+                _public_ip(host)
+            except ConnectorError as e:
+                raise ConnectorError("Server di posta «%s»: %s" % (host[:80], e))
+    for key in ("imap_port", "smtp_port"):
+        port = str(cfg.get(key) or "")
+        if port and not (port.isdigit() and 0 < int(port) < 65536):
+            raise ConnectorError("La porta «%s» non è valida." % port[:10])
+
+
+def _public_ip(host):
+    """Risolve il nome una volta sola e ritorna un indirizzo pubblico. Rifiuta reti interne e riservate."""
+    if config.get("SFB_ALLOW_PRIVATE_HOSTS") == "1":  # solo per provare in locale: mai in produzione
+        return host
     try:
-        infos = socket.getaddrinfo(host, None)
+        infos = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
     except (socket.gaierror, UnicodeError):
         raise ConnectorError("Indirizzo non trovato.")
-    for info in infos:
-        ip = ipaddress.ip_address(info[4][0].split("%")[0])
-        if not ip.is_global:
-            raise ConnectorError("Indirizzo non consentito: rete interna o riservata.")
+    ips = [ipaddress.ip_address(info[4][0].split("%")[0]) for info in infos]
+    if not ips or any(not ip.is_global for ip in ips):
+        raise ConnectorError("Indirizzo non consentito: rete interna o riservata.")
+    return str(ips[0])
 
 
-class _NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        return None
+def _check_public_host(host):
+    _public_ip(host)
+
+
+class _PinnedHTTP(http.client.HTTPConnection):
+    """Si collega all'indirizzo già controllato. Senza questo il nome verrebbe risolto una seconda volta al momento del
+    collegamento, e chi controlla il DNS potrebbe rispondere prima con un indirizzo pubblico e poi con uno interno."""
+    pinned = None
+
+    def connect(self):
+        self.sock = socket.create_connection((self.pinned, self.port), self.timeout)
+
+
+class _PinnedHTTPS(http.client.HTTPSConnection):
+    pinned = None
+
+    def connect(self):
+        sock = socket.create_connection((self.pinned, self.port), self.timeout)
+        self.sock = ssl.create_default_context().wrap_socket(sock, server_hostname=self.host)
 
 
 def fetch_page(url, max_bytes=1000000):
     """Scarica una pagina pubblica. Rifiuta reti interne e ricontrolla ogni reindirizzamento."""
     for _ in range(4):
         parts = urllib.parse.urlsplit(url)
-        if parts.scheme not in ("http", "https") or not parts.hostname:
+        if parts.scheme not in ("http", "https") or not parts.hostname or parts.username or parts.password:
             raise ConnectorError("Sono ammessi solo indirizzi http o https.")
-        _check_public_host(parts.hostname)
-        opener = urllib.request.build_opener(_NoRedirect)
-        req = urllib.request.Request(url, headers={"User-Agent": "Alvea/1.0", "Accept": "text/html,text/plain"})
         try:
-            with opener.open(req, timeout=20) as r:
-                charset = r.headers.get_content_charset() or "utf-8"
-                raw = r.read(max_bytes)
+            port = parts.port
+        except ValueError:
+            raise ConnectorError("Indirizzo non valido.")
+        pinned = _public_ip(parts.hostname)  # prima il controllo, poi il collegamento
+        try:
+            conn = (_PinnedHTTPS if parts.scheme == "https" else _PinnedHTTP)("[%s]" % parts.hostname if ":" in parts.hostname else parts.hostname, port, timeout=20)
+        except http.client.InvalidURL:
+            raise ConnectorError("Indirizzo non valido.")
+        conn.pinned = pinned
+        try:
+            conn.request("GET", (parts.path or "/") + ("?" + parts.query if parts.query else ""),
+                         headers={"User-Agent": "Alvea/1.0", "Accept": "text/html,text/plain"})
+            r = conn.getresponse()
+            location = r.getheader("Location")
+            if r.status in (301, 302, 303, 307, 308) and location:
+                url = urllib.parse.urljoin(url, location)
+                continue
+            if r.status >= 400:
+                raise ConnectorError("La pagina ha risposto %d." % r.status)
+            charset = r.headers.get_content_charset() or "utf-8"
+            raw = r.read(max_bytes)
             try:
                 return raw.decode(charset, "replace")
             except LookupError:
                 return raw.decode("utf-8", "replace")
-        except urllib.error.HTTPError as e:
-            location = e.headers.get("Location") if e.headers else None
-            if e.code in (301, 302, 303, 307, 308) and location:
-                url = urllib.parse.urljoin(url, location)
-                continue
-            raise ConnectorError("La pagina ha risposto %d." % e.code)
-        except (urllib.error.URLError, socket.timeout, OSError) as e:
+        except (http.client.HTTPException, socket.timeout, OSError) as e:
             raise ConnectorError("Pagina non raggiungibile: %s" % getattr(e, "reason", e))
+        finally:
+            conn.close()
     raise ConnectorError("Troppi reindirizzamenti.")
 
 

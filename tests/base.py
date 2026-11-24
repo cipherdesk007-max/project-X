@@ -24,6 +24,7 @@ os.environ.update({"SFB_DB": str(Path(_tmp.name) / "test.db"), "SFB_DEMO": "1", 
                    "GOOGLE_CLIENT_ID": "id-prova", "GOOGLE_CLIENT_SECRET": "segreto-prova",
                    "SFB_ALLOW_PLAINTEXT_TOKENS": "1", "SFB_STORAGE": str(Path(_tmp.name) / "storage"),
                    "SFB_REGISTER_PER_IP_HOUR": "100000", "SFB_REGISTER_PER_HOUR": "100000", "SFB_REGISTRATION": "aperta",
+                   "SFB_LOGIN_PER_IP": "100000", "SFB_LOGIN_PER_EMAIL": "100000",
                    "SFB_SMTP_HOST": "", "SFB_REGISTER_PLATFORM_KEYS": "0", "SFB_REGISTER_PACKAGE": "completo",
                    "SFB_DEMO_DELAY_MS": "0", "SFB_CLOUD_RUNNER": "0", "OLLAMA_BASE_URL": "", "SEARXNG_URL": "", "SFB_TRIAL_DAYS": "0"})
 

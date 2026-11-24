@@ -435,10 +435,18 @@ def _mine(con, device, job_id):
     return row
 
 
+def _pct(value):
+    """Avanzamento da 0 a 99, qualunque cosa mandi il computer."""
+    try:
+        return max(0, min(int(value or 0), 99))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
 def progress(con, device, job_id, pct, note=""):
     _mine(con, device, job_id)
     con.execute("UPDATE jobs SET progress=?, note=?, claimed_at=? WHERE id=? AND tenant_id=?",
-                (max(0, min(int(pct or 0), 99)), str(note or "")[:120], int(time.time()), job_id, device["tenant_id"]))
+                (_pct(pct), str(note or "")[:120], int(time.time()), job_id, device["tenant_id"]))
     return {"ok": True}
 
 
