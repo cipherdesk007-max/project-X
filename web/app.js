@@ -171,7 +171,7 @@
   function paintFirstSteps() {
     var slot = document.getElementById("firstStepsSlot");
     if (!slot) return;
-    var key = S.sum && S.sum.first_steps ? S.sum.first_steps.map(function (s) { return s.id + (s.done ? "1" : "0") + s.text; }).join("|") : "";
+    var key = S.sum && S.sum.first_steps ? S.sum.first_steps.map(function (s) { return s.id + (s.done ? "1" : "0") + s.text; }).join("|") + (S.sum.tries || []).join("|") : "";
     if (slot.getAttribute("data-key") === key) return;
     slot.setAttribute("data-key", key);
     slot.textContent = "";
@@ -187,7 +187,7 @@
     try { closed = window.localStorage.getItem(stepsKey()) === "chiusi"; } catch (e) { closed = false; }
     if (!steps || closed || steps.every(function (s) { return s.done; })) return null;
     var done = steps.filter(function (s) { return s.done; }).length;
-    var tries = ["Scrivimi un post per presentare la mia attività", "Prepara una risposta gentile a un cliente che chiede uno sconto", "Fammi un piano di lavoro per questa settimana"];
+    var tries = S.sum.tries && S.sum.tries.length ? S.sum.tries : ["Scrivimi un post per presentare la mia attività", "Prepara una risposta gentile a un cliente che chiede uno sconto", "Fammi un piano di lavoro per questa settimana"];
     return el("section", { class: "firststeps", id: "firstSteps", "aria-label": "Primi passi" },
       el("header", {}, el("h2", { text: "Primi passi" }), el("span", { class: "meta", text: done + " di " + steps.length + " fatti" }),
         el("button", { class: "btn small", type: "button", text: "Chiudi", "aria-label": "Chiudi i primi passi", onclick: function () {
@@ -314,12 +314,30 @@
         el("span", {}, el("strong", { text: a.name }), el("small", { class: "plain", text: a.does })));
     }));
     var send = el("button", { class: "btn primary", type: "submit", text: S.regKind === "persona" ? "Crea il mio spazio" : "Crea l'azienda" });
+    var kinds = S.reg.activities || [], actNote = el("small", { class: "plain", id: "reg_activity_note", role: "status" });
+    var actSel = el("select", { id: "reg_activity", onchange: function () {  // scelta l'attività, si accendono gli agenti più utili: restano modificabili
+      var a = kinds.filter(function (x) { return x.id === actSel.value; })[0];
+      S.regActivity = actSel.value;
+      if (!a) { actNote.textContent = ""; return; }
+      S.reg.agents.forEach(function (g) { var box = document.getElementById("reg_a_" + g.id); if (box) box.checked = a.agents.indexOf(g.id) !== -1; });
+      actNote.textContent = "Abbiamo acceso gli agenti più utili per questa attività: puoi cambiarli qui sotto.";
+    } });
+    function fillActivities() {  // l'elenco dipende da «Per chi è»
+      var who = S.regKind || "azienda";
+      actSel.textContent = "";
+      append(actSel, el("option", { value: "", text: "Scegli (facoltativo)" }));
+      kinds.filter(function (a) { return a["for"] === "tutti" || a["for"] === who; }).forEach(function (a) {
+        append(actSel, el("option", { value: a.id, selected: a.id === S.regActivity, text: a.name }));
+      });
+      if (actSel.value !== (S.regActivity || "")) { S.regActivity = ""; actNote.textContent = ""; }
+    }
+    fillActivities();
     return el("form", { class: "login wide", autocomplete: "on", onsubmit: function (e) {
       e.preventDefault();
       err.textContent = ""; send.disabled = true;
       var agents = S.reg.agents.filter(function (a) { return document.getElementById("reg_a_" + a.id).checked; }).map(function (a) { return a.id; });
       S.lastEmail = val("reg_email");
-      api("POST", "/register", { kind: S.regKind || "azienda", company: S.regKind === "persona" ? "" : val("reg_company"), name: val("reg_name"), email: val("reg_email"), password: val("reg_password"),
+      api("POST", "/register", { kind: S.regKind || "azienda", activity: val("reg_activity"), company: S.regKind === "persona" ? "" : val("reg_company"), name: val("reg_name"), email: val("reg_email"), password: val("reg_password"),
                                  website: val("reg_website"), agents: agents, accept: !S.reg.terms || document.getElementById("reg_accept").checked })
         .then(function (out) {
           if (out.token) { setToken(out.token); S.auth = "login"; return loadMe(); }
@@ -343,10 +361,12 @@
               document.getElementById("reg_kind_azienda").setAttribute("aria-pressed", String(!solo));
               document.getElementById("reg_kind_persona").setAttribute("aria-pressed", String(solo));
               send.textContent = solo ? "Crea il mio spazio" : "Crea l'azienda";
+              fillActivities();
             } });
           }))),
         el("div", { class: "field", id: "reg_company_box", hidden: S.regKind === "persona" }, el("label", { for: "reg_company", text: "Nome dell'azienda" }),
           el("input", { id: "reg_company", required: S.regKind !== "persona", maxlength: "120", autocomplete: "organization" })),
+        kinds.length ? el("div", { class: "field" }, el("label", { for: "reg_activity", text: "Di cosa ti occupi" }), actSel, actNote) : null,
         field("Il tuo nome", "reg_name", { required: true, maxlength: "120", autocomplete: "name" }),
         field("Email", "reg_email", { type: "email", required: true, autocomplete: "username" }),
         field("Password (almeno 10 caratteri)", "reg_password", { type: "password", required: true, minlength: "10", autocomplete: "new-password" }),
@@ -1098,9 +1118,28 @@
               onclick: function () { toggleAgent(a.agent_id, !a.is_active, err); } })));
       });
       var on = out.agents.filter(function (a) { return a.is_active; }).length, can = out.agents.filter(function (a) { return a.in_ceiling; }).length;
-      return el("div", { class: "panel" }, el("h2", { text: "Agenti del team" }),
+      var who = S.me.tenant.kind === "persona" ? "persona" : "azienda", actOk = el("p", { class: "okmsg", role: "status" });
+      var choices = (cat().activities || []).filter(function (a) { return a["for"] === "tutti" || a["for"] === who || a.id === S.me.tenant.activity; });
+      var kindPanel = choices.length ? el("div", { class: "panel" }, el("h2", { text: "Tipo di attività" }),
+        el("p", { text: "Dice agli agenti con chi stanno lavorando, così rispondono nel modo giusto per il tuo mestiere." }),
+        el("form", { class: "form row", onsubmit: function (e) {
+          e.preventDefault(); err.textContent = ""; actOk.textContent = "";
+          api("POST", "/tenant/activity", { activity: val("activitySel"), turn_on: document.getElementById("activityOn").checked }).then(function (r) {
+            S.me.tenant.activity = r.activity;
+            var msg = "Salvato." + (r.turned_on.length ? " Accesi: " + r.turned_on.join(", ") + "." : "") + (typeof r.price === "number" ? " Nuovo prezzo dell'abbonamento: " + r.price + " € al mese." : "");
+            return (r.turned_on.length ? api("GET", "/me").then(function (me) { S.me = me; }) : Promise.resolve()).then(function () { S.actMsg = msg; refreshPending(); render(); });
+          }).catch(function (x) { err.textContent = x.message; });
+        } },
+          el("div", { class: "field" }, el("label", { for: "activitySel", text: "Di cosa ti occupi" }), el("select", { id: "activitySel" },
+            el("option", { value: "", text: "Non indicato" }), choices.map(function (a) { return el("option", { value: a.id, selected: a.id === S.me.tenant.activity, text: a.name }); }))),
+          el("label", { class: "check" }, el("input", { type: "checkbox", id: "activityOn" }),
+            el("span", {}, "Accendi anche gli agenti consigliati", out.per_agent ? el("small", { text: "Ogni agente acceso in più costa " + out.per_agent + " € al mese." }) : null)),
+          el("button", { class: "btn small primary", type: "submit", id: "activityBtn", text: "Salva" })),
+        S.actMsg ? el("p", { class: "okmsg", role: "status", id: "activityMsg", text: S.actMsg }) : null, actOk) : null;
+      S.actMsg = "";
+      return [kindPanel, el("div", { class: "panel" }, el("h2", { text: "Agenti del team" }),
         el("p", { text: (out.per_agent ? "Ogni agente acceso costa " + out.per_agent + " € al mese in più" + (out.subscribed ? ": accenderne o spegnerne uno cambia subito il prezzo dell'abbonamento. " : ". ") : "") + "Accendi solo gli agenti che ti servono: " + on + " attivi su " + can + " disponibili con il pacchetto " + out.package_name + ". Un agente spento non risponde, non riceve strumenti e non esegue azioni, nemmeno quelle già in attesa." }),
-        err, items);
+        err, items)];
     });
   }
   /* Scheda Computer: launcher, computer collegati con la loro verifica, dove gira ogni agente, lavori. */

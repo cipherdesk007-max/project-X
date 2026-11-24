@@ -1,5 +1,5 @@
 {
- "schema_version": 7,
+ "schema_version": 8,
  "models": [
   {
    "id": "kimi",
@@ -83,6 +83,306 @@
     "documenti": 500,
     "archivio_mb": 20000
    }
+  }
+ ],
+ "activities": [
+  {
+   "id": "negozio",
+   "name": "Negozio o vendita online",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "contenuti",
+    "assistenza",
+    "report",
+    "recensioni",
+    "facebook",
+    "marketing",
+    "shopify",
+    "instagram"
+   ],
+   "context": "Vende prodotti a clienti privati, in negozio oppure online. Contano le schede prodotto chiare, le risposte veloci ai clienti, le promozioni e le recensioni.",
+   "tries": [
+    "Scrivi la scheda di un prodotto partendo da queste caratteristiche: ",
+    "Prepara la risposta a un cliente che chiede dov'è il suo ordine",
+    "Proponimi tre promozioni per il prossimo mese"
+   ]
+  },
+  {
+   "id": "ristorazione",
+   "name": "Ristorante, bar o locale",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "calendario",
+    "contenuti",
+    "assistenza",
+    "traduzioni",
+    "recensioni",
+    "facebook",
+    "instagram"
+   ],
+   "context": "È un locale che serve cibo o bevande. Contano le prenotazioni, il menù (anche tradotto per i turisti), gli eventi e le risposte alle recensioni.",
+   "tries": [
+    "Rispondi con garbo a questa recensione negativa: ",
+    "Traduci il menù in inglese e tedesco",
+    "Scrivi un post per la serata di sabato"
+   ]
+  },
+  {
+   "id": "studio",
+   "name": "Studio professionale",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "calendario",
+    "ricerca",
+    "personale",
+    "amministrazione",
+    "contratti",
+    "ascolto",
+    "linkedin"
+   ],
+   "context": "È uno studio di professionisti (per esempio avvocati, commercialisti, consulenti, architetti). Contano la precisione, il tono formale, le scadenze e la riservatezza. Le bozze di documenti vanno sempre riviste da un professionista dello studio.",
+   "tries": [
+    "Prepara una lettera formale a un cliente per ricordare una scadenza",
+    "Riassumi in cinque punti questo documento: ",
+    "Scrivi il verbale di questa riunione: "
+   ]
+  },
+  {
+   "id": "artigiano",
+   "name": "Artigiano, impresa o installatore",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "calendario",
+    "assistenza",
+    "personale",
+    "amministrazione",
+    "recensioni",
+    "facebook",
+    "whatsapp"
+   ],
+   "context": "Fa lavori su misura o interventi presso i clienti (per esempio idraulico, elettricista, impresa edile, falegname). Contano i preventivi chiari, gli appuntamenti, i solleciti di pagamento e il passaparola.",
+   "tries": [
+    "Prepara un preventivo per questo lavoro: ",
+    "Scrivi un sollecito gentile per una fattura non pagata",
+    "Fissa un appuntamento per un sopralluogo"
+   ]
+  },
+  {
+   "id": "auto",
+   "name": "Auto e moto: concessionaria, autosalone, officina",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "calendario",
+    "contenuti",
+    "assistenza",
+    "crm",
+    "recensioni",
+    "facebook",
+    "marketing",
+    "instagram",
+    "whatsapp"
+   ],
+   "context": "Vende o ripara veicoli. Contano gli annunci completi e onesti (anno, chilometri, allestimento, stato), le risposte rapide a chi chiede informazioni, gli appuntamenti per le prove e il seguito dei contatti.",
+   "tries": [
+    "Scrivi l'annuncio di questa auto: ",
+    "Rispondi a chi chiede se il prezzo è trattabile",
+    "Elenca i contatti da richiamare questa settimana"
+   ]
+  },
+  {
+   "id": "immobiliare",
+   "name": "Agenzia immobiliare",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "calendario",
+    "contenuti",
+    "ricerca",
+    "crm",
+    "recensioni",
+    "facebook",
+    "instagram",
+    "contratti"
+   ],
+   "context": "Vende o affitta immobili. Contano gli annunci precisi (metratura, zona, classe energetica, stato), le visite, il seguito dei contatti e i documenti da far controllare a chi ne ha titolo.",
+   "tries": [
+    "Scrivi l'annuncio di questo appartamento: ",
+    "Prepara il messaggio per confermare una visita",
+    "Elenca i contatti che non sento da un mese"
+   ]
+  },
+  {
+   "id": "salute",
+   "name": "Salute e benessere: studio, palestra, centro estetico",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "calendario",
+    "contenuti",
+    "assistenza",
+    "recensioni",
+    "facebook",
+    "instagram",
+    "whatsapp"
+   ],
+   "context": "Offre servizi alla persona su appuntamento. Contano le prenotazioni, i promemoria, il tono rassicurante e le recensioni. Non dare mai consigli medici né diagnosi: per quelli rimanda al professionista.",
+   "tries": [
+    "Scrivi il promemoria per gli appuntamenti di domani",
+    "Prepara un post sugli orari di questo mese",
+    "Rispondi a chi chiede informazioni e prezzi"
+   ]
+  },
+  {
+   "id": "turismo",
+   "name": "Hotel, B&B o attività turistica",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "calendario",
+    "contenuti",
+    "assistenza",
+    "traduzioni",
+    "recensioni",
+    "facebook",
+    "instagram"
+   ],
+   "context": "Ospita o accompagna viaggiatori, spesso stranieri. Contano le risposte rapide in più lingue, le prenotazioni, le informazioni pratiche e le recensioni.",
+   "tries": [
+    "Rispondi in inglese a questa richiesta di disponibilità: ",
+    "Scrivi le informazioni di arrivo per gli ospiti",
+    "Rispondi a questa recensione: "
+   ]
+  },
+  {
+   "id": "agenzia",
+   "name": "Agenzia di marketing o comunicazione",
+   "for": "azienda",
+   "agents": [
+    "contenuti",
+    "ricerca",
+    "report",
+    "marketing",
+    "seo",
+    "facebook",
+    "video",
+    "instagram",
+    "linkedin",
+    "tiktok",
+    "youtube"
+   ],
+   "context": "Produce contenuti e campagne per altri clienti. Contano i piani editoriali, i testi per ogni canale, i video brevi e i resoconti per il cliente.",
+   "tries": [
+    "Prepara il piano editoriale di un mese per questo cliente: ",
+    "Scrivi tre varianti di un annuncio",
+    "Fammi il resoconto delle attività della settimana"
+   ]
+  },
+  {
+   "id": "software",
+   "name": "Software e tecnologia",
+   "for": "azienda",
+   "agents": [
+    "email",
+    "ricerca",
+    "report",
+    "contenuti",
+    "assistenza",
+    "dev",
+    "linkedin"
+   ],
+   "context": "Sviluppa o vende software e servizi digitali. Contano le risposte tecniche precise, la documentazione, gli aggiornamenti ai clienti e il codice ordinato.",
+   "tries": [
+    "Scrivi la nota di rilascio di questa versione: ",
+    "Rispondi a un cliente che segnala un errore",
+    "Spiega in parole semplici questa funzione: "
+   ]
+  },
+  {
+   "id": "freelance",
+   "name": "Libero professionista",
+   "for": "persona",
+   "agents": [
+    "email",
+    "calendario",
+    "contenuti",
+    "ricerca",
+    "personale",
+    "amministrazione",
+    "contratti",
+    "linkedin"
+   ],
+   "context": "Lavora da solo per più clienti. Contano le proposte e i preventivi, i solleciti, l'agenda, la presentazione di sé e i contratti da far controllare.",
+   "tries": [
+    "Scrivi una proposta per questo cliente: ",
+    "Prepara un preventivo per tre giornate di lavoro",
+    "Organizza la mia settimana con queste scadenze: "
+   ]
+  },
+  {
+   "id": "creator",
+   "name": "Creator, artista o musicista",
+   "for": "persona",
+   "agents": [
+    "contenuti",
+    "personale",
+    "email",
+    "traduzioni",
+    "video",
+    "instagram",
+    "tiktok",
+    "youtube"
+   ],
+   "context": "Pubblica contenuti propri e cura il rapporto con chi lo segue. Contano le idee, i copioni brevi, le didascalie, il calendario delle uscite e le risposte a chi propone collaborazioni.",
+   "tries": [
+    "Dammi dieci idee di video per questo mese",
+    "Scrivi il copione di un video di 30 secondi su: ",
+    "Rispondi a un marchio che propone una collaborazione"
+   ]
+  },
+  {
+   "id": "privato",
+   "name": "Uso personale",
+   "for": "persona",
+   "agents": [
+    "personale",
+    "email",
+    "calendario",
+    "ricerca",
+    "traduzioni",
+    "contenuti"
+   ],
+   "context": "Usa Alvea per sé: organizzare le giornate, scrivere lettere e messaggi, cercare informazioni, tradurre.",
+   "tries": [
+    "Organizza la mia settimana con questi impegni: ",
+    "Scrivi una lettera di reclamo per: ",
+    "Traduci in inglese questo messaggio: "
+   ]
+  },
+  {
+   "id": "altro",
+   "name": "Altro",
+   "for": "tutti",
+   "agents": [
+    "email",
+    "calendario",
+    "contenuti",
+    "ricerca",
+    "report",
+    "assistenza",
+    "personale",
+    "traduzioni"
+   ],
+   "context": "",
+   "tries": [
+    "Scrivimi un post per presentare la mia attività",
+    "Prepara una risposta gentile a un cliente che chiede uno sconto",
+    "Fammi un piano di lavoro per questa settimana"
+   ]
   }
  ],
  "agents": [

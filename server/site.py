@@ -107,6 +107,8 @@ def page():
                e(", ".join(names.get(x, x) for x in p["adds"])), limits.get("automazioni", 0), limits.get("documenti", 0),
                ("%d GB" % (limits.get("archivio_mb", 0) // 1000) if limits.get("archivio_mb", 0) >= 1000 else "%d MB" % limits.get("archivio_mb", 0)),
                " primary" if i == 1 else "", e(p["name"])))
+    kinds = "".join('<li><h3>%s</h3><p>%s</p></li>' % (e(a["name"]), e(", ".join(names.get(x, x) for x in a["agents"][:6])))
+                    for a in catalog.activities() if a["id"] != "altro")
     steps = "".join('<li><span class="n">%d</span><h3>%s</h3><p>%s</p></li>' % (i + 1, e(t), e(d)) for i, (t, d) in enumerate(STEPS))
     safety = "".join("<li><h3>%s</h3><p>%s</p></li>" % (e(t), e(d)) for t, d in SAFETY)
     models = ", ".join(e(m["name"]) for m in cat["models"])
@@ -149,6 +151,11 @@ def page():
 <p class="sub">Ognuno dice chiaramente cosa fa oggi. Dove c'è scritto «solo bozze», l'agente prepara e tu pubblichi o invii.</p>
 <ul class="agents">{cards}</ul>
 </div></section>
+<section id="per-chi"><div class="wrap">
+<h2>Per il tuo mestiere</h2>
+<p class="sub">Alla registrazione scegli di cosa ti occupi: si accendono gli agenti più utili e sanno già con chi stanno lavorando. Poi li cambi quando vuoi.</p>
+<ul class="kinds">{kinds}</ul>
+</div></section>
 <section id="pacchetti" class="alt"><div class="wrap">
 <h2>Pacchetti</h2>
 <p class="sub">Ogni pacchetto contiene tutto quello del precedente. Puoi salire quando vuoi.</p>
@@ -179,5 +186,5 @@ def page():
 {footer}
 </body>
 </html>
-""".format(footer=_footer(), n=len(agents), cards=cards, plans="".join(plans), steps=steps, safety=safety, models=models, local=e(", ".join(local)))
+""".format(footer=_footer(), kinds=kinds, n=len(agents), cards=cards, plans="".join(plans), steps=steps, safety=safety, models=models, local=e(", ".join(local)))
     return html.encode("utf-8")

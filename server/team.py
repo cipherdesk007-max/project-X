@@ -50,6 +50,25 @@ def on_package_change(con, tenant_id, package_id):
     init_tenant(con, tenant_id, package_id)
 
 
+def set_activity(con, tenant, user, activity_id, turn_on=False):
+    """Cambia il tipo di attività dell'azienda. Con `turn_on` accende anche gli agenti consigliati che stanno nel suo pacchetto
+    (non ne spegne nessuno). Ritorna {"activity", "turned_on": [nomi]}."""
+    activity_id = str(activity_id or "")
+    spec = catalog.activity(activity_id)
+    if activity_id and not spec:
+        raise ApiError(400, "Tipo di attività sconosciuto.")
+    con.execute("UPDATE tenants SET activity=? WHERE id=?", (activity_id, tenant["id"]))
+    audit.record(con, tenant["id"], user["id"], "attivita_impostata", {"attivita": activity_id})
+    turned = []
+    if turn_on and spec:
+        have, top = active(con, tenant), ceiling(tenant)
+        todo = [a for a in spec["agents"] if a in top and a not in have]
+        if todo:
+            set_agents(con, tenant, user, [{"agent_id": a, "is_active": True} for a in todo])
+            turned = [catalog.agent(a)["name"] for a in todo]
+    return {"activity": activity_id, "turned_on": turned}
+
+
 def backfill(con):
     """Aziende nate prima di questa versione: nessuna riga, quindi tutti gli agenti del loro pacchetto accesi come prima."""
     rows = con.execute("SELECT id, package_id FROM tenants WHERE id NOT IN (SELECT DISTINCT tenant_id FROM tenant_agents)").fetchall()

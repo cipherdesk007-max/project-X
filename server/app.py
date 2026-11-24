@@ -159,7 +159,7 @@ def r_me(q):
         own_only = not q.tenant.get("platform_keys", 1)
         out["tenant"] = {"id": q.tenant["id"], "name": q.tenant["name"], "package_id": pkg["id"], "package_name": pkg["name"],
                          "stopped": bool(q.tenant.get("stopped")), "limits": pkg.get("limits") or {}, "own_keys_only": own_only,
-                         "subscription": ops.subscription(q.tenant), "kind": q.tenant.get("kind") or "azienda"}
+                         "subscription": ops.subscription(q.tenant), "kind": q.tenant.get("kind") or "azienda", "activity": q.tenant.get("activity") or ""}
         out["entitled"] = sorted(team.active(q.con, q.tenant))  # agenti accesi
         out["ceiling"] = sorted(team.ceiling(q.tenant))         # tetto del pacchetto
         out["agent_status"] = _agent_status(q.con, q.tenant)
@@ -253,6 +253,7 @@ def r_summary(q):
         "connections": q.con.execute("SELECT COUNT(*) FROM connectors WHERE tenant_id=? AND name<>'modelli'", (tid,)).fetchone()[0]})
     if q.user["role"] == "admin":
         out["first_steps"] = _first_steps(q)
+        out["tries"] = (catalog.activity(q.tenant.get("activity") or "") or catalog.activity("altro") or {}).get("tries") or []  # richieste d'esempio adatte all'attività
     if (q.query.get("office") or [""])[0] == "1":  # la vista Ufficio 3D chiede anche lo stato di ogni agente acceso
         out["office"] = office.snapshot(q.con, q.tenant, _agent_status(q.con, q.tenant))
     return out
@@ -367,6 +368,13 @@ def r_google_disconnect(q):
 def r_tenant_agents(q):
     return {"agents": team.listing(q.con, q.tenant), "package_name": catalog.package(q.tenant["package_id"])["name"],
             "per_agent": pricing.per_agent(), "subscribed": bool(q.tenant.get("stripe_subscription"))}
+
+
+def r_tenant_activity(q):
+    out = team.set_activity(q.con, q.tenant, q.user, q.body.get("activity"), q.body.get("turn_on") is True)
+    if out["turned_on"]:
+        out["price"] = billing.sync_price(q.con, q.tenant["id"])  # più agenti accesi: se c'è un abbonamento il prezzo lo segue
+    return out
 
 
 def r_tenant_agents_set(q):
@@ -694,6 +702,7 @@ ROUTES = [(m, re.compile("^" + p + "$"), level, fn) for m, p, level, fn in [
     ("GET", "/api/verify", "public", r_verify),
     ("GET", "/api/tenant/agents", "user", r_tenant_agents),
     ("POST", "/api/tenant/agents", "admin", r_tenant_agents_set),
+    ("POST", "/api/tenant/activity", "admin", r_tenant_activity),
     ("GET", "/api/files", "user", r_files),
     ("DELETE", r"/api/files/(\d+)", "user", r_file_delete),
     ("GET", "/api/summary", "user", r_summary),

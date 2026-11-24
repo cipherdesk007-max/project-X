@@ -15,7 +15,7 @@
   /* Animazioni legate allo scorrimento. Niente librerie: IntersectionObserver per le comparse, una variabile CSS per il resto. */
   function animate() {
     var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var items = document.querySelectorAll("section h2, section .sub, .agent, .plan, .steps li, .safety li, .panel, .last .cta"), i;
+    var items = document.querySelectorAll("section h2, section .sub, .agent, .kinds li, .plan, .steps li, .safety li, .panel, .last .cta"), i;
     function show(el) { el.classList.add("in"); }
     function count(el) {  // i numeri salgono da zero quando entrano nello schermo
       var end = parseInt(el.textContent, 10), start = null;

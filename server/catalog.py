@@ -23,11 +23,30 @@ def validate(data):
     placed = [i for p in data["packages"] for i in p["adds"]]
     assert sorted(placed) == sorted(agent_ids), "ogni agente deve entrare in un solo pacchetto"
     assert len({p["id"] for p in data["packages"]}) == len(data["packages"]), "pacchetti duplicati"
+    seen = set()
+    for a in data.get("activities") or []:  # tipi di attività: agenti consigliati, contesto per gli agenti, richieste d'esempio
+        assert a["id"] not in seen and a["id"] and a["name"], "attività duplicata o senza nome"
+        seen.add(a["id"])
+        assert a["for"] in ("azienda", "persona", "tutti"), "attività %s: «for» non valido" % a["id"]
+        assert a["agents"] and set(a["agents"]) <= set(agent_ids) and len(set(a["agents"])) == len(a["agents"]), "attività %s: agenti sconosciuti o ripetuti" % a["id"]
+        assert len(a["tries"]) == 3 and all(isinstance(t, str) and t.strip() for t in a["tries"]), "attività %s: servono tre richieste d'esempio" % a["id"]
     previous = {}
     for p in data["packages"]:  # i limiti non scendono mai passando a un pacchetto superiore
         for key, value in (p.get("limits") or {}).items():
             assert int(value) >= previous.get(key, 0), "limite %s decrescente" % key
             previous[key] = int(value)
+
+
+def activities():
+    return load().get("activities") or []
+
+
+def activity(activity_id):
+    """Il tipo di attività con questo nome, oppure None."""
+    for a in activities():
+        if a["id"] == activity_id:
+            return a
+    return None
 
 
 def package_ids():

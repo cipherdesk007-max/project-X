@@ -69,6 +69,9 @@ def system_prompt(tenant, agent_id, entitled, remembered=""):
     names = ", ".join(sorted(catalog.agent(a)["name"] for a in entitled)) or "nessuno"
     base = "Sei %s, dentro Alvea, per l'azienda «%s». Oggi è il %s.\nAgenti attivi nel team: %s.\n%s" % (
         ROLES[agent_id], tenant["name"], datetime.now(timezone.utc).strftime("%Y-%m-%d"), names, RULES)
+    kind = catalog.activity(tenant.get("activity") or "")
+    if kind and kind["context"]:  # il testo viene dal catalogo, non da chi scrive: dà agli agenti il contesto giusto senza aprire la porta a istruzioni altrui
+        base += "\n\nChi stai aiutando: %s. %s%s" % (kind["name"], kind["context"], " Lavora da solo, non ha colleghi né reparti." if tenant.get("kind") == "persona" else "")
     return base + ("\n\n" + remembered if remembered else "")
 
 

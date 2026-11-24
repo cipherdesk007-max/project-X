@@ -32,6 +32,15 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 25: profili per tipo di attività
+
+- Nel catalogo (`catalog.json`, schema 8) ci sono **14 tipi di attività**: negozio, ristorante, studio professionale, artigiano, auto e moto, immobiliare, salute e benessere, turismo, agenzia, software, libero professionista, creator, uso personale, altro. Ognuno ha gli **agenti consigliati**, un **contesto** per gli agenti e **tre richieste d'esempio**.
+- Alla registrazione si sceglie «Di cosa ti occupi»: si accendono gli agenti consigliati (solo quelli che il pacchetto permette) e restano modificabili. L'elenco cambia tra «Per la mia azienda» e «Solo per me».
+- Gli agenti ricevono il contesto nelle loro istruzioni («Chi stai aiutando: …»): il testo viene dal catalogo, non da quello che scrive l'utente. Dove serve mette anche i paletti (per esempio niente consigli medici).
+- Dal pannello, scheda Agenti → «Tipo di attività»: si cambia quando si vuole e, se lo si chiede, si accendono i consigliati (`POST /api/tenant/activity`, solo amministratori).
+- I Primi passi mostrano le richieste d'esempio del proprio mestiere. Il sito ha la sezione «Per il tuo mestiere», costruita dal catalogo.
+- Per aggiungere o cambiare un tipo di attività basta modificare `catalog.json`: all'avvio il server controlla che sia scritto bene.
+
 ## Novità della versione 24: anche per chi è da solo, e primi passi per chi arriva
 
 - **Registrazione «Solo per me»**: chi non è un'azienda non deve più inventarne una. Lo spazio prende il suo nome (`tenants.kind = 'persona'`), e intestazione e Ufficio mostrano lui, non un nome d'azienda.
@@ -357,7 +366,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 214 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 220 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

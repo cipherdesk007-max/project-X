@@ -74,7 +74,9 @@ def public_info():
     top = catalog.entitled_agents(package_id())
     return {"open": enabled(), "verify_email": verification_on(), "password_recovery": verification_on(),
             "trial_days": max(0, config.get_int("SFB_TRIAL_DAYS", 0)), "terms": site.enabled(),
-            "agents": [{"id": a["id"], "name": a["name"], "does": a["does"]} for a in catalog.load()["agents"] if a["id"] in top]}
+            "agents": [{"id": a["id"], "name": a["name"], "does": a["does"]} for a in catalog.load()["agents"] if a["id"] in top],
+            # per ogni tipo di attività, gli agenti consigliati che chi si registra può davvero accendere
+            "activities": [{"id": a["id"], "name": a["name"], "for": a["for"], "agents": [x for x in a["agents"] if x in top]} for a in catalog.activities()]}
 
 
 def _hash(token):
@@ -128,6 +130,9 @@ def register(con, body, ip):
     pid = package_id()
     kind = "persona" if body.get("kind") == "persona" else "azienda"
     company = str(body.get("company") or "").strip()
+    activity = str(body.get("activity") or "")
+    if activity and not catalog.activity(activity):
+        raise ApiError(400, "Tipo di attività sconosciuto.")
     if kind == "persona" and not company:  # chi si registra solo per sé non ha un'azienda da nominare: lo spazio prende il suo nome
         company = " ".join(str(body.get("name") or "").split())
     email = str(body.get("email") or "").strip().lower()
@@ -153,7 +158,7 @@ def register(con, body, ip):
     tenant_id = ops.create_tenant(con, name, pid, email, body.get("name"), body.get("password"), actor_id=None,
                                   origin="registrazione", platform_keys=1 if config.get("SFB_REGISTER_PLATFORM_KEYS") == "1" else 0,
                                   email_verified=0 if verify else 1, agents=set(agents))
-    con.execute("UPDATE tenants SET kind=? WHERE id=?", (kind, tenant_id))
+    con.execute("UPDATE tenants SET kind=?, activity=? WHERE id=?", (kind, activity, tenant_id))
     trial = config.get_int("SFB_TRIAL_DAYS", 0)
     if trial > 0:  # prova gratuita: l'azienda nasce con una scadenza, che il gestore sposta quando il cliente paga
         con.execute("UPDATE tenants SET paid_until=?, on_trial=1 WHERE id=?",
