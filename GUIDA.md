@@ -23,6 +23,8 @@ Quando ha finito apri `https://app.tuodominio.it`, entra come gestore e scrivi l
 
 Alla fine lo script dice anche **quanto regge il server**: memoria, processore, disco e circa quante persone possono lavorarci insieme. Lo rivedi quando vuoi con `python3 manage.py capacita` oppure nel pannello del gestore, sezione Server, dove c'è anche la **Console** con i comandi di manutenzione pronti.
 
+Dopo aver scritto la chiave di un modello nelle impostazioni, provala subito: nel pannello, Console → **Prova dei modelli** (oppure `python3 manage.py prova-modelli`). Ti dice se il modello risponde o l'errore esatto, per esempio una chiave sbagliata o un nome di modello che il fornitore non conosce.
+
 Per rifare il collaudo in qualsiasi momento:
 
 ```sh

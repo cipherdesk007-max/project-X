@@ -47,7 +47,7 @@ class Console(Base):
         self.assertEqual(self.call("GET", "/api/admin/console")[0], 401)
         status, out = self.call("GET", "/api/admin/console", token=self.gestore)
         self.assertEqual(status, 200)
-        self.assertEqual([c["id"] for c in out["commands"]], ["capacita", "collaudo", "produzione", "registro", "aziende", "firma"])
+        self.assertEqual([c["id"] for c in out["commands"]], ["capacita", "modelli", "collaudo", "produzione", "registro", "aziende", "firma"])
         self.assertGreater(out["capacity"]["people"], 0)
         for bad in ("ls", "capacita; ls", "capacita --help", "../manage.py", "rm -rf /", "", "CAPACITA", ["capacita"]):
             self.assertEqual(self.call("POST", "/api/admin/console", {"command": bad}, self.gestore)[0], 400, bad)
@@ -62,6 +62,29 @@ class Console(Base):
         logged = [r["detail"] for r in con.execute("SELECT detail FROM audit WHERE action='console_comando' ORDER BY id")]
         con.close()
         self.assertTrue(logged and "aziende" in logged[-1] and any("capacita" in d for d in logged))
+
+    def test_prova_dei_modelli(self):
+        import manage
+        report = manage.model_check()
+        names = [t.split(" ")[0].rstrip(":") for _, t in report]
+        self.assertEqual(names, ["Kimi", "Claude", "ChatGPT", "Locale"])
+        self.assertEqual([s for s, _ in report], ["OK"] * 4, report)  # nelle prove risponde il modello finto
+        self.assertTrue(all("ha risposto" in t and "secondi" in t for _, t in report))
+        status, out = self.call("POST", "/api/admin/console", {"command": "modelli"}, self.gestore)
+        self.assertEqual((status, out["code"]), (200, 0), out)
+        self.assertIn("Kimi", out["output"])
+        from server import llm
+        real = llm.chat
+
+        def broken(*a, **k):
+            raise llm.LLMError("401 chiave non valida")
+        llm.chat = broken
+        try:
+            bad = manage.model_check()
+        finally:
+            llm.chat = real
+        self.assertEqual([s for s, _ in bad], ["ERRORE"] * 4)
+        self.assertIn("401 chiave non valida", bad[0][1])
 
     def test_un_comando_alla_volta(self):
         self.assertTrue(console._busy.acquire(blocking=False))

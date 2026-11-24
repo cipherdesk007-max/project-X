@@ -16,6 +16,7 @@ from .errors import ApiError
 
 COMMANDS = [
     ("capacita", "Quanto regge il server", "Memoria, processore, disco e stima delle persone che possono lavorare insieme.", ["capacita"]),
+    ("modelli", "Prova dei modelli", "Manda una domanda vera a ogni modello configurato: dice se risponde, in quanto tempo e con quanti token.", ["prova-modelli"]),
     ("collaudo", "Collaudo", "Controlla sito, applicazione, agenti, pacchetti e launcher di questo server.", ["collaudo"]),
     ("produzione", "Controllo di produzione", "Dice cosa manca prima di aprire ai clienti.", ["controlla-produzione"]),
     ("registro", "Verifica del registro", "Controlla che nessuna riga del registro sia stata cambiata.", ["verifica-registro"]),

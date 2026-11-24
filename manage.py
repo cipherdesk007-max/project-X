@@ -249,6 +249,48 @@ def cmd_collaudo(args):
     return 1 if bad else 0
 
 
+def model_check():
+    """Manda una domanda vera a ogni modello che ha una chiave: dice se risponde, in quanto tempo e con quanti token.
+    Ritorna [(stato, testo)] con stato 'OK', 'ERRORE' oppure '-' (non configurato). Consuma pochi token per modello."""
+    import time
+    from server import llm, settings
+    config.load_env()
+    if config.db_path().is_file():
+        con = db.connect()
+        try:
+            settings.load(con)  # le chiavi scritte nel pannello valgono più del file
+        except Exception:
+            pass
+        con.close()
+    if config.demo_mode() and not llm.DEMO_BASE:
+        from server import fake_llm
+        llm.DEMO_SERVER, llm.DEMO_BASE = fake_llm.start()
+    out = []
+    for m in catalog.load()["models"]:
+        s = llm.settings(m["id"], None, True)
+        if not llm.configured(m["id"], None, True):
+            out.append(("-", "%s: non configurato (manca %s)." % (m["name"], s["key_name"])))
+            continue
+        started = time.time()
+        try:
+            res = llm.chat(m["id"], "Sei un controllo tecnico. Rispondi con una sola parola.", [{"role": "user", "content": "Scrivi soltanto: ok"}], [], None, True)
+            tokens = sum(res.get("usage") or (0, 0))
+            out.append(("OK", "%s (%s): ha risposto «%s» in %.1f secondi%s." % (m["name"], s["model"], " ".join(str(res.get("text") or "").split())[:60], time.time() - started,
+                                                                            ", %d token" % tokens if tokens else "")))
+        except llm.LLMError as e:
+            out.append(("ERRORE", "%s (%s): %s" % (m["name"], s["model"] or "nessun nome di modello", str(e)[:300])))
+    return out
+
+
+def cmd_modelli(args):
+    report = model_check()
+    for state, text in report:
+        print("%-7s %s" % (state, text))
+    if config.demo_mode():
+        print("\nATTENZIONE: SFB_DEMO=1, ha risposto il modello finto. Per provare i modelli veri metti SFB_DEMO=0 nel file .env.")
+    return 1 if any(s == "ERRORE" for s, _ in report) else 0
+
+
 def cmd_capacita(args):
     config.load_env()
     from server import capacity
@@ -282,6 +324,7 @@ def main():
     s.set_defaults(fn=cmd_pacchetto)
     sub.add_parser("verifica-registro").set_defaults(fn=cmd_verifica)
     sub.add_parser("controlla-produzione", help="dice cosa manca prima di aprire il server ai clienti").set_defaults(fn=cmd_produzione)
+    sub.add_parser("prova-modelli", help="manda una domanda vera a ogni modello configurato e dice se risponde").set_defaults(fn=cmd_modelli)
     sub.add_parser("capacita", help="memoria, processore, disco e quante persone regge questo server").set_defaults(fn=cmd_capacita)
     s = sub.add_parser("collaudo", help="prova un server acceso: pagina, agenti, pacchetti, launcher")
     s.add_argument("--url", help="indirizzo del server (se manca: quello locale)")
