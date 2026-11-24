@@ -28,7 +28,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 # Nel programma già pronto (dmg per macOS, exe per Windows) i file accanto sono quelli accanto all'eseguibile, non al codice impacchettato.
 HERE = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 HOME = Path(os.environ.get("ALVEA_HOME") or str(Path.home() / ".alvea"))
@@ -489,9 +489,21 @@ def cmd_finestra(cfg, args):
         except Exception:
             pass
     trial = float(os.environ.get("ALVEA_FINESTRA_PROVA") or 0)  # solo per le prove: la finestra si chiude da sola dopo tanti secondi
+    script = None
+    if os.environ.get("ALVEA_FINESTRA_COPIONE"):  # solo per le prove: un file dice quali pulsanti premere e dove scrivere com'è andata
+        try:
+            script = json.loads(Path(os.environ["ALVEA_FINESTRA_COPIONE"]).read_text(encoding="utf-8"))
+        except Exception:
+            script = None
     root.title("Alvea Launcher")
+    try:  # l'icona di Alvea sulla finestra, nella barra di Windows e nel Dock del Mac
+        mark = tk.PhotoImage(file=str(Path(getattr(sys, "_MEIPASS", str(HERE))) / "icon.png"))
+        root.iconphoto(True, mark)
+        root._mark = mark
+    except Exception:
+        pass
     root.configure(bg=BG)
-    root.geometry("780x640+60+60" if trial else "780x640")
+    root.geometry("780x640+60+60" if trial or script else "780x640")
     root.minsize(640, 520)
     q, stop, state = queue.Queue(), threading.Event(), {"busy": False, "listening": False}
     try:
@@ -603,6 +615,7 @@ def cmd_finestra(cfg, args):
                 state["busy"] = False
         threading.Thread(target=body, daemon=True).start()
 
+    pressable = {}
     for text, fn, main_button in (("Verifica questo computer", verify, False), ("Collega", pair, True)):
         if sys.platform == "darwin":  # su macOS i pulsanti restano quelli del sistema: colorarli li renderebbe illeggibili
             b = tk.Button(buttons, text=text, command=lambda f=fn: work(f), highlightbackground=BG, padx=10, pady=4, font=("Helvetica", 13))
@@ -610,6 +623,45 @@ def cmd_finestra(cfg, args):
             b = tk.Button(buttons, text=text, command=lambda f=fn: work(f), bg=ACCENT if main_button else PANEL, fg="#0b0f14" if main_button else TEXT, activebackground=ACCENT,
                           relief="flat", padx=16, pady=7, font=("Helvetica", 12, "bold"), cursor="hand2")
         b.pack(side="left", padx=(0, 10))
+        pressable["verifica" if fn is verify else "collega"] = b
+
+    def play():
+        """Prova automatica della finestra: scrive nei campi e preme i pulsanti veri uno dopo l'altro (lo stesso gesto di un clic,
+        fatto dal programma), poi scrive in un file che cosa si legge nella finestra. Così la finestra viene provata, non solo fotografata."""
+        steps, done = list(script.get("passi") or []), []
+
+        def finish():
+            try:
+                Path(script["esito"]).write_text(json.dumps({"passi": done, "in_ascolto": state["listening"], "stato": status.cget("text"),
+                                                              "righe": out.get("1.0", "end").splitlines()}, ensure_ascii=False), encoding="utf-8")
+            except Exception:
+                pass
+            root.after(int(float(script.get("resta") or 0) * 1000), close)  # resta aperta ancora un po': intanto il server le manda un lavoro
+
+        def settled(name, started):
+            if state["busy"] or time.time() - started < 1.5:  # si aspetta che il lavoro del pulsante finisca
+                return root.after(300, lambda: settled(name, started))
+            root.after(800, lambda: record(name))  # e che la finestra abbia mostrato l'ultimo messaggio
+
+        def record(name):
+            done.append({"nome": name, "stato": status.cget("text"), "errore": status.cget("fg") == WARN, "in_ascolto": state["listening"]})
+            root.after(600, advance)
+
+        def advance():
+            if not steps:
+                return finish()
+            name = steps.pop(0)
+            if name not in pressable:
+                done.append({"nome": name, "stato": "pulsante sconosciuto", "errore": True, "in_ascolto": False})
+                return root.after(100, advance)
+            pressable[name].invoke()
+            root.after(300, lambda: settled(name, time.time()))
+
+        for entry, key in ((server, "server"), (code, "codice")):
+            if script.get(key) is not None:
+                entry.delete(0, "end")
+                entry.insert(0, str(script[key]))
+        root.after(1200, advance)
 
     def pump():
         try:
@@ -632,11 +684,14 @@ def cmd_finestra(cfg, args):
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", close)
-    if trial:
+    if trial or script:
         root.lift()
         root.attributes("-topmost", True)
+    if trial:
         root.after(int(trial * 1000), close)
-    if cfg.get("server"):
+    if script:
+        play()
+    elif cfg.get("server"):
         work(verify)
     pump()
     root.mainloop()

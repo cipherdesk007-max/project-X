@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install --quiet pyinstaller pillow
-          python -m PyInstaller --onefile --console --name alvea-launcher --add-data "web/logo-alvea.png:." --hidden-import tkinter --hidden-import queue --hidden-import imaplib --hidden-import smtplib --hidden-import email.header --hidden-import email.message --hidden-import ssl --hidden-import tempfile --hidden-import getpass launcher/alvea_launcher.py
+          python -m PyInstaller --onefile --console --name alvea-launcher --add-data "web/logo-alvea.png:." --add-data "web/icon.png:." ${{ matrix.nome == 'windows' && '--icon web/icon-512.png' || '' }} --hidden-import tkinter --hidden-import queue --hidden-import imaplib --hidden-import smtplib --hidden-import email.header --hidden-import email.message --hidden-import ssl --hidden-import tempfile --hidden-import getpass launcher/alvea_launcher.py
           mkdir -p pronto && cp launcher/LEGGIMI.txt pronto/
       - name: Prepara l'exe (Windows)
         if: matrix.nome == 'windows'

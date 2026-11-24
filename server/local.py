@@ -404,8 +404,10 @@ def _with_links(tenant_id, payload):
     return payload
 
 
-def claim(con, device, tenant, wait_seconds=0):
-    """Il launcher chiede lavoro. Aspetta fino a `wait_seconds` così gli strumenti brevi partono subito."""
+def claim(con, device, tenant, wait_seconds=0, alive=None):
+    """Il launcher chiede lavoro. Aspetta fino a `wait_seconds` così gli strumenti brevi partono subito.
+    Mentre aspetta, a ogni giro controlla che il computer sia ancora collegato all'azienda e che sia ancora in linea:
+    un lavoro non va mai a un computer scollegato nel frattempo, né a uno che ha chiuso il launcher."""
     _paid(tenant)
     tid, end = tenant["id"], time.time() + max(0, min(float(wait_seconds or 0), 20))
     ok = [k[4:] for k, v in json.loads(device["checks"]).items() if k.startswith("pkg:") and v.get("ok")]
@@ -413,14 +415,19 @@ def claim(con, device, tenant, wait_seconds=0):
                 "result=CASE WHEN attempts>=? THEN 'Il computer ha smesso di rispondere durante il lavoro.' ELSE result END "
                 "WHERE tenant_id=? AND place='locale' AND status='in_corso' AND claimed_at<?", (MAX_ATTEMPTS, MAX_ATTEMPTS, tid, int(time.time()) - STALE_JOB_SECONDS))
     while True:
+        if con.execute("SELECT revoked FROM devices WHERE id=?", (device["id"],)).fetchone()["revoked"]:
+            raise ApiError(401, "Questo computer non è collegato: serve un codice nuovo.")
+        if alive and not alive():
+            return None  # il launcher è stato chiuso mentre aspettava: il lavoro resta in coda per chi c'è
         con.execute("UPDATE devices SET last_seen=? WHERE id=?", (int(time.time()), device["id"]))
         if tenant.get("stopped") or con.execute("SELECT stopped FROM tenants WHERE id=?", (tid,)).fetchone()["stopped"]:
             return None  # arresto d'emergenza: i lavori restano in coda
         for row in con.execute("SELECT * FROM jobs WHERE tenant_id=? AND place='locale' AND status='in_coda' ORDER BY id LIMIT 20", (tid,)):
             if row["package"] not in ok:
                 continue
-            if con.execute("UPDATE jobs SET status='in_corso', device_id=?, claimed_at=?, attempts=attempts+1 WHERE id=? AND tenant_id=? AND status='in_coda'",
-                           (device["id"], int(time.time()), row["id"], tid)).rowcount == 1:
+            if con.execute("UPDATE jobs SET status='in_corso', device_id=?, claimed_at=?, attempts=attempts+1 WHERE id=? AND tenant_id=? AND status='in_coda' "
+                           "AND EXISTS(SELECT 1 FROM devices WHERE id=? AND revoked=0)",  # nello stesso istante: niente lavoro a chi è appena stato scollegato
+                           (device["id"], int(time.time()), row["id"], tid, device["id"])).rowcount == 1:
                 return {"id": row["id"], "tool": row["tool"], "package": row["package"], "args": _with_links(tid, json.loads(row["args"]))}
         if time.time() >= end:
             return None

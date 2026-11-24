@@ -32,6 +32,14 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 27: la finestra del launcher provata davvero
+
+- Launcher 1.2: la prova automatica su Windows e Mac non si limita più a fotografare la finestra. Un copione di prova (`ALVEA_FINESTRA_COPIONE`) le fa **premere i suoi pulsanti** uno dopo l'altro e scrivere in un file quello che si legge: verifica del computer, «Collega» senza codice, con un codice sbagliato e con quello giusto.
+- Dalla finestra collegata passa **un lavoro vero**: l'Agente Dev elenca i file della cartella di lavoro sul computer, con il pacchetto scaricato e la firma controllata dal programma già pronto.
+- L'icona di Alvea sulla finestra, nella barra di Windows, nel Dock del Mac e sul file `.exe`.
+- **Difetto trovato da questa prova e corretto nel server**: un launcher che stava aspettando lavoro poteva riceverne uno anche se nel frattempo l'amministratore aveva scollegato quel computer, o se il launcher era stato chiuso (fino a 20 secondi dopo). Il lavoro restava appeso e l'agente rispondeva «il computer non ha risposto in tempo». Ora il server ricontrolla a ogni giro dell'attesa, e nello stesso istante in cui assegna il lavoro, che il computer sia ancora collegato e ancora in linea. Quattro prove nuove (`tests/test_v20.py`).
+- Sulle macchine Mac di GitHub compare l'avviso di sistema «Allow "Python" to find devices on local networks?»: viene dal Python che fa girare la prova, non dal launcher (c'è già prima che il launcher parta).
+
 ## Novità della versione 26: consigli a richiesta
 
 - Ogni agente ha nel catalogo **tre richieste d'esempio** (`tries`), provate una per una nelle prove: mandarle dà sempre una risposta.
@@ -372,7 +380,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 222 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 226 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

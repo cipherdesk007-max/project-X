@@ -32,6 +32,92 @@ def call(method, path, body=None, token=None):
         return json.loads(data) if data[:1] in (b"{", b"[") else data
 
 
+def window_flow(binary, token, work, shots, step, first_device, first_process):
+    """La finestra provata davvero: un copione le fa premere i suoi pulsanti (lo stesso gesto di un clic, fatto dal programma),
+    poi dalla finestra collegata passa un lavoro vero dell'Agente Dev. Serve uno schermo: gira su Windows e macOS."""
+    home = tempfile.mkdtemp(prefix="alvea-casa-finestra-")
+    env = dict(os.environ, ALVEA_HOME=home, PYTHONIOENCODING="utf-8")
+    script, result = Path(home) / "copione.json", Path(home) / "esito.json"
+
+    def play(steps, code="", stay=0):
+        if result.exists():
+            result.unlink()
+        script.write_text(json.dumps({"server": BASE, "codice": code, "passi": steps, "esito": str(result), "resta": stay}), encoding="utf-8")
+        return subprocess.Popen([str(binary), "finestra"], env=dict(env, ALVEA_FINESTRA_COPIONE=str(script)))
+
+    def outcome(seconds=150):
+        for _ in range(seconds * 2):
+            if result.is_file() and result.stat().st_size > 2:
+                time.sleep(0.3)
+                return json.loads(result.read_text(encoding="utf-8"))
+            time.sleep(0.5)
+        return None
+
+    def shot(name):
+        try:
+            if sys.platform == "darwin":
+                subprocess.run(["screencapture", "-x", str(shots / name)], timeout=30)
+            else:
+                from PIL import ImageGrab
+                ImageGrab.grab().save(str(shots / name))
+        except Exception as e:
+            print("foto non riuscita: %s" % e, flush=True)
+
+    def close(win):
+        try:
+            win.wait(timeout=60)
+        except Exception:
+            win.kill()
+
+    win = play(["verifica"], stay=3)
+    r = outcome() or {"passi": [{"stato": "la finestra non ha scritto l'esito", "errore": True}], "righe": []}
+    shot("3-verifica-dal-pulsante.png")
+    close(win)
+    agents = [l for l in r["righe"] if l.startswith(("●", "○"))]
+    step("nella finestra, il pulsante «Verifica questo computer» fa la verifica", not r["passi"][0]["errore"] and "Verifica fatta" in r["passi"][0]["stato"] and len(agents) >= 3,
+         "%s — %d agenti elencati" % (r["passi"][0]["stato"][:70], len(agents)))
+    win = play(["collega"], code="", stay=1)
+    r = outcome() or {"passi": [{"stato": "", "errore": False}]}
+    close(win)
+    step("senza codice il pulsante «Collega» spiega cosa manca", r["passi"][0]["errore"] and "codice" in r["passi"][0]["stato"], r["passi"][0]["stato"][:90])
+    win = play(["collega"], code="AAAA-AAAA", stay=1)
+    r = outcome() or {"passi": [{"stato": "", "errore": False}]}
+    close(win)
+    step("con un codice sbagliato il pulsante «Collega» lo dice", r["passi"][0]["errore"] and not r.get("in_ascolto"), r["passi"][0]["stato"][:90])
+    # il primo computer, collegato da riga di comando, si spegne: il lavoro deve passare dalla finestra
+    if first_process and first_process.poll() is None:
+        first_process.terminate()
+    if first_device.get("id"):
+        call("DELETE", "/api/devices/%d" % first_device["id"], token=token)
+    subprocess.run([str(binary), "cartella-dev", work], env=env, capture_output=True, timeout=120)
+    (Path(work) / "prova-alvea.txt").write_text("un file messo qui dalla prova", encoding="utf-8")
+    win = play(["collega"], code=call("POST", "/api/devices/code", {}, token)["code"], stay=120)
+    r = outcome() or {"passi": [{"stato": "la finestra non ha scritto l'esito", "errore": True, "in_ascolto": False}]}
+    time.sleep(2)
+    shot("4-collegato-dal-pulsante.png")
+    step("nella finestra, il pulsante «Collega» collega il computer e resta in ascolto", not r["passi"][0]["errore"] and r.get("in_ascolto") is True, r["passi"][0]["stato"][:90])
+    ready = False
+    for _ in range(40):
+        devices = [d for d in call("GET", "/api/devices", token=token)["devices"] if d.get("online") and ((d.get("checks") or {}).get("pkg:dev") or {}).get("ok")]
+        if devices:
+            ready = True
+            break
+        time.sleep(1.5)
+    step("il server vede il computer collegato dalla finestra, con l'Agente Dev pronto", ready)
+    try:
+        reply = call("POST", "/api/chat", {"message": "elenca i file della cartella", "agent_id": "dev", "model": "kimi"}, token)
+    except Exception as e:
+        reply = {"reply": "errore: %s" % e, "events": []}
+    step("un lavoro vero passa dalla finestra: l'Agente Dev elenca i file della cartella sul computer",
+         "prova-alvea.txt" in str(reply.get("reply")) and [e.get("status") for e in reply.get("events", [])] == ["eseguito"], str(reply.get("reply"))[:160])
+    jobs = call("GET", "/api/devices", token=token).get("jobs") or [{}]
+    step("il server segna il lavoro come fatto da quel computer", (jobs[0].get("tool"), jobs[0].get("status")) == ("dev_elenca_file", "fatto") and bool(jobs[0].get("device")),
+         "%s, %s, computer «%s»" % (jobs[0].get("tool"), jobs[0].get("status"), jobs[0].get("device")))
+    if win.poll() is None:
+        win.terminate()
+    close(win)
+
+
 def main():
     folder = Path(sys.argv[1]).resolve()
     shots = Path(sys.argv[sys.argv.index("--foto") + 1]).resolve() if "--foto" in sys.argv else None
@@ -129,6 +215,8 @@ def main():
         step("il launcher resta acceso", running.poll() is None)
         code, out = launcher("collega", pair)
         step("lo stesso codice non vale due volte", code != 0)
+        if shots:
+            window_flow(binary, token, work, shots, step, device, running)
     finally:
         for proc in (running, server):
             if proc and proc.poll() is None:

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import re
+import select
+import socket
 import sys
 import threading
 import time
@@ -51,9 +53,10 @@ _dummy_hash = None
 
 
 class Req:
-    def __init__(self, con, query, body, user, tenant, token, args, cookies=None, ip=None):
+    def __init__(self, con, query, body, user, tenant, token, args, cookies=None, ip=None, alive=None):
         self.con, self.query, self.body, self.user, self.tenant, self.token, self.args = con, query, body, user, tenant, token, args
         self.cookies, self.ip = cookies or {}, ip
+        self.alive = alive or (lambda: True)  # chi ha fatto la richiesta è ancora in linea? Serve alle richieste che aspettano a lungo
 
 
 class Raw:
@@ -417,7 +420,7 @@ def r_launcher_package(q):
 
 def r_launcher_claim(q):
     device, tenant = _device(q)
-    return {"job": local.claim(q.con, device, tenant, q.body.get("wait"))}
+    return {"job": local.claim(q.con, device, tenant, q.body.get("wait"), q.alive)}
 
 
 def r_launcher_progress(q):
@@ -773,7 +776,7 @@ def _authorize(level, user, tenant):
         raise ApiError(403, "Riservato agli amministratori dell'azienda.")
 
 
-def handle_api(method, path, query, body, token, cookies=None, ip=None):
+def handle_api(method, path, query, body, token, cookies=None, ip=None, alive=None):
     """Trova la rotta, controlla i permessi, esegue. Ritorna un dizionario o alza ApiError."""
     known_path = False
     for m, rx, level, fn in ROUTES:
@@ -787,7 +790,7 @@ def handle_api(method, path, query, body, token, cookies=None, ip=None):
         try:
             user, tenant = auth.user_from_token(con, token) if level != "public" else (None, None)
             _authorize(level, user, tenant)
-            return fn(Req(con, query, body, user, tenant, token, match.groups(), cookies, ip))
+            return fn(Req(con, query, body, user, tenant, token, match.groups(), cookies, ip, alive))
         finally:
             con.close()
     raise ApiError(405 if known_path else 404, "Metodo non ammesso." if known_path else "Risorsa non trovata.")
@@ -957,6 +960,14 @@ class Handler(BaseHTTPRequestHandler):
     def _json(self, status, obj):
         self._send(status, json.dumps(obj, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
 
+    def _peer_alive(self):
+        """Dall'altra parte c'è ancora qualcuno? Una connessione chiusa risulta «leggibile» ma non dà più niente."""
+        try:
+            ready, _, _ = select.select([self.connection], [], [], 0)
+            return not ready or self.connection.recv(1, socket.MSG_PEEK) != b""
+        except (OSError, ValueError):
+            return False
+
     def _dispatch(self, method):
         try:
             parts = urllib.parse.urlsplit(self.path)
@@ -1022,7 +1033,7 @@ class Handler(BaseHTTPRequestHandler):
                 if "=" in piece:
                     k, v = piece.split("=", 1)
                     cookies[k.strip()] = v.strip()
-            result = handle_api(method, parts.path, urllib.parse.parse_qs(parts.query), body, token, cookies, self._ip())
+            result = handle_api(method, parts.path, urllib.parse.parse_qs(parts.query), body, token, cookies, self._ip(), self._peer_alive)
             if isinstance(result, Raw):
                 payload = json.dumps(result.obj, ensure_ascii=False).encode("utf-8") if result.obj is not None else b""
                 self._send(result.status, payload, "application/json; charset=utf-8", result.headers)

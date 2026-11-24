@@ -255,9 +255,13 @@ class Sicurezza(Base):
         u = urllib.parse.urlsplit(self.base)
         for garbage in (b"GARBAGE\r\n\r\n", b"GET / HTTP/9.9\r\n\r\n", b"GET " + b"/a" * 40000 + b" HTTP/1.1\r\n\r\n", b"\x16\x03\x01\x02\x00\x01\x00\x01\xfc\x03\x03"):
             s = socket.create_connection((u.hostname, u.port), timeout=10)
-            s.sendall(garbage)
-            s.shutdown(socket.SHUT_WR)
-            reply = s.recv(4000)
+            reply = b""
+            try:  # il server può chiudere la porta in faccia prima che si finisca di scrivere: va bene, non ha risposto niente
+                s.sendall(garbage)
+                s.shutdown(socket.SHUT_WR)
+                reply = s.recv(4000)
+            except OSError:
+                pass
             s.close()
             self.assertNotIn(b"Python", reply)
             self.assertNotIn(b"<html", reply.lower(), "niente pagina d'errore predefinita")
