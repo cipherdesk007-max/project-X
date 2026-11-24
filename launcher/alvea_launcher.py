@@ -558,6 +558,9 @@ def cmd_finestra(cfg, args):
         def line(text=""):  # nella finestra si elencano solo gli agenti che possono, o potrebbero, lavorare su questo computer
             import re
             parts = re.split(r"\s{2,}", str(text).strip(), maxsplit=2)
+            for verdict in (" NON GIRA", " GIRA"):  # il nome «Modello locale» ha uno spazio solo prima del verdetto
+                if len(parts) == 2 and parts[0].endswith(verdict):
+                    parts = [parts[0][:-len(verdict)], verdict.strip(), parts[1]]
             if "SOLO SUI NOSTRI SERVER" in str(text):
                 hidden[0] += 1
             elif len(parts) == 3:  # «Nome   VERDETTO   motivo» diventa una riga che va a capo bene
