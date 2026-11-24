@@ -5,7 +5,9 @@ Per i dettagli di ogni funzione c'è `LEGGIMI.md`. Per provarlo sul tuo computer
 
 ## 1. Cosa serve
 
-- Un server Linux raggiungibile da Internet e un nome (`app.tuodominio.it`) che punta al suo indirizzo.
+- Un server Linux (VPS) raggiungibile da Internet, con **Ubuntu 22.04, 24.04 o 26.04** oppure **Debian 12 o 13**: sono i cinque sistemi su cui l'installazione viene provata da zero a ogni modifica. Bastano 2 GB di memoria per cominciare; lo script alla fine dice quante persone regge.
+- Un nome (`app.tuodominio.it`) che punta all'indirizzo del server: nel pannello di chi ti ha venduto il dominio crea un record **A** con l'indirizzo IP della VPS. Se non l'hai ancora fatto l'installazione va avanti lo stesso e te lo ricorda: l'HTTPS parte da solo appena il nome risponde.
+- Le porte 80 e 443 aperte verso il server (se il fornitore della VPS ha un suo firewall nel pannello, aprile lì).
 - Almeno una chiave di un modello (Claude, Kimi o ChatGPT), oppure Ollama sul server.
 
 ## 2. Installare con un solo comando
@@ -17,7 +19,9 @@ cd /opt/alvea
 sudo bash deploy/installa.sh --dominio app.tuodominio.it --email tu@tuodominio.it
 ```
 
-Lo script fa tutto in ordine e ti dice a che punto è: installa i programmi che servono, crea il file `.env` con la chiave di cifratura, crea il database e il tuo utente **gestore** (la password te la chiede lui), **firma tutti i pacchetti per i computer dei clienti**, accende l'avvio automatico, configura l'HTTPS e alla fine fa il collaudo. Si può rilanciare quante volte vuoi: non cancella e non riscrive niente di quello che c'è già.
+Se sulla VPS entri già come `root` (succede spesso), scrivi gli stessi comandi **senza** `sudo`. Scarica sempre in `/opt/alvea`: se la cartella sta in `/root` o in `/home` lo script si ferma e ti dice come spostarla, perché il servizio per sicurezza non può entrare nelle cartelle personali.
+
+Lo script fa tutto in ordine e ti dice a che punto è: installa i programmi che servono (Python, la cifratura, FFmpeg, Caddy: non devi installare niente prima), crea il file `.env` con la chiave di cifratura, crea il database e il tuo utente **gestore** (la password te la chiede lui), **firma tutti i pacchetti per i computer dei clienti**, accende l'avvio automatico, programma **una copia di sicurezza ogni notte**, apre le porte 80 e 443 se sul server è attivo il firewall `ufw`, configura l'HTTPS e alla fine fa il collaudo. Si può rilanciare quante volte vuoi: non cancella e non riscrive niente di quello che c'è già. Se il collaudo finale non passa lo dice chiaramente e ti indica dove guardare.
 
 Quando ha finito apri `https://app.tuodominio.it`, entra come gestore e scrivi le chiavi dei modelli in **Impostazioni della piattaforma**. I punti 3, 4 e 5 qui sotto servono solo se preferisci fare i passi a mano o vuoi capire cosa ha fatto lo script.
 
@@ -172,20 +176,31 @@ Chi paga con bonifico continua come prima: scrivi a mano **«Pagato fino al»** 
 
 ## 9. Copie di sicurezza
 
+L'installazione le programma da sola: **ogni notte verso le 3:30** una copia di database, file dei clienti e impostazioni va in `/var/backups/alvea`, e restano le ultime 14. Se a quell'ora il server era spento, parte alla prima accensione.
+
 ```sh
-sudo -u alvea deploy/backup.sh /percorso/delle/copie
+systemctl list-timers alvea-backup.timer      # quando parte la prossima
+sudo systemctl start alvea-backup             # farne una subito
+sudo ls -l /var/backups/alvea                 # vedere quelle che ci sono
 ```
 
-Da mettere in cron una volta al giorno. La copia contiene dati dei clienti: tienila cifrata e fuori dal server.
+**Rimettere una copia** (ferma Alvea, mette da parte i dati di adesso, rimette la copia, riavvia e fa il collaudo):
+
+```sh
+cd /opt/alvea
+sudo bash deploy/ripristina.sh                                              # l'ultima copia
+sudo bash deploy/ripristina.sh /var/backups/alvea/alvea-20261124-033000.db    # una copia precisa
+```
+
+Una copia che resta sullo stesso server non ti salva se si rompe il server: una volta alla settimana **portala anche altrove** (un altro server, il tuo computer, uno spazio cloud). Contiene dati dei clienti e chiavi: tienila cifrata. Per metterla in un'altra cartella: `sudo -u alvea deploy/backup.sh /percorso/delle/copie`.
 
 ## 10. Aggiornare
 
 ```sh
-cd /opt/alvea && sudo git pull
-sudo python3 manage.py firma-pacchetti     # oppure dal computer che tiene la chiave
-sudo systemctl restart alvea
-sudo -u alvea python3 manage.py collaudo     # controlla che dopo l'aggiornamento ci sia ancora tutto
+cd /opt/alvea && sudo bash deploy/aggiorna.sh
 ```
+
+Fa una copia di sicurezza, scarica l'ultima versione da GitHub, firma i pacchetti (se la chiave è su questo server; altrimenti ti ricorda di firmarli dal computer che la tiene), riavvia e fa il collaudo. Se il collaudo non passa ti scrive il comando per tornare alla versione di prima.
 
 Il database si aggiorna da solo all'avvio. `.env`, `data/` e `storage/` non sono nel repository e non vengono toccati.
 

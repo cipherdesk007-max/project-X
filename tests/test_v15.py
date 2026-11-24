@@ -2,6 +2,13 @@
 lavori automatici dopo una discesa di pacchetto, registrazione aperta e chiusa dal pannello."""
 import json
 import os
+import shutil
+import sqlite3
+import stat
+import subprocess
+import tarfile
+import tempfile
+import time
 import unittest
 
 from base import Base, PW, ROOT  # per primo: mette la cartella del progetto tra quelle da cui importare
@@ -120,6 +127,50 @@ class Aspetto(Base):
     def test_le_pagine_legali_si_leggono_anche_dopo_l_accesso(self):
         js = (ROOT / "web" / "sito.js").read_text(encoding="utf-8")
         self.assertIn('window.location.pathname === "/"', js, "solo la pagina iniziale porta chi è già entrato all'applicazione")
+
+
+class CopieDiSicurezza(unittest.TestCase):
+    def test_la_copia_e_integra_la_legge_solo_chi_la_fa_e_le_vecchie_spariscono(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dst, copies = os.path.join(tmp, "alvea"), os.path.join(tmp, "copie")
+            shutil.copytree(str(ROOT), dst, ignore=shutil.ignore_patterns("data", "storage", ".env", "__pycache__", ".git"))
+            env = dict(os.environ, ALVEA_PASSWORD=PW)
+            for key in ("SFB_DB", "SFB_STORAGE", "SFB_DEMO", "SFB_SECRET_KEY", "SFB_PUBLIC_URL"):
+                env.pop(key, None)
+            run = lambda *cmd: subprocess.run(list(cmd), cwd=dst, env=env, capture_output=True, text=True, timeout=120)
+            self.assertEqual(run("bash", "deploy/installa.sh", "--prova", "--email", "gestore@copie.it").returncode, 0)
+            os.makedirs(copies)
+            old = os.path.join(copies, "alvea-20200101-000000.db")
+            keep = os.path.join(copies, "appunti.txt")
+            for path in (old, keep):
+                open(path, "w").close()
+                os.utime(path, (time.time() - 20 * 86400,) * 2)
+            out = run("sh", "deploy/backup.sh", copies, "14")
+            self.assertEqual(out.returncode, 0, out.stderr)
+            made = sorted(f for f in os.listdir(copies) if f.startswith("alvea-"))
+            made.sort(key=lambda f: f.endswith(".gz"))  # prima il database, poi i file
+            self.assertEqual((len(made), made[0][-3:], made[1][-12:]), (2, ".db", "-file.tar.gz"), "la copia vecchia di 20 giorni è sparita, quella nuova c'è")
+            self.assertTrue(os.path.exists(keep), "cancella solo le proprie copie")
+            for f in made:
+                self.assertEqual(stat.S_IMODE(os.stat(os.path.join(copies, f)).st_mode), 0o600, f)
+            con = sqlite3.connect(os.path.join(copies, made[0]))
+            self.assertEqual(con.execute("SELECT email FROM users").fetchall(), [("gestore@copie.it",)])
+            con.close()
+            with tarfile.open(os.path.join(copies, made[1])) as tar:
+                self.assertIn(".env", tar.getnames())
+            time.sleep(1.1)  # il nome della copia ha data e ora al secondo
+            self.assertEqual(run("sh", "deploy/backup.sh", copies).returncode, 0, "senza giorni non cancella niente")
+            self.assertEqual(len([f for f in os.listdir(copies) if f.endswith(".db")]), 2)
+
+    def test_gli_script_del_server_sono_scritti_bene_e_spiegano_cosa_serve(self):
+        for name in ("installa.sh", "aggiorna.sh", "ripristina.sh"):
+            self.assertEqual(subprocess.run(["bash", "-n", str(ROOT / "deploy" / name)]).returncode, 0, name)
+        self.assertEqual(subprocess.run(["sh", "-n", str(ROOT / "deploy" / "backup.sh")]).returncode, 0)
+        script = (ROOT / "deploy" / "installa.sh").read_text(encoding="utf-8")
+        self.assertNotIn("sudo -u", script, "su un server appena creato sudo può non esserci: si usa runuser")
+        for unit in ("alvea.service", "alvea-backup.service", "alvea-backup.timer"):
+            self.assertIn("deploy/" + unit, script, unit)
+        self.assertIn("/var/backups/alvea 14", (ROOT / "deploy" / "alvea-backup.service").read_text(encoding="utf-8"))
 
 
 class RegistrazioneDalPannello(V8):

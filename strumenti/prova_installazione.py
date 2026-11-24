@@ -74,7 +74,7 @@ def http(method, url, body=None, token=None, headers=None, raw=None, insecure=Fa
 
 
 def login(email, password=PW, base=LOCALE):
-    status, _, out = http("POST", base + "/api/login", {"email": email, "password": password})
+    status, _, out = http("POST", base + "/api/login", {"email": email, "password": password}, insecure=base.startswith("https://"))
     return out.get("token") if status == 200 and isinstance(out, dict) else None
 
 
@@ -132,7 +132,7 @@ def installa():
     out = registrato("installa.out")
     atteso(registrato("installa.code") == "0", "L'installazione finisce senza errori (%s secondi; Python c'era già: %s)" % (registrato("installa.secondi"), registrato("python-prima")), out)
     atteso("Collaudo superato" in out, "Il collaudo finale passa")
-    atteso("non sono riuscito a installare" not in out, "FFmpeg, git e Caddy installati dal sistema", [l for l in out.splitlines() if "non sono riuscito" in l])
+    atteso("non sono riuscito a installare" not in out, "FFmpeg, git e Caddy installati%s" % (" (Caddy dal suo archivio ufficiale)" if "archivio ufficiale" in out else ""), [l for l in out.splitlines() if "non sono riuscito" in l])
     atteso("non punta ancora a nessun indirizzo" in out, "Avvisa che il nome del dominio non punta ancora al server")
     atteso("manca il modulo «cryptography»" not in out and "manca ffmpeg" not in out, "Cifratura e FFmpeg presenti")
     atteso("Sul sito e nelle pagine legali mancano" in out, "Il controllo di produzione elenca quello che resta da fare")
@@ -178,7 +178,7 @@ def installa():
 
     passo("HTTPS con Caddy")
     atteso(attivo("caddy") and sh("systemctl is-enabled caddy")[1].strip() == "enabled", "Caddy è acceso e parte da solo", sh("systemctl status caddy --no-pager")[1])
-    atteso(DOMINIO in open("/etc/caddy/Caddyfile").read(), "La configurazione di Caddy ha il dominio giusto")
+    atteso(os.path.isfile("/etc/caddy/Caddyfile") and DOMINIO in open("/etc/caddy/Caddyfile").read(), "La configurazione di Caddy ha il dominio giusto")
     code, out = sh("caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile")
     atteso(code == 0, "Caddy accetta la configurazione", out)
     status, heads, _ = http("GET", "http://127.0.0.1/app", headers={"Host": DOMINIO})

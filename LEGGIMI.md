@@ -32,6 +32,12 @@ All'inizio il server è in **modalità demo**: risponde un modello finto a regol
 
 Prima di aggiornare un'installazione con dati veri, fai una copia di `data/salesforb.db`.
 
+## Novità della versione 21: installazione provata su macchine vere
+
+- `deploy/installa.sh` viene provato da zero su cinque sistemi (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13) dal giro «Installazione» di GitHub, su macchine minime con systemd, utente root, senza sudo e senza Python: servizio, HTTPS passando da Caddy, arresto brusco, copia di sicurezza, ripristino, seconda installazione, aggiornamento, riavvio della macchina. La prova è in `strumenti/prova_installazione.sh` e `.py`.
+- Lo script ora: funziona da root senza `sudo`; si ferma se la cartella è in `/root` o `/home`; prende Caddy dal suo archivio ufficiale dove il sistema non lo ha (Ubuntu 22.04); apre le porte 80 e 443 se `ufw` è attivo; avvisa se il dominio non punta ancora al server; esce con errore se il collaudo non passa.
+- **Copia di sicurezza ogni notte** con systemd in `/var/backups/alvea` (ultime 14, controllo di integrità, leggibili solo da `alvea`), `deploy/ripristina.sh` per rimetterla e `deploy/aggiorna.sh` per aggiornare con un comando.
+
 ## Novità della versione 20: pagine legali e giro completo di agenti e pacchetti
 
 - **Pagine legali** `/privacy`, `/condizioni`, `/cookie` sullo stesso sito, con i dati dell'azienda presi dal pannello (Impostazioni, gruppo «Azienda») e mostrati anche in fondo al sito. Testi in `server/legal.py`. Chi si registra accetta le condizioni e la versione accettata resta nel registro. `controlla-produzione` segnala i dati che mancano, `collaudo` controlla che le pagine ci siano.
@@ -327,7 +333,7 @@ Rispetto alla schermata del video dimostrativo non ci sono: il riquadro «Attivi
 ## Come può verificarlo una terza persona
 
 ```bash
-python3 -m unittest discover -s tests -v     # 189 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
+python3 -m unittest discover -s tests -v     # 191 prove, senza chiavi e senza Internet (13 chiedono FFmpeg e openssl, altrimenti alcune vengono saltate)
 python3 manage.py verifica-registro          # ricalcola la catena di ogni azienda
 ```
 

@@ -45,9 +45,18 @@ if [ "$PROVA" = 0 ]; then
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
     apt-get install -y -qq python3 python3-cryptography openssl ca-certificates >/dev/null   # senza questi non si parte
-    for extra in ffmpeg git caddy; do   # utili ma non indispensabili: se uno manca nel sistema lo dico e vado avanti
+    for extra in ffmpeg git; do   # utili ma non indispensabili: se uno manca nel sistema lo dico e vado avanti
       apt-get install -y -qq "$extra" >/dev/null 2>&1 || echo "ATTENZIONE: non sono riuscito a installare «$extra» con apt."
     done
+    if ! command -v caddy >/dev/null && ! apt-get install -y -qq caddy >/dev/null 2>&1; then
+      # Su alcuni sistemi (per esempio Ubuntu 22.04) Caddy non è tra i programmi del sistema: lo prendo dall'archivio ufficiale di Caddy.
+      echo "Caddy non è tra i programmi di questo sistema: lo installo dall'archivio ufficiale di Caddy."
+      apt-get install -y -qq curl gnupg >/dev/null 2>&1 || true
+      { curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+          && curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt > /etc/apt/sources.list.d/caddy-stable.list \
+          && apt-get update -qq && apt-get install -y -qq caddy >/dev/null 2>&1; } \
+        || { rm -f /etc/apt/sources.list.d/caddy-stable.list; echo "ATTENZIONE: non sono riuscito a installare «caddy»."; }
+    fi
   else
     echo "Questo sistema non usa apt (non è Ubuntu o Debian): installa a mano python3, il modulo cryptography, openssl, ffmpeg e caddy."
   fi
